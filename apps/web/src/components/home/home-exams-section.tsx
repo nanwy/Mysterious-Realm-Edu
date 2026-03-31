@@ -1,8 +1,9 @@
 import { MotionItem, MotionStagger } from "@workspace/motion";
-import { Badge, Card, CardContent } from "@workspace/ui";
+import { Badge } from "@workspace/ui";
 import { toText } from "@/lib/media";
 import type { HomeRecord } from "./home-types";
 import { ErrorLine, HomeSection } from "./home-section-heading";
+import { ArrowRight } from "lucide-react";
 
 export function HomeExamsSection({
   exams,
@@ -11,70 +12,73 @@ export function HomeExamsSection({
   exams: HomeRecord[];
   examError: string | null;
 }) {
-  const visibleExams = (exams.length ? exams : new Array(3).fill({})).slice(0, 3);
+  const visibleExams = (exams.length ? exams : new Array(3).fill({})).slice(
+    0,
+    3
+  );
 
-  const getExamBadgeVariant = (state?: number) => {
-    if (state === 3) {
-      return "neutral" as const;
-    }
-
-    if (state === 2) {
-      return "warning" as const;
-    }
-
-    return "success" as const;
+  const getExamStateLabel = (state?: number) => {
+    if (state === 3) return "已结束";
+    if (state === 2) return "未开始";
+    return "进行中";
   };
 
   return (
     <HomeSection
-      eyebrow="Latest Exams"
-      title="考试快讯"
-      subtitle="把考试信息压缩成更稳的三张信息卡，突出状态、时长、分数线和参与人数。"
+      eyebrow="考试安排"
+      title="近期考试安排"
+      subtitle="保留旧考试列表表现，但首页展示改成更清晰的考试提醒卡。"
       href="/exams"
     >
       <ErrorLine message={examError} />
-      <MotionStagger className="grid gap-4 xl:grid-cols-3" delayChildren={0.1}>
+      <MotionStagger className="flex flex-col gap-4" delayChildren={0.1}>
         {visibleExams.map((item, index) => (
           <MotionItem key={index}>
-            <Card className="rounded-[30px] border-white/80 bg-white/85 shadow-[0_18px_48px_rgba(37,99,235,0.08)] transition hover:-translate-y-1 hover:shadow-[0_24px_56px_rgba(37,99,235,0.12)] dark:border-white/8 dark:bg-slate-900/72 dark:shadow-[0_18px_48px_rgba(2,6,23,0.32)] dark:hover:shadow-[0_24px_56px_rgba(2,6,23,0.42)]">
-            <CardContent className="space-y-5 p-6">
-              <div className="flex min-h-22 items-start justify-between gap-4">
-                <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-600">
-                    EXAM {String(index + 1).padStart(2, "0")}
-                  </p>
-                  <h3 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">
-                    {toText(item.title, `考试 ${index + 1}`)}
-                  </h3>
-                </div>
-                <Badge
-                  variant={getExamBadgeVariant(item.state)}
-                >
-                  {item.state === 3 ? "已结束" : item.state === 2 ? "未开始" : "进行中"}
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: "时长", value: `${String(item.totalTime ?? "--")} min` },
-                  { label: "及格", value: `${String(item.qualifyScore ?? "--")} 分` },
-                  { label: "人数", value: String(item.examNumber ?? 0) },
-                ].map((meta) => (
-                  <div
-                    key={meta.label}
-                    className="flex min-h-24 flex-col justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-white/6"
-                  >
-                    <p className="whitespace-nowrap text-[11px] uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
-                      {meta.label}
-                    </p>
-                    <p className="text-xl font-semibold leading-tight text-slate-900 dark:text-white">
-                      {meta.value}
-                    </p>
+            <article className="group flex cursor-pointer flex-col justify-between gap-6 rounded-2xl border border-border bg-card p-5 shadow-sm transition-colors hover:border-indigo-300 hover:shadow-md dark:bg-slate-900/75 dark:hover:border-indigo-400 dark:hover:shadow-md">
+              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-6">
+                  <div className="flex size-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-border/60 bg-muted dark:border-white/10 dark:bg-slate-800">
+                    <div className="text-[10px] font-bold uppercase text-muted-foreground">
+                      考试
+                    </div>
+                    <div className="text-xl font-extrabold text-foreground">
+                      {String(index + 1).padStart(2, "0")}
+                    </div>
                   </div>
-                ))}
+                  <div>
+                    <div className="mb-2 flex items-center gap-3">
+                      <h3 className="text-lg font-extrabold text-foreground transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-600 dark:text-white">
+                        {toText(item.title, `考试 ${index + 1}`)}
+                      </h3>
+                      <Badge>{getExamStateLabel(item.state)}</Badge>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-6 text-sm font-medium text-muted-foreground">
+                      <span>
+                        考试时长{" "}
+                        <strong className="font-extrabold text-foreground">
+                          {String(item.totalTime ?? "--")} 分钟
+                        </strong>
+                      </span>
+                      <span>
+                        及格线{" "}
+                        <strong className="font-extrabold text-foreground">
+                          {String(item.qualifyScore ?? "--")} 分
+                        </strong>
+                      </span>
+                      <span>
+                        参考人数{" "}
+                        <strong className="font-extrabold text-foreground">
+                          {String(item.examNumber ?? 0)} 人
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="hidden size-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-indigo-50 group-hover:text-indigo-400 md:flex dark:bg-slate-800">
+                  <ArrowRight className="size-4" />
+                </div>
               </div>
-            </CardContent>
-            </Card>
+            </article>
           </MotionItem>
         ))}
       </MotionStagger>

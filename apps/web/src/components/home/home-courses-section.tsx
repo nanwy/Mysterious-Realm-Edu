@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MotionItem, MotionStagger } from "@workspace/motion";
+import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { resolveMediaUrl, toText } from "@/lib/media";
 import type { HomeRecord } from "./home-types";
@@ -8,85 +8,222 @@ import { ErrorLine, HomeSection } from "./home-section-heading";
 export function HomeCoursesSection({
   courses,
   courseError,
+  announcements,
+  announcementError,
+  examCount,
 }: {
   courses: HomeRecord[];
   courseError: string | null;
+  announcements: HomeRecord[];
+  announcementError: string | null;
+  examCount: number;
 }) {
   const visibleCourses = (
     courses.length ? courses : new Array(4).fill({})
   ).slice(0, 4);
 
+  const featuredCourse = visibleCourses[0] ?? {};
+  const secondaryCourses = visibleCourses.slice(1, 4);
+
+  const visibleAnnouncements = (
+    announcements.length
+      ? announcements
+      : [{ titile: "接口可用后会在这里展示教务通知与首页公告。" }]
+  ).slice(0, 2);
+
   return (
     <HomeSection
-      eyebrow="Popular Courses"
-      title="热门课程"
-      subtitle="保持旧系统课程数据源，但用更清晰的双列课程卡组织首批学习入口。"
+      eyebrow="课程中心"
+      title="学习总览"
+      subtitle="保留课程主入口，但用更紧凑的主卡和次级课程列表呈现，避免第二屏信息失衡。"
       href="/courses"
     >
-      <ErrorLine message={courseError} />
-      <MotionStagger className="grid gap-5 md:grid-cols-2" delayChildren={0.1}>
-        {visibleCourses.map((item, index) => (
-          <MotionItem key={index}>
-            <article className="group overflow-hidden rounded-[30px] border border-white/80 bg-white/85 shadow-[0_20px_48px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_60px_rgba(37,99,235,0.14)] dark:border-white/10 dark:bg-slate-900/75 dark:shadow-[0_20px_48px_rgba(2,6,23,0.32)] dark:hover:shadow-[0_28px_60px_rgba(2,6,23,0.4)]">
-              <div className="relative overflow-hidden bg-[linear-gradient(135deg,#dbeafe,#eff6ff_55%,#e0f2fe)] dark:bg-[linear-gradient(135deg,rgba(37,99,235,0.18),rgba(15,23,42,0.96)_55%,rgba(8,47,73,0.72))]">
-                {resolveMediaUrl(String(item.cover ?? "")) ? (
+      <MotionReveal className="grid gap-4" direction="left">
+        <ErrorLine message={courseError} />
+        <div className="grid gap-6 lg:grid-cols-12">
+          <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm lg:col-span-5 dark:border-white/10 dark:bg-slate-900/78">
+            <div className="overflow-hidden bg-muted p-4 dark:bg-[linear-gradient(160deg,rgba(37,99,235,0.2),rgba(15,23,42,0.96)_70%)]">
+              <div className="overflow-hidden rounded-2xl border border-border/60 bg-muted dark:border-white/10 dark:bg-slate-950/30">
+                {resolveMediaUrl(String(featuredCourse.cover ?? "")) ? (
                   <img
-                    src={resolveMediaUrl(String(item.cover)) ?? ""}
-                    alt={toText(item.name, `课程 ${index + 1}`)}
-                    className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                    src={resolveMediaUrl(String(featuredCourse.cover)) ?? ""}
+                    alt={toText(featuredCourse.name, "课程封面")}
+                    className="aspect-[16/10] w-full object-cover"
                   />
                 ) : (
-                  <div className="flex aspect-4/3 items-end p-5">
-                    <div className="rounded-2xl bg-white/75 px-4 py-3 backdrop-blur dark:bg-slate-950/70">
-                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600">
-                        Course
-                      </p>
-                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                        课程封面待接入
-                      </p>
+                  <div className="flex aspect-16/10 items-center justify-center p-6">
+                    <div className="rounded-full bg-white/90 px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-indigo-600 shadow-sm dark:bg-slate-950/55 dark:text-sky-300">
+                      课程聚焦
                     </div>
                   </div>
                 )}
-                <div className="absolute left-4 top-4">
-                  <Badge>
-                    {toText(item.state_dictText, "课程")}
-                  </Badge>
-                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-6">
+              <div className="space-y-3">
+                <Badge className="w-fit rounded-md bg-indigo-50 px-2.5 py-1 text-[10px] font-bold text-indigo-700 hover:bg-indigo-50 dark:bg-sky-500/15 dark:text-sky-300 dark:hover:bg-sky-500/15">
+                  推荐课程
+                </Badge>
+                <h3 className="text-xl font-extrabold text-foreground">
+                  {toText(featuredCourse.name, "课程学习路径")}
+                </h3>
               </div>
 
-              <div className="space-y-4 p-5">
-                <div className="space-y-2">
-                  <h3 className="line-clamp-2 text-xl font-semibold tracking-[-0.03em] text-slate-950 dark:text-white">
-                    {toText(item.name, `热门课程 ${index + 1}`)}
-                  </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {String(item.learnerNumber ?? 0)} 人学习
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-border/60 bg-muted px-4 py-4 dark:border-white/10 dark:bg-white/6">
+                  <p className="text-xs font-bold text-muted-foreground">
+                    学习人数
+                  </p>
+                  <p className="mt-2 text-xl font-extrabold text-foreground">
+                    {String(featuredCourse.learnerNumber ?? 0)} 人
                   </p>
                 </div>
-
-                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm dark:bg-white/5">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    价格
-                  </span>
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {item.isFree ? "免费" : `￥${String(item.price ?? "--")}`}
-                  </span>
+                <div className="rounded-2xl border border-border/60 bg-muted px-4 py-4 dark:border-white/10 dark:bg-white/6">
+                  <p className="text-xs font-bold text-muted-foreground">
+                    课程价格
+                  </p>
+                  <p className="mt-2 text-xl font-extrabold text-foreground">
+                    {featuredCourse.isFree
+                      ? "免费"
+                      : `￥${String(featuredCourse.price ?? "--")}`}
+                  </p>
                 </div>
+              </div>
 
+              <div className="flex flex-wrap gap-3">
                 <Link
-                  href={`/courses/${String(item.id ?? "")}`}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-sky-700 transition hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200"
+                  href={`/courses/${String(featuredCourse.id ?? "")}`}
+                  className="inline-flex flex-1 items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-700 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
                 >
-                  进入学习
-                  <span className="text-xs uppercase tracking-[0.2em] text-sky-500">
-                    Start
-                  </span>
+                  进入课程
+                </Link>
+                <Link
+                  href="/courses"
+                  className="inline-flex flex-1 items-center justify-center rounded-xl border border-border bg-card px-5 py-3 text-sm font-bold text-foreground transition hover:bg-muted dark:border-white/10 dark:bg-slate-900/70 dark:hover:border-sky-500 dark:hover:text-sky-300"
+                >
+                  全部课程
                 </Link>
               </div>
-            </article>
-          </MotionItem>
-        ))}
-      </MotionStagger>
+            </div>
+          </article>
+
+          <MotionStagger
+            className="space-y-4 lg:col-span-4"
+            delayChildren={0.1}
+          >
+            {secondaryCourses.map((item, index) => (
+              <MotionItem key={index}>
+                <article className="rounded-2xl border border-border group bg-card p-5 shadow-sm hover:border-indigo-300 cursor-pointer hover:shadow-md dark:bg-slate-900/75 dark:hover:border-indigo-400 dark:hover:shadow-md">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-2">
+                      <span className="rounded-md bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700">
+                        推荐课 {index + 2}
+                      </span>
+                      <h3 className="text-lg font-extrabold text-foreground group-hover:text-indigo-600 transition-colors">
+                        {toText(item.name, `热门课程 ${index + 2}`)}
+                      </h3>
+                    </div>
+                    <span className="rounded-md bg-muted px-2 py-1 text-[10px] font-bold text-muted-foreground">
+                      课程
+                    </span>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between text-sm">
+                    <span className="rounded-full border border-border/60 bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">
+                      {String(item.learnerNumber ?? 0)} 人学习
+                    </span>
+                    <span className="text-sm font-extrabold text-foreground">
+                      {item.isFree ? "免费" : `￥${String(item.price ?? "--")}`}
+                    </span>
+                  </div>
+                </article>
+              </MotionItem>
+            ))}
+          </MotionStagger>
+
+          <div className="grid gap-4 lg:col-span-3 flex-col">
+            <section className="rounded-2xl border border-border bg-card p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/78">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-sky-300">
+                    教务动态
+                  </p>
+                  <h2 className="text-lg font-extrabold text-foreground">
+                    教务通知
+                  </h2>
+                </div>
+                <span className="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700 dark:border-sky-500/20 dark:bg-sky-500/12 dark:text-sky-300">
+                  实时
+                </span>
+              </div>
+              <div className="mt-4">
+                <ErrorLine message={announcementError} />
+              </div>
+              <div className="mt-4 grid gap-3">
+                {visibleAnnouncements.map((item, index) => (
+                  <div
+                    key={index}
+                    className="rounded-2xl border border-border/60 bg-muted px-4 py-4 dark:border-white/10 dark:bg-white/5"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                        {index + 1}
+                      </div>
+                      <p className="text-sm leading-7 text-foreground/80 dark:text-slate-200">
+                        {toText(item.titile ?? item.title, `通知 ${index + 1}`)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.95),rgba(8,17,33,0.92))]">
+              <p className="text-xs font-bold text-muted-foreground">
+                学习进度
+              </p>
+              <p className="mt-4 text-4xl font-extrabold tracking-tight text-foreground">
+                84%
+              </p>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted dark:bg-white/10">
+                <div className="h-full w-[84%] rounded-full bg-indigo-600" />
+              </div>
+            </div>
+            <div className="rounded-2xl bg-indigo-600 p-5 text-white shadow-md shadow-indigo-600/20 dark:bg-[linear-gradient(160deg,#2563eb_0%,#1d4ed8_100%)]">
+              <p className="text-xs font-bold text-indigo-100">近期考试</p>
+              <p className="mt-4 text-4xl font-extrabold tracking-tight">
+                {examCount || 6}
+              </p>
+              <p className="mt-2 text-[10px] font-bold text-indigo-200">
+                待关注场次
+              </p>
+            </div>
+            <MotionStagger
+              className="grid gap-4 sm:grid-cols-3"
+              delayChildren={0.1}
+            >
+              {[
+                { label: "在线练习", href: "/practice", note: "题库训练" },
+                { label: "在线考试", href: "/exams", note: "考试入口" },
+                { label: "个人中心", href: "/me", note: "学习档案" },
+              ].map((item) => (
+                <MotionItem key={item.label}>
+                  <Link
+                    href={item.href}
+                    className="group block rounded-xl border border-border bg-card p-3 text-center shadow-sm transition hover:bg-muted dark:border-white/10 dark:bg-slate-900/75"
+                  >
+                    <p className="text-sm font-extrabold text-foreground">
+                      {item.label}
+                    </p>
+                    <p className="mt-1 text-[10px] font-bold text-muted-foreground">
+                      {item.note}
+                    </p>
+                  </Link>
+                </MotionItem>
+              ))}
+            </MotionStagger>
+          </div>
+        </div>
+      </MotionReveal>
     </HomeSection>
   );
 }

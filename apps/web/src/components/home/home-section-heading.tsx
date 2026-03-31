@@ -6,30 +6,54 @@ export function SectionHeading({
   title,
   subtitle,
   href,
+  compact = false,
 }: {
   eyebrow: string;
   title: string;
   subtitle: string;
   href?: string;
+  compact?: boolean;
 }) {
   return (
-    <div className="flex min-h-26 flex-col gap-4 md:flex-row md:items-start md:justify-between xl:min-h-30">
-      <div className="max-w-2xl space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-600">
+    <div
+      className={
+        compact
+          ? "flex flex-col gap-3 md:flex-row md:items-end md:justify-between"
+          : "flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
+      }
+    >
+      <div className={compact ? "max-w-xl space-y-2" : "max-w-2xl space-y-3"}>
+        <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-sky-300">
           {eyebrow}
         </p>
-        <h2 className="text-3xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white sm:text-4xl">
+        <h2
+          className={
+            compact
+              ? "text-2xl font-extrabold tracking-tight text-foreground sm:text-[2rem]"
+              : "text-2xl font-extrabold tracking-tight text-foreground"
+          }
+        >
           {title}
         </h2>
-        <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">{subtitle}</p>
+        <p
+          className={
+            compact
+              ? "max-w-md text-sm font-medium leading-relaxed text-muted-foreground"
+              : "max-w-2xl text-sm font-medium leading-relaxed text-muted-foreground"
+          }
+        >
+          {subtitle}
+        </p>
       </div>
       {href ? (
         <Link
           href={href}
-          className="inline-flex h-8 min-w-30 shrink-0 items-center justify-center gap-2 self-start whitespace-nowrap rounded-full border border-sky-200/90 bg-white/90 px-4 text-sm font-medium text-slate-700 shadow-[0_12px_28px_rgba(59,130,246,0.08)] transition hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-700 dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-100 dark:shadow-[0_12px_28px_rgba(2,6,23,0.25)] dark:hover:border-sky-500 dark:hover:text-sky-300"
+          className="inline-flex items-center gap-1 self-start text-sm font-bold text-indigo-600 transition-colors hover:text-indigo-700 dark:text-sky-300"
         >
-          查看更多
-          <span className="text-xs uppercase tracking-[0.18em] text-sky-500">View</span>
+          查看全部
+          <span aria-hidden="true" className="text-base leading-none">
+            →
+          </span>
         </Link>
       ) : null}
     </div>
@@ -42,12 +66,14 @@ export function HomeSection({
   subtitle,
   href,
   children,
+  compact = false,
 }: {
   eyebrow: string;
   title: string;
   subtitle: string;
   href?: string;
   children: ReactNode;
+  compact?: boolean;
 }) {
   return (
     <section className="grid gap-6">
@@ -56,6 +82,7 @@ export function HomeSection({
         title={title}
         subtitle={subtitle}
         href={href}
+        compact={compact}
       />
       {children}
     </section>
@@ -65,7 +92,7 @@ export function HomeSection({
 export function ErrorLine({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
       接口暂未连通：{message}
     </div>
   );
@@ -81,14 +108,14 @@ export function StatCard({
   note: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-[0_16px_50px_rgba(59,130,246,0.08)] backdrop-blur dark:border-white/10 dark:bg-slate-900/75 dark:shadow-[0_16px_50px_rgba(2,6,23,0.3)]">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+    <div className="rounded-[24px] border border-border bg-card p-4 shadow-[0_16px_40px_rgba(91,75,255,0.06)] backdrop-blur dark:border-white/10 dark:bg-slate-900/75 dark:shadow-[0_16px_50px_rgba(2,6,23,0.3)]">
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">
+      <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-foreground">
         {value}
       </p>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{note}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{note}</p>
     </div>
   );
 }

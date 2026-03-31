@@ -10,41 +10,55 @@ export function HomeHotNewsSection({
   hotNews: HomeRecord[];
   hotNewsError: string | null;
 }) {
-  const visibleHot = (hotNews.length ? hotNews : new Array(5).fill({})).slice(0, 5);
+  const visibleHot = (hotNews.length ? hotNews : new Array(5).fill({})).slice(
+    0,
+    5
+  );
 
   return (
     <HomeSection
-      eyebrow="Hot Tracking"
-      title="热度排行"
-      subtitle="聚合热点资讯，帮助学员快速锁定高关注内容。"
+      eyebrow="热点追踪"
+      title="热点追踪"
+      subtitle="把文章热度与浏览量集中成一组轻量排行。"
+      compact
     >
       <MotionReveal
         direction="left"
-        className="rounded-[30px] border border-sky-200/70 bg-[linear-gradient(180deg,rgba(248,251,255,0.96),rgba(235,245,255,0.94))] p-6 text-slate-900 shadow-[0_28px_70px_rgba(59,130,246,0.12)] dark:border-white/8 dark:bg-[linear-gradient(180deg,rgba(2,6,23,0.92),rgba(15,23,42,0.96))] dark:text-white dark:shadow-[0_28px_70px_rgba(2,6,23,0.4)]"
+        className="rounded-3xl border border-border bg-card p-6 text-foreground shadow-sm dark:border-white/8 dark:bg-[linear-gradient(180deg,rgba(2,6,23,0.92),rgba(15,23,42,0.96))] dark:text-white dark:shadow-[0_24px_60px_rgba(2,6,23,0.4)]"
       >
         <div className="flex items-center justify-between gap-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600 dark:text-sky-300">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-sky-300">
             热点追踪
           </p>
-          <div className="rounded-full border border-sky-200/80 bg-white/85 px-3 py-1 text-xs text-slate-500 dark:border-white/10 dark:bg-white/6 dark:text-white/70">
+          <div className="rounded-md bg-indigo-50 px-2.5 py-1 text-[10px] font-bold text-indigo-700 dark:border-white/10 dark:bg-white/6 dark:text-white/70">
             Updated
           </div>
         </div>
         <ErrorLine message={hotNewsError} />
-        <div className="mt-5 grid gap-4">
+        <div className="mt-5 space-y-4">
           {visibleHot.map((item, index) => (
             <div
               key={index}
-              className="grid grid-cols-[auto_1fr] gap-4 rounded-[22px] border border-sky-100/90 bg-white/85 px-4 py-4 shadow-[0_14px_36px_rgba(59,130,246,0.08)] dark:border-white/6 dark:bg-white/4.5 dark:shadow-none"
+              className="flex items-center gap-4 group cursor-pointer"
             >
-              <div className="flex size-10 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-950">
+              <div
+                className={`flex size-8 items-center justify-center rounded-xl text-sm font-extrabold group-hover:scale-110 ${
+                  index === 0
+                    ? "bg-indigo-600 text-white"
+                    : index === 1
+                      ? "bg-indigo-400 text-white"
+                      : index === 2
+                        ? "bg-indigo-300 text-white"
+                        : "bg-muted text-muted-foreground"
+                }`}
+              >
                 {index + 1}
               </div>
-              <div>
-                <p className="line-clamp-2 text-sm leading-7 text-slate-900 dark:text-white">
+              <div className="flex-1 border-b border-border/60 pb-3 last:border-0 last:pb-0 dark:border-white/10">
+                <p className="text-sm font-bold text-foreground transition-colors group-hover:text-indigo-600 dark:text-white dark:group-hover:text-indigo-600">
                   {toText(item.title, `热门资讯 ${index + 1}`)}
                 </p>
-                <p className="mt-2 text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">
+                <p className="mt-1 text-[10px] font-bold text-muted-foreground dark:text-slate-500">
                   浏览量 {String(item.commentNum ?? item.viewCount ?? 0)}
                 </p>
               </div>

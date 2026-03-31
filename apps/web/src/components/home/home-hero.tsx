@@ -1,14 +1,49 @@
 import Link from "next/link";
-import {
-  MotionFloat,
-  MotionItem,
-  MotionReveal,
-  MotionStagger,
-} from "@workspace/motion";
+import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { resolveMediaUrl, toText } from "@/lib/media";
 import type { HomeRecord } from "./home-types";
-import { ErrorLine, StatCard } from "./home-section-heading";
+import { ErrorLine } from "./home-section-heading";
+import {
+  ArrowRight,
+  BookOpen,
+  FileText,
+  Layout,
+  HelpCircle,
+} from "lucide-react";
+
+function HeroStat({
+  label,
+  value,
+  note,
+  icon,
+}: {
+  label: string;
+  value: string;
+  note: string;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div className="flex cursor-pointer items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:border-indigo-300 hover:shadow-md dark:bg-slate-900/75 dark:hover:border-indigo-400 dark:hover:shadow-md">
+      <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+        {icon ? icon : <div className="size-2 rounded-full bg-current" />}
+      </div>
+      <div>
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs font-bold text-muted-foreground">
+            {label}
+          </span>
+          <span className="text-xl font-extrabold text-foreground">
+            {value}
+          </span>
+        </div>
+        <div className="mt-0.5 text-xs font-medium text-muted-foreground">
+          {note}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function HomeHero({
   banner,
@@ -31,138 +66,157 @@ export function HomeHero({
     String(banner?.imgUrl ?? banner?.image ?? "")
   );
 
-  return (
-    <section className="w-full">
-      <div className="overflow-hidden rounded-[36px] border border-white/70 bg-[linear-gradient(135deg,rgba(14,165,233,0.14),rgba(255,255,255,0.94)_40%,rgba(59,130,246,0.1))] p-6 shadow-[0_30px_80px_rgba(14,116,144,0.12)] dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(14,165,233,0.12),rgba(15,23,42,0.96)_42%,rgba(37,99,235,0.22))] dark:shadow-[0_30px_80px_rgba(2,6,23,0.35)] sm:p-8">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.12fr)_minmax(340px,0.88fr)] xl:items-start">
-          <MotionStagger className="space-y-6">
-            <MotionItem className="flex flex-wrap items-center gap-3">
-              <Badge className="rounded-full bg-sky-600 px-3 py-1 text-white hover:bg-sky-600">
-                Student Platform
-              </Badge>
-              <span className="rounded-full border border-sky-100 bg-white/70 px-3 py-1 text-xs font-medium text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
-                云学考系统 · 学习与考试一体化
-              </span>
-            </MotionItem>
+  const heroStats = [
+    {
+      label: "课程",
+      value: `${hotCourseCount || 8}+`,
+      desc: "学习入口",
+      icon: <BookOpen className="size-6" />,
+    },
+    {
+      label: "考试",
+      value: `${examCount || 6}+`,
+      desc: "近期安排",
+      icon: <FileText className="size-6" />,
+    },
+    {
+      label: "资讯",
+      value: `${newsCount + announcementCount || 8}+`,
+      desc: "教务动态",
+      icon: <Layout className="size-6" />,
+    },
+    {
+      label: "问卷",
+      value: `${questionnaireCount || 4}`,
+      desc: "待办任务",
+      icon: <HelpCircle className="size-6" />,
+    },
+  ];
 
-            <MotionItem className="space-y-4">
-              <h1 className="max-w-4xl text-4xl font-semibold leading-[0.95] tracking-[-0.06em] text-slate-950 dark:text-white sm:text-5xl xl:text-6xl">
-                更轻盈地进入课程
-                <span className="block bg-[linear-gradient(90deg,#0284c7,#2563eb,#4f46e5)] bg-clip-text text-transparent">
-                  更清晰地完成练习与考试
+  return (
+    <section className="space-y-6">
+      <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+        <div className="flex flex-col lg:flex-row">
+          <MotionStagger className="flex-1 p-8 lg:p-12" delayChildren={0.06}>
+            <MotionItem>
+              <Badge className="mb-6 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-bold tracking-wider text-indigo-600 hover:bg-indigo-50 dark:bg-sky-500/12 dark:text-sky-200 dark:hover:bg-sky-500/12">
+                新一代学习中枢
+              </Badge>
+            </MotionItem>
+            <MotionItem>
+              <h1 className="mb-6 max-w-3xl text-4xl font-extrabold leading-[1.15] tracking-tight text-foreground sm:text-5xl">
+                把课程与练习
+                <br />
+                <span className="text-indigo-600 dark:text-sky-300">
+                  放进更清晰的学习路径
                 </span>
               </h1>
-              <p className="max-w-3xl text-base leading-8 text-slate-600 dark:text-slate-300 sm:text-lg">
-                保留旧系统真实接口和业务入口，把首页改造成更年轻的学习平台首页。课程发现、考试快讯、问卷与资讯都被重新组织成更直观的数字化面板。
+            </MotionItem>
+            <MotionItem>
+              <p className="mb-8 max-w-lg text-lg font-medium leading-relaxed text-muted-foreground">
+                首页聚合课程入口、考试提醒、学习进度和教务通知，让学员一进来就知道下一步该做什么。
               </p>
             </MotionItem>
-
-            <MotionItem className="flex flex-wrap gap-3">
+            <MotionItem className="flex flex-wrap items-center gap-4">
               <Link
                 href="/courses"
-                className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
+                className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-indigo-700 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
               >
-                <span className="text-white dark:text-slate-950">开始学习</span>
-                <span className="text-xs uppercase tracking-[0.2em] text-sky-200 dark:text-slate-900/70">
-                  Courses
-                </span>
+                进入课程中心
+                <ArrowRight className="size-4" />
               </Link>
               <Link
                 href="/exams"
-                className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white/90 px-5 py-3 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-700 dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:border-sky-500 dark:hover:text-sky-300"
+                className="inline-flex items-center rounded-full border border-border bg-card px-6 py-3 text-sm font-bold text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-muted dark:border-white/10 dark:bg-slate-900/80"
               >
-                <span>查看考试</span>
-                <span className="text-xs uppercase tracking-[0.2em] text-sky-500 dark:text-sky-300">
-                  Exams
-                </span>
+                查看近期考试
               </Link>
             </MotionItem>
           </MotionStagger>
 
           <MotionReveal
             direction="left"
-            delay={0.18}
-            className="grid gap-4 xl:max-w-136 xl:justify-self-end"
+            delay={0.16}
+            className="border-t border-border bg-muted p-8 lg:w-[400px] lg:border-l lg:border-t-0 dark:border-white/10 dark:bg-slate-900/70"
           >
-            <MotionFloat y={8}>
-              <div className="overflow-hidden rounded-[30px] border border-white/80 bg-slate-950 p-5 text-white shadow-[0_30px_70px_rgba(15,23,42,0.22)] dark:border-white/10 dark:bg-slate-950/95">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-300">
-                      今日推荐
-                    </p>
-                    <p className="mt-2 text-lg font-semibold">
-                      {toText(banner?.title ?? banner?.name, "首页主视觉")}
-                    </p>
-                  </div>
-                  <div className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white/80">
-                    实时内容
-                  </div>
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  学习总览
                 </div>
+                <h2 className="text-lg font-extrabold text-foreground">
+                  今日学习面板
+                </h2>
+              </div>
+              <div className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold text-indigo-700 dark:bg-sky-500/12 dark:text-sky-300">
+                实时同步
+              </div>
+            </div>
 
-                <div className="mt-4">
-                  <ErrorLine message={bannerError} />
+            <p className="mb-6 text-sm font-medium text-muted-foreground">
+              课程、考试和首页主视觉在这里汇总，减少首屏干扰。
+            </p>
+
+            <div className="mb-6">
+              <ErrorLine message={bannerError} />
+            </div>
+
+            <div className="mb-6 flex h-32 items-center justify-center overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-100 to-blue-50 shadow-inner dark:border-white/10 dark:bg-slate-800">
+              {leadBannerImage ? (
+                <img
+                  src={leadBannerImage}
+                  alt={toText(banner?.title ?? banner?.name, "首页 Banner")}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="relative h-20 w-32">
+                  <div className="absolute bottom-2 left-1/2 h-10 w-24 -translate-x-1/2 rounded-full bg-indigo-300/50 blur-lg" />
+                  <div className="absolute bottom-4 left-6 h-10 w-10 rounded-full bg-blue-300/50 blur-lg" />
+                  <div className="absolute bottom-3 right-6 h-12 w-12 rounded-full bg-indigo-200/50 blur-lg" />
+                  <div className="absolute bottom-3 left-1/2 h-8 w-20 -translate-x-1/2 rounded-full border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm" />
+                  <div className="absolute bottom-6 left-6 h-8 w-8 rounded-full border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm" />
+                  <div className="absolute bottom-5 right-6 h-10 w-10 rounded-full border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm" />
                 </div>
+              )}
+            </div>
 
-                <div className="mt-4 overflow-hidden rounded-[24px] border border-white/10 bg-slate-900/60">
-                  {leadBannerImage ? (
-                    <img
-                      src={leadBannerImage}
-                      alt={toText(banner?.title ?? banner?.name, "首页 Banner")}
-                      className="aspect-[4/3] w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex aspect-4/3 items-center justify-center px-6 text-center text-sm text-white/60">
-                      Banner 接口可用后，这里会显示首页主图。
-                    </div>
-                  )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-indigo-300 hover:shadow-md cursor-pointer dark:bg-slate-900/75 dark:hover:border-indigo-400 dark:hover:shadow-md">
+                <div className="mb-1 text-xs font-bold text-muted-foreground">
+                  学习聚焦
+                </div>
+                <div className="text-2xl font-extrabold text-foreground">
+                  42%
                 </div>
               </div>
-            </MotionFloat>
+              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-indigo-300 hover:shadow-md cursor-pointer dark:bg-slate-900/75 dark:hover:border-indigo-400 dark:hover:shadow-md">
+                <div className="mb-1 text-xs font-bold text-muted-foreground">
+                  今日提醒
+                </div>
+                <div className="text-2xl font-extrabold text-foreground">
+                  {examCount || 6} 项
+                </div>
+              </div>
+            </div>
           </MotionReveal>
         </div>
-
-        <MotionStagger
-          className="mt-6 grid gap-4 md:grid-cols-3 xl:grid-cols-5"
-          delayChildren={0.12}
-        >
-          <MotionItem>
-            <StatCard
-              label="热门课程"
-              value={`${hotCourseCount || 8}+`}
-              note="课程、学习进度与学习入口"
-            />
-          </MotionItem>
-          <MotionItem>
-            <StatCard
-              label="最新考试"
-              value={`${examCount || 6}+`}
-              note="开考状态、分数与时长信息"
-            />
-          </MotionItem>
-          <MotionItem>
-            <StatCard
-              label="精选资讯"
-              value={`${newsCount || 4}+`}
-              note="公告、文章与热点内容聚合"
-            />
-          </MotionItem>
-          <MotionItem>
-            <StatCard
-              label="问卷调查"
-              value={`${questionnaireCount || 4}`}
-              note="首页可直接进入调查任务"
-            />
-          </MotionItem>
-          <MotionItem>
-            <StatCard
-              label="首页公告"
-              value={`${announcementCount || 4}`}
-              note="重要通知与考试提醒聚合"
-            />
-          </MotionItem>
-        </MotionStagger>
       </div>
+
+      <MotionStagger
+        className="grid grid-cols-2 gap-4 sm:grid-cols-4"
+        delayChildren={0.1}
+      >
+        {heroStats.map((stat) => (
+          <MotionItem key={stat.label}>
+            <HeroStat
+              icon={stat.icon}
+              label={stat.label}
+              value={stat.value}
+              note={stat.desc}
+            />
+          </MotionItem>
+        ))}
+      </MotionStagger>
     </section>
   );
 }

@@ -1,1 +1,31 @@
 @import "@workspace/ui/globals.css";
+
+@layer utilities {
+  /* Backgrounds */
+  .dark .bg-white { background-color: #0f172a; } /* slate-900 */
+  .dark .bg-white\/90 { background-color: rgba(15, 23, 42, 0.9); }
+  .dark .bg-slate-50 { background-color: #1e293b; } /* slate-800 */
+  .dark .bg-slate-100 { background-color: #334155; } /* slate-700 */
+  .dark .bg-indigo-50 { background-color: #1e1b4b; } /* indigo-950 */
+  .dark .bg-indigo-100 { background-color: #312e81; } /* indigo-900 */
+  .dark .bg-emerald-50 { background-color: #022c22; } /* emerald-950 */
+  .dark .bg-amber-50 { background-color: #451a03; } /* amber-950 */
+
+  /* Borders */
+  .dark .border-slate-100 { border-color: #334155; } /* slate-700 */
+  .dark .border-slate-200 { border-color: #1e293b; } /* slate-800 */
+  .dark .border-indigo-100 { border-color: #312e81; } /* indigo-900 */
+  .dark .border-emerald-200 { border-color: #064e3b; } /* emerald-900 */
+  .dark .border-amber-200 { border-color: #78350f; } /* amber-900 */
+
+  /* Text Colors */
+  .dark .text-slate-900 { color: #f8fafc; } /* slate-50 */
+  .dark .text-slate-700 { color: #e2e8f0; } /* slate-200 */
+  .dark .text-slate-600 { color: #cbd5e1; } /* slate-300 */
+  .dark .text-slate-500 { color: #94a3b8; } /* slate-400 */
+  .dark .text-slate-400 { color: #64748b; } /* slate-500 */
+  .dark .text-indigo-600 { color: #818cf8; } /* indigo-400 */
+  .dark .text-indigo-700 { color: #a5b4fc; } /* indigo-300 */
+  .dark .text-emerald-700 { color: #34d399; } /* emerald-400 */
+  .dark .text-amber-700 { color: #fbbf24; } /* amber-400 */
+}

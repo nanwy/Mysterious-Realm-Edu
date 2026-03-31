@@ -16,30 +16,30 @@ export function HomeNewsSection({
 
   return (
     <HomeSection
-      eyebrow="Newsroom"
-      title="文章资讯"
-      subtitle="资讯区回到更清晰的教育平台信息流逻辑，承接精选内容与学习热点。"
+      eyebrow="资讯中心"
+      title="精选资讯"
+      subtitle="承接旧系统文章接口，用更克制的卡片节奏展示课程资讯和平台动态。"
       href="/news"
     >
       <ErrorLine message={recommendedNewsError} />
-      <MotionStagger className="grid gap-4 sm:grid-cols-2" delayChildren={0.1}>
+      <MotionStagger className="grid gap-6 sm:grid-cols-2" delayChildren={0.1}>
         {visibleRecommended.map((item, index) => (
           <MotionItem key={index}>
-            <article className="overflow-hidden rounded-[28px] border border-white/80 bg-white/85 shadow-[0_18px_42px_rgba(37,99,235,0.06)] dark:border-white/10 dark:bg-slate-900/75 dark:shadow-[0_18px_42px_rgba(2,6,23,0.3)]">
-              <div className="overflow-hidden bg-[linear-gradient(135deg,#dbeafe,#eff6ff)] dark:bg-[linear-gradient(135deg,rgba(37,99,235,0.16),rgba(15,23,42,0.96))]">
+            <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:border-indigo-200 hover:shadow-md dark:border-white/10 dark:bg-slate-900/75">
+              <div className="overflow-hidden bg-muted dark:bg-[linear-gradient(135deg,rgba(37,99,235,0.16),rgba(15,23,42,0.96))]">
                 {resolveMediaUrl(String(item.coverImg ?? "")) ? (
                   <img
                     src={resolveMediaUrl(String(item.coverImg)) ?? ""}
                     alt={toText(item.title, `资讯 ${index + 1}`)}
-                    className="aspect-[4/3] w-full object-cover"
+                    className="h-40 w-full object-cover"
                   />
                 ) : (
-                  <div className="flex aspect-[4/3] items-end p-5">
-                    <div className="rounded-2xl bg-white/75 px-4 py-3 backdrop-blur dark:bg-slate-950/70">
-                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600">
+                  <div className="flex h-40 flex-col items-center justify-center">
+                    <div className="rounded-2xl bg-card px-4 py-3 backdrop-blur dark:bg-slate-950/70">
+                      <p className="text-xs font-extrabold uppercase tracking-[0.24em] text-indigo-600">
                         News
                       </p>
-                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                      <p className="mt-2 text-sm font-medium text-muted-foreground">
                         资讯封面待接入
                       </p>
                     </div>
@@ -47,10 +47,10 @@ export function HomeNewsSection({
                 )}
               </div>
               <div className="space-y-3 p-5">
-                <h3 className="line-clamp-2 text-xl font-semibold tracking-[-0.03em] text-slate-950 dark:text-white">
+                <h3 className="line-clamp-2 text-lg font-extrabold text-foreground">
                   {toText(item.title, `推荐资讯 ${index + 1}`)}
                 </h3>
-                <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
+                <p className="text-sm font-medium leading-relaxed text-muted-foreground">
                   {toText(item.remark ?? item.summary, "推荐资讯将在这里承接旧系统文章摘要。")}
                 </p>
               </div>
