@@ -2,9 +2,9 @@ export const COURSE_PAGE_SIZE = 9;
 
 export interface CourseQueryState {
   page: number;
-  keyword: string;
-  orderByType: string;
-  categoryId: string;
+  keyword?: string;
+  orderByType?: string | null;
+  categoryId?: string | null;
 }
 
 export interface CourseCategoryOption {

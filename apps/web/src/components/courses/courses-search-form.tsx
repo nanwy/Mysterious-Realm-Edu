@@ -10,7 +10,9 @@ import {
   Input,
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui";
@@ -42,7 +44,7 @@ export function CoursesSearchForm({
       onSubmit({
         ...value,
         page: 1,
-        keyword: value.keyword.trim(),
+        keyword: value.keyword?.trim(),
       });
     },
   });
@@ -86,19 +88,29 @@ export function CoursesSearchForm({
               <Field>
                 <FieldLabel htmlFor="courses-order-by">排序方式</FieldLabel>
                 <Select
+                  items={ORDER_BY_OPTIONS}
                   name={field.name}
                   value={field.state.value}
                   onValueChange={field.handleChange}
                 >
-                  <SelectTrigger id="courses-order-by" className="h-11 w-full rounded-2xl px-4">
+                  <SelectTrigger
+                    id="courses-order-by"
+                    className="h-11 w-full rounded-2xl px-4"
+                  >
                     <SelectValue placeholder="综合排序" />
                   </SelectTrigger>
                   <SelectContent>
-                    {ORDER_BY_OPTIONS.map((option) => (
-                      <SelectItem key={option.value || "all"} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      <SelectLabel>排序方式</SelectLabel>
+                      {ORDER_BY_OPTIONS.map((option) => (
+                        <SelectItem
+                          key={option.value || "all"}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </Field>
@@ -110,19 +122,29 @@ export function CoursesSearchForm({
               <Field>
                 <FieldLabel htmlFor="courses-category">课程分类</FieldLabel>
                 <Select
+                  items={categoryOptions}
                   name={field.name}
                   value={field.state.value}
                   onValueChange={field.handleChange}
                 >
-                  <SelectTrigger id="courses-category" className="h-11 w-full rounded-2xl px-4">
+                  <SelectTrigger
+                    id="courses-category"
+                    className="h-11 w-full rounded-2xl px-4"
+                  >
                     <SelectValue placeholder="全部分类" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categoryOptions.map((option) => (
-                      <SelectItem key={option.value || "all"} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      <SelectLabel>排序方式</SelectLabel>
+                      {categoryOptions.map((option) => (
+                        <SelectItem
+                          key={option.value || "all"}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </Field>
