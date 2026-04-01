@@ -22,3 +22,11 @@ test("practice page shell preserves loading, empty, and error states", () => {
   assert.match(dataSource, /getRepositoryList/);
   assert.match(shellSource, /fetchPracticeRepositories/);
 });
+
+test("practice page shell keeps repository loading in a cancellable effect", () => {
+  assert.doesNotMatch(shellSource, /useEffectEvent/);
+  assert.match(shellSource, /let cancelled = false;/);
+  assert.match(shellSource, /if \(cancelled\) \{/);
+  assert.match(shellSource, /return \(\) => \{/);
+  assert.match(shellSource, /cancelled = true;/);
+});
