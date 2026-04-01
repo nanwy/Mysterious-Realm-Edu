@@ -7,10 +7,10 @@
     "dev:mobile": "pnpm --filter mobile-web dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
+    "test:web": "pnpm --filter web test",
     "format": "prettier --write ."
   },
   "devDependencies": {
     "prettier": "^3.6.2"
   }
 }
-
