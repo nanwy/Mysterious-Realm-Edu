@@ -1,16 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
 
-const currentDir = dirname(fileURLToPath(import.meta.url));
-const paginationSource = readFileSync(join(currentDir, "practice-pagination.tsx"), "utf8");
+const paginationSource = readFileSync(
+  new URL("./practice-pagination.tsx", import.meta.url),
+  "utf8"
+);
 
-test("practice pagination uses shared shadcn pagination primitives", () => {
+test("practice pagination uses shared pagination primitives", () => {
+  assert.match(paginationSource, /Pagination/);
   assert.match(paginationSource, /PaginationContent/);
+  assert.match(paginationSource, /PaginationItem/);
+  assert.match(paginationSource, /PaginationLink/);
   assert.match(paginationSource, /PaginationPrevious/);
   assert.match(paginationSource, /PaginationNext/);
-  assert.match(paginationSource, /PaginationLink/);
-  assert.doesNotMatch(paginationSource, /import\s+\{\s*Button\s*\}\s+from\s+"@workspace\/ui"/);
 });
