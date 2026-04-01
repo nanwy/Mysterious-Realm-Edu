@@ -2,7 +2,7 @@
 
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
-import { startTransition, useEffect, useEffectEvent, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { fetchPracticeRepositories, normalizePracticeError } from "./practice-data";
 import { PracticePagination } from "./practice-pagination";
@@ -38,35 +38,52 @@ export function PracticePageShell({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, setIsPending] = useState(false);
-
-  const loadRepositories = useEffectEvent(async (page: number, nextKeyword: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await fetchPracticeRepositories({
-        page,
-        keyword: nextKeyword,
-      });
-      setItems(result.items);
-      setTotal(result.total);
-    } catch (nextError) {
-      setItems([]);
-      setTotal(0);
-      setError(normalizePracticeError(nextError));
-    } finally {
-      setIsLoading(false);
-      setIsPending(false);
-    }
-  });
+  const [reloadVersion, setReloadVersion] = useState(0);
 
   useEffect(() => {
     setKeyword(initialKeyword);
   }, [initialKeyword]);
 
   useEffect(() => {
-    void loadRepositories(initialPage, initialKeyword);
-  }, [initialKeyword, initialPage, loadRepositories]);
+    let cancelled = false;
+
+    setIsLoading(true);
+    setError(null);
+
+    void fetchPracticeRepositories({
+      page: initialPage,
+      keyword: initialKeyword,
+    })
+      .then((result) => {
+        if (cancelled) {
+          return;
+        }
+
+        setItems(result.items);
+        setTotal(result.total);
+      })
+      .catch((nextError) => {
+        if (cancelled) {
+          return;
+        }
+
+        setItems([]);
+        setTotal(0);
+        setError(normalizePracticeError(nextError));
+      })
+      .finally(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setIsLoading(false);
+        setIsPending(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialKeyword, initialPage, reloadVersion]);
 
   const navigate = (page: number, nextKeyword: string) => {
     setIsPending(true);
@@ -133,7 +150,10 @@ export function PracticePageShell({
         loading={isLoading}
         error={error}
         keyword={initialKeyword}
-        onRetry={() => void loadRepositories(initialPage, initialKeyword)}
+        onRetry={() => {
+          setIsPending(false);
+          setReloadVersion((value) => value + 1);
+        }}
       />
 
       <PracticePagination

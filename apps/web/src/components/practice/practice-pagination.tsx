@@ -1,6 +1,38 @@
 "use client";
 
-import { Button } from "@workspace/ui";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@workspace/ui";
+
+function getVisiblePages(page: number, pageCount: number) {
+  if (pageCount <= 7) {
+    return Array.from({ length: pageCount }, (_, index) => index + 1);
+  }
+
+  const pages = new Set([1, pageCount, page - 1, page, page + 1]);
+
+  if (page <= 3) {
+    pages.add(2);
+    pages.add(3);
+    pages.add(4);
+  }
+
+  if (page >= pageCount - 2) {
+    pages.add(pageCount - 1);
+    pages.add(pageCount - 2);
+    pages.add(pageCount - 3);
+  }
+
+  return Array.from(pages)
+    .filter((value) => value >= 1 && value <= pageCount)
+    .sort((left, right) => left - right);
+}
 
 export function PracticePagination({
   page,
@@ -19,7 +51,7 @@ export function PracticePagination({
     return null;
   }
 
-  const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
+  const pages = getVisiblePages(page, pageCount);
 
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card/90 p-4 md:flex-row md:items-center md:justify-between">
@@ -27,38 +59,42 @@ export function PracticePagination({
         共 <span className="font-semibold text-foreground">{total}</span> 条结果，当前第{" "}
         <span className="font-semibold text-foreground">{page}</span> / {pageCount} 页
       </p>
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="rounded-xl"
-          disabled={page <= 1 || pending}
-          onClick={() => onPageChange(page - 1)}
-        >
-          上一页
-        </Button>
-        {pages.map((item) => (
-          <Button
-            key={item}
-            type="button"
-            variant={item === page ? "default" : "outline"}
-            className="min-w-10 rounded-xl"
-            disabled={pending}
-            onClick={() => onPageChange(item)}
-          >
-            {item}
-          </Button>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          className="rounded-xl"
-          disabled={page >= pageCount || pending}
-          onClick={() => onPageChange(page + 1)}
-        >
-          下一页
-        </Button>
-      </div>
+      <Pagination className="mx-0 w-auto justify-start md:justify-end">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              type="button"
+              disabled={page <= 1 || pending}
+              onClick={() => onPageChange(page - 1)}
+            />
+          </PaginationItem>
+          {pages.map((item, index) => {
+            const previous = pages[index - 1];
+            const showEllipsis = previous !== undefined && item - previous > 1;
+
+            return (
+              <PaginationItem key={item}>
+                {showEllipsis ? <PaginationEllipsis /> : null}
+                <PaginationLink
+                  type="button"
+                  isActive={item === page}
+                  disabled={pending}
+                  onClick={() => onPageChange(item)}
+                >
+                  {item}
+                </PaginationLink>
+              </PaginationItem>
+            );
+          })}
+          <PaginationItem>
+            <PaginationNext
+              type="button"
+              disabled={page >= pageCount || pending}
+              onClick={() => onPageChange(page + 1)}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   );
 }
