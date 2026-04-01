@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test --experimental-strip-types src/components/login-form.logic.test.mts src/components/login-form.structure.test.mts"
+    "test": "node --test --experimental-strip-types src/components/**/*.test.mts"
   },
   "dependencies": {
     "@tanstack/react-form": "^1.28.6",
