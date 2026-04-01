@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { LoaderCircleIcon } from "lucide-react";
 import { login, unwrapEnvelope } from "@workspace/api";
 import {
   Badge,
@@ -8,8 +9,14 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
   Input,
   ThemeToggle,
 } from "@workspace/ui";
@@ -87,12 +94,10 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="border border-white/70 bg-white/85 shadow-[0_32px_90px_rgba(15,23,42,0.12)] backdrop-blur dark:border-white/10 dark:bg-slate-950/80">
+    <Card className="shadow-2xl backdrop-blur-sm">
       <CardHeader className="gap-3">
         <div className="flex items-center justify-between gap-3">
-          <Badge variant="secondary" className="bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200">
-            学员入口
-          </Badge>
+          <Badge variant="secondary">学员入口</Badge>
           <ThemeToggle />
         </div>
         <CardTitle>欢迎登录</CardTitle>
@@ -102,69 +107,74 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              用户名 / 手机号
-            </span>
-            <Input
-              aria-invalid={Boolean(errors.username)}
-              value={values.username}
-              onChange={(event) => handleFieldChange("username", event.target.value)}
-              placeholder="请输入用户名或手机号"
-            />
-            {errors.username ? (
-              <p className="text-sm text-rose-600 dark:text-rose-300">{errors.username}</p>
-            ) : null}
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              密码
-            </span>
-            <Input
-              type="password"
-              aria-invalid={Boolean(errors.password)}
-              value={values.password}
-              onChange={(event) => handleFieldChange("password", event.target.value)}
-              placeholder="请输入登录密码"
-            />
-            {errors.password ? (
-              <p className="text-sm text-rose-600 dark:text-rose-300">{errors.password}</p>
-            ) : null}
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              安全校验码
-            </span>
-            <Input
-              aria-invalid={Boolean(errors.key)}
-              value={values.key}
-              onChange={(event) => handleFieldChange("key", event.target.value)}
-              placeholder="请输入安全校验码"
-            />
-            {errors.key ? (
-              <p className="text-sm text-rose-600 dark:text-rose-300">{errors.key}</p>
-            ) : null}
-          </label>
+          <FieldGroup>
+            <Field data-invalid={Boolean(errors.username)}>
+              <FieldLabel htmlFor="login-username">用户名 / 手机号</FieldLabel>
+              <Input
+                id="login-username"
+                aria-invalid={Boolean(errors.username)}
+                value={values.username}
+                onChange={(event) => handleFieldChange("username", event.target.value)}
+                placeholder="请输入用户名或手机号"
+              />
+              <FieldDescription>
+                使用你常用的登录账号或绑定手机号继续学习进度。
+              </FieldDescription>
+              <FieldError>{errors.username}</FieldError>
+            </Field>
+            <Field data-invalid={Boolean(errors.password)}>
+              <FieldLabel htmlFor="login-password">密码</FieldLabel>
+              <Input
+                id="login-password"
+                type="password"
+                aria-invalid={Boolean(errors.password)}
+                value={values.password}
+                onChange={(event) => handleFieldChange("password", event.target.value)}
+                placeholder="请输入登录密码"
+              />
+              <FieldDescription>
+                请输入登录密码，区分大小写。
+              </FieldDescription>
+              <FieldError>{errors.password}</FieldError>
+            </Field>
+            <Field data-invalid={Boolean(errors.key)}>
+              <FieldLabel htmlFor="login-key">安全校验码</FieldLabel>
+              <Input
+                id="login-key"
+                aria-invalid={Boolean(errors.key)}
+                value={values.key}
+                onChange={(event) => handleFieldChange("key", event.target.value)}
+                placeholder="请输入安全校验码"
+              />
+              <FieldDescription>
+                用于确认本次登录请求，输入页面提供的校验码即可。
+              </FieldDescription>
+              <FieldError>{errors.key}</FieldError>
+            </Field>
+          </FieldGroup>
           <Button type="submit" size="lg" disabled={isPending}>
+            {isPending ? <LoaderCircleIcon data-icon="inline-start" className="animate-spin" /> : null}
             {isPending ? "登录中..." : "进入学习中心"}
           </Button>
-          <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-slate-200">
-            登录成功后会保留当前会话，并显示登录状态提示。
-          </div>
-          {feedback ? (
-            <p
-              role={feedback.tone === "error" ? "alert" : "status"}
-              className={
-                feedback.tone === "success"
-                  ? "rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
-                  : "rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"
-              }
-            >
-              {feedback.message}
-            </p>
-          ) : null}
         </form>
       </CardContent>
+      <CardFooter className="flex-col items-stretch gap-3 border-0 bg-transparent">
+        <FieldDescription>
+          登录成功后会保留当前会话，并显示登录状态提示。
+        </FieldDescription>
+        {feedback ? (
+          <div
+            role={feedback.tone === "error" ? "alert" : "status"}
+            className={
+              feedback.tone === "success"
+                ? "rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300"
+                : "rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            }
+          >
+            {feedback.message}
+          </div>
+        ) : null}
+      </CardFooter>
     </Card>
   );
 }
