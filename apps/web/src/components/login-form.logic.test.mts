@@ -38,6 +38,13 @@ test("getSuccessMessage returns a success prompt when a token is present", () =>
   );
 });
 
+test("getSuccessMessage prefers an API success message when provided", () => {
+  assert.equal(
+    getSuccessMessage({ message: "登录成功，即将跳转到学习中心。", token: "abc123" }),
+    "登录成功，即将跳转到学习中心。"
+  );
+});
+
 test("getSuccessMessage explains successful responses without a token", () => {
   assert.equal(
     getSuccessMessage({ userId: "42" }),

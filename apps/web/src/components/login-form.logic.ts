@@ -47,7 +47,22 @@ export function extractToken(payload: unknown) {
   return candidates.find((item): item is string => typeof item === "string") ?? null;
 }
 
+export function extractSuccessMessage(payload: unknown) {
+  if (!payload || typeof payload !== "object") return null;
+  const record = payload as Record<string, unknown>;
+
+  const candidates = [record.message, record.msg];
+
+  return candidates.find((item): item is string => typeof item === "string" && item.trim().length > 0) ?? null;
+}
+
 export function getSuccessMessage(payload: unknown) {
+  const apiMessage = extractSuccessMessage(payload);
+
+  if (apiMessage) {
+    return apiMessage;
+  }
+
   return extractToken(payload)
     ? "登录成功，欢迎回到云学考。"
     : "登录成功，正在为你同步学习数据。";

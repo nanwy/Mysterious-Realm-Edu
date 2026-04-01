@@ -81,9 +81,11 @@ export function LoginForm() {
     });
   }
 
-  function handleFieldChange(field: "username" | "password" | "key", value: string) {
-    setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => ({ ...current, [field]: "" }));
+  function handleFieldChange(field: "username" | "password" | "key") {
+    return function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+      setValues((current) => ({ ...current, [field]: event.target.value }));
+      setErrors((current) => ({ ...current, [field]: "" }));
+    };
   }
 
   return (
@@ -109,7 +111,7 @@ export function LoginForm() {
             <Input
               aria-invalid={Boolean(errors.username)}
               value={values.username}
-              onChange={(event) => handleFieldChange("username", event.target.value)}
+              onChange={handleFieldChange("username")}
               placeholder="请输入用户名或手机号"
             />
             {errors.username ? (
@@ -124,7 +126,7 @@ export function LoginForm() {
               type="password"
               aria-invalid={Boolean(errors.password)}
               value={values.password}
-              onChange={(event) => handleFieldChange("password", event.target.value)}
+              onChange={handleFieldChange("password")}
               placeholder="请输入登录密码"
             />
             {errors.password ? (
@@ -138,7 +140,7 @@ export function LoginForm() {
             <Input
               aria-invalid={Boolean(errors.key)}
               value={values.key}
-              onChange={(event) => handleFieldChange("key", event.target.value)}
+              onChange={handleFieldChange("key")}
               placeholder="请输入安全校验码"
             />
             {errors.key ? (
