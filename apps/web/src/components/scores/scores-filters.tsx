@@ -8,7 +8,9 @@ import {
   Input,
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui";
@@ -61,7 +63,7 @@ export function ScoresFilters({
         void form.handleSubmit();
       }}
     >
-      <FieldGroup className="grid gap-4 lg:col-span-3 lg:grid-cols-subgrid lg:items-end">
+      <Field className="grid gap-4 xl:grid-cols-3 xl:col-span-4 grid-cols-subgrid  xl:items-end">
         <form.Field name="examTitle">
           {(field) => (
             <Field>
@@ -81,7 +83,6 @@ export function ScoresFilters({
                   onChange(nextFilters);
                 }}
                 placeholder="请输入考试名称"
-                className="h-11 rounded-2xl border-border bg-background px-4"
               />
             </Field>
           )}
@@ -92,6 +93,11 @@ export function ScoresFilters({
             <Field>
               <FieldLabel htmlFor="scores-passed">是否通过</FieldLabel>
               <Select
+                items={[
+                  { value: "", label: "全部" },
+                  { value: "1", label: "通过" },
+                  { value: "0", label: "未通过" },
+                ]}
                 name={field.name}
                 value={field.state.value}
                 onValueChange={(value) => {
@@ -105,13 +111,16 @@ export function ScoresFilters({
                   onChange(nextFilters);
                 }}
               >
-                <SelectTrigger id="scores-passed" className="h-11 w-full rounded-2xl px-4">
+                <SelectTrigger id="scores-passed">
                   <SelectValue placeholder="全部" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">全部</SelectItem>
-                  <SelectItem value="1">通过</SelectItem>
-                  <SelectItem value="0">未通过</SelectItem>
+                  <SelectGroup>
+                    <SelectLabel>是否通过</SelectLabel>
+                    <SelectItem value="">全部</SelectItem>
+                    <SelectItem value="1">通过</SelectItem>
+                    <SelectItem value="0">未通过</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </Field>
@@ -140,7 +149,7 @@ export function ScoresFilters({
             清空
           </Button>
         </div>
-      </FieldGroup>
+      </Field>
     </form>
   );
 }

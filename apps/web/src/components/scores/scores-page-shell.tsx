@@ -3,7 +3,9 @@
 import { createApiClient, unwrapEnvelope } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { EmptyState, SurfaceCard } from "@workspace/ui";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { ResultsPagination } from "../common/results-pagination";
 import { ScoresFilters } from "./scores-filters";
 import { ScoresResults } from "./scores-results";
 
@@ -48,12 +50,40 @@ const client = createApiClient({
   },
 });
 
+function createQueryString(filters: ScoreFiltersState) {
+  const params = new URLSearchParams();
+
+  if (filters.pageNo > 1) {
+    params.set("page", String(filters.pageNo));
+  }
+
+  if (filters.examTitle.trim()) {
+    params.set("keyword", filters.examTitle.trim());
+  }
+
+  if (filters.passed) {
+    params.set("passed", filters.passed);
+  }
+
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
 function toStringValue(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
 function toNumberValue(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
 }
 
 function toBooleanValue(value: unknown) {
@@ -89,11 +119,20 @@ function normalizeScoreRecord(item: unknown, index: number): ScoreRecord {
 }
 
 function getErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message) {
-    return error.message;
+  const message =
+    error instanceof Error && error.message
+      ? error.message
+      : "成绩接口暂时不可用，请稍后重试。";
+
+  if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return `${message}。未检测到 NEXT_PUBLIC_API_BASE_URL，当前仅能展示错误说明，无法宣称接口已打通。`;
   }
 
-  return "成绩接口暂时不可用，请稍后重试。";
+  if (message === "网络请求失败") {
+    return "成绩接口暂时不可用，请检查服务是否启动或稍后重试。";
+  }
+
+  return message;
 }
 
 async function fetchScores(filters: ScoreFiltersState) {
@@ -108,21 +147,29 @@ async function fetchScores(filters: ScoreFiltersState) {
   };
 }
 
-export function ScoresPageShell() {
-  const [draftFilters, setDraftFilters] = useState(DEFAULT_FILTERS);
-  const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
+export function ScoresPageShell({ initialFilters }: { initialFilters: ScoreFiltersState }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [draftFilters, setDraftFilters] = useState(initialFilters);
   const [records, setRecords] = useState<ScoreRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPending, setIsPending] = useState(false);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    setDraftFilters(initialFilters);
+  }, [initialFilters]);
 
   useEffect(() => {
     let cancelled = false;
 
     setIsLoading(true);
+    setError(null);
 
-    void fetchScores(activeFilters)
+    void fetchScores(initialFilters)
       .then((result) => {
         if (cancelled) {
           return;
@@ -132,7 +179,6 @@ export function ScoresPageShell() {
         setTotal(result.total);
         setError(null);
         setHasLoaded(true);
-        setIsLoading(false);
       })
       .catch((requestError) => {
         if (cancelled) {
@@ -143,23 +189,39 @@ export function ScoresPageShell() {
         setTotal(0);
         setError(getErrorMessage(requestError));
         setHasLoaded(true);
+      })
+      .finally(() => {
+        if (cancelled) {
+          return;
+        }
+
         setIsLoading(false);
+        setIsPending(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [activeFilters]);
+  }, [initialFilters, reloadVersion]);
+
+  function navigate(nextFilters: ScoreFiltersState) {
+    setIsPending(true);
+    startTransition(() => {
+      router.push(`${pathname}${createQueryString(nextFilters)}`, { scroll: false });
+    });
+  }
 
   function handleQuery(nextFilters: ScoreFiltersState) {
     setDraftFilters(nextFilters);
-    setActiveFilters(nextFilters);
+    navigate(nextFilters);
   }
 
   function handleReset() {
     setDraftFilters(DEFAULT_FILTERS);
-    setActiveFilters(DEFAULT_FILTERS);
+    navigate(DEFAULT_FILTERS);
   }
+
+  const totalPages = Math.max(1, Math.ceil(total / initialFilters.pageSize));
 
   return (
     <MotionStagger className="flex flex-col gap-6" delayChildren={0.08}>
@@ -172,7 +234,7 @@ export function ScoresPageShell() {
           <div className="grid gap-6" data-testid="scores-filter-section">
             <ScoresFilters
               filters={draftFilters}
-              isLoading={isLoading}
+              isLoading={isLoading || isPending}
               onChange={setDraftFilters}
               onQuery={handleQuery}
               onReset={handleReset}
@@ -193,14 +255,14 @@ export function ScoresPageShell() {
                 <div className="rounded-[24px] border border-border bg-muted/40 p-5">
                   <p className="text-sm text-muted-foreground">筛选状态</p>
                   <p className="mt-3 text-xl font-semibold text-foreground">
-                    {activeFilters.passed === "1"
+                    {initialFilters.passed === "1"
                       ? "仅看通过"
-                      : activeFilters.passed === "0"
+                      : initialFilters.passed === "0"
                         ? "仅看未通过"
                         : "全部结果"}
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {activeFilters.examTitle ? `关键词：${activeFilters.examTitle}` : "未限定考试名称。"}
+                    {initialFilters.examTitle ? `关键词：${initialFilters.examTitle}` : "未限定考试名称。"}
                   </p>
                 </div>
               </MotionReveal>
@@ -223,7 +285,7 @@ export function ScoresPageShell() {
       <MotionItem>
         <SurfaceCard
           title="成绩结果"
-          description="覆盖考试名称、考试次数、最高分、是否通过与最近考试时间，并保留详情入口占位。"
+          description="覆盖考试名称、考试次数、最高分、是否通过与最近考试时间，并支持进入某场考试的成绩明细页。"
         >
           <div data-testid="scores-results-section">
             {!hasLoaded || isLoading ? (
@@ -251,6 +313,39 @@ export function ScoresPageShell() {
           </div>
         </SurfaceCard>
       </MotionItem>
+
+      <MotionItem>
+        <MotionReveal direction="up" delay={0.12}>
+          <ResultsPagination
+            page={Math.min(initialFilters.pageNo, totalPages)}
+            pageCount={totalPages}
+            total={total}
+            pending={isLoading || isPending}
+            itemLabel="条成绩"
+            onPageChange={(page) =>
+              navigate({
+                ...initialFilters,
+                pageNo: page,
+              })
+            }
+          />
+        </MotionReveal>
+      </MotionItem>
+
+      {error ? (
+        <MotionItem>
+          <button
+            type="button"
+            className="text-left text-sm text-muted-foreground underline-offset-4 hover:underline"
+            onClick={() => {
+              setIsPending(false);
+              setReloadVersion((value) => value + 1);
+            }}
+          >
+            重新请求当前列表
+          </button>
+        </MotionItem>
+      ) : null}
     </MotionStagger>
   );
 }

@@ -93,10 +93,7 @@ export function CoursesSearchForm({
                   value={field.state.value}
                   onValueChange={field.handleChange}
                 >
-                  <SelectTrigger
-                    id="courses-order-by"
-                    className="h-11 w-full rounded-2xl px-4"
-                  >
+                  <SelectTrigger id="courses-order-by">
                     <SelectValue placeholder="综合排序" />
                   </SelectTrigger>
                   <SelectContent>
@@ -127,10 +124,7 @@ export function CoursesSearchForm({
                   value={field.state.value}
                   onValueChange={field.handleChange}
                 >
-                  <SelectTrigger
-                    id="courses-category"
-                    className="h-11 w-full rounded-2xl px-4"
-                  >
+                  <SelectTrigger id="courses-category">
                     <SelectValue placeholder="全部分类" />
                   </SelectTrigger>
                   <SelectContent>
