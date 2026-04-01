@@ -1,17 +1,13 @@
-import { StudentShell, SurfaceCard } from "@workspace/ui";
+import { StudentShell } from "@workspace/ui";
+import { ScoresPageShell } from "@/components/scores/scores-page-shell";
 
 export default function ScoresPage() {
   return (
     <StudentShell
       title="成绩中心"
-      description="对应旧项目 `ExamScore.vue`、`UserExamResult.vue` 等成绩相关页面，后续会迁移成绩列表、考试详情与统计展示。"
+      description="迁移旧学员端成绩查询列表，支持考试名称与是否通过筛选，并保留真实接口调用、空态和错误兜底。"
     >
-      <SurfaceCard
-        eyebrow="Scores"
-        title="成绩页骨架"
-        description="预留成绩列表、错题回看、结果详情与证书联动入口。"
-      />
+      <ScoresPageShell />
     </StudentShell>
   );
 }
-
