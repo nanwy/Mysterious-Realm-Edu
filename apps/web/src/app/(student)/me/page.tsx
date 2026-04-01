@@ -1,17 +1,13 @@
-import { StudentShell, SurfaceCard } from "@workspace/ui";
+import { StudentShell } from "@workspace/ui";
+import { MePageShell } from "@/components/me/me-page-shell";
 
 export default function MePage() {
   return (
     <StudentShell
       title="个人中心"
-      description="对应旧项目用户信息、账号安全、我的课程、我的考试、订单、消息中心等整组个人中心页面。"
+      description="对应旧项目用户信息、账号安全、课程学习、订单、证书与消息中心等整组个人中心入口页。"
     >
-      <SurfaceCard
-        eyebrow="Account"
-        title="个人中心导航骨架"
-        description="后续这里会拆分为资料设置、学习记录、订单、消息、证书等子路由，并接入部门切换与用户信息查询。"
-      />
+      <MePageShell />
     </StudentShell>
   );
 }
-
