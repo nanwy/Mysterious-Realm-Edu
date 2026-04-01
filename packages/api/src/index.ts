@@ -2,6 +2,7 @@ export * from "./modules/banner";
 export * from "./client";
 export * from "./modules/auth";
 export * from "./modules/course";
+export * from "./modules/certificate";
 export * from "./modules/practice";
 export * from "./modules/exam";
 export * from "./modules/invigilate";
