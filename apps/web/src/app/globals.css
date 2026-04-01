@@ -1,6 +1,7 @@
 @import "@workspace/ui/globals.css";
 
 @layer utilities {
+  /* Residual dark-mode compatibility for screens that have not migrated to semantic tokens yet. */
   /* Backgrounds */
   .dark .bg-white { background-color: #0f172a; } /* slate-900 */
   .dark .bg-white\/90 { background-color: rgba(15, 23, 42, 0.9); }
