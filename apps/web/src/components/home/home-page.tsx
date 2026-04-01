@@ -26,7 +26,7 @@ export function HomePage({
   hotNewsError,
 }: HomePayload) {
   return (
-    <div className="home-page-shell min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground dark:bg-[linear-gradient(180deg,#020617_0%,#081121_26%,#0f172a_62%,#020617_100%)]">
       <SiteHeader />
 
       <main className="relative mx-auto flex max-w-7xl flex-col gap-12 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
