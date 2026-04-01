@@ -8,11 +8,10 @@ export function StatusCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/70 bg-white/75 p-5 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur">
-      <p className="text-sm text-slate-500">{title}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
-      <p className="mt-2 text-sm text-slate-600">{hint}</p>
+    <div className="rounded-[24px] border border-border/70 bg-card/75 p-5 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur">
+      <p className="text-muted-foreground text-sm">{title}</p>
+      <p className="text-foreground mt-3 text-3xl font-semibold tracking-tight">{value}</p>
+      <p className="text-muted-foreground mt-2 text-sm">{hint}</p>
     </div>
   );
 }
-
