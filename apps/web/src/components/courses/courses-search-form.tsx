@@ -65,7 +65,7 @@ export function CoursesSearchForm({
           void form.handleSubmit();
         }}
       >
-        <FieldGroup className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_220px_220px_auto] xl:items-end">
+        <FieldGroup className="grid gap-4 xl:grid-cols-3 xl:col-span-4 grid-cols-subgrid  xl:items-end">
           <form.Field name="keyword">
             {(field) => (
               <Field>
@@ -77,7 +77,7 @@ export function CoursesSearchForm({
                   onBlur={field.handleBlur}
                   onChange={(event) => field.handleChange(event.target.value)}
                   placeholder="输入课程名、讲师名等关键词"
-                  className="h-11 rounded-2xl border-border bg-background px-4"
+                  className="rounded-2xl border-border bg-background px-4"
                 />
               </Field>
             )}
