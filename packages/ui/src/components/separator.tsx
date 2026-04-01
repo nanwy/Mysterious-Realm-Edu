@@ -1,9 +1,10 @@
-"use client";
+"use client"
 
-import { Separator as SeparatorPrimitive } from "@base-ui/react/separator";
-import { cn } from "../lib/utils";
+import { Separator as SeparatorPrimitive } from "@base-ui/react/separator"
 
-export function Separator({
+import { cn } from "@workspace/ui/lib/utils"
+
+function Separator({
   className,
   orientation = "horizontal",
   ...props
@@ -18,5 +19,7 @@ export function Separator({
       )}
       {...props}
     />
-  );
+  )
 }
+
+export { Separator }

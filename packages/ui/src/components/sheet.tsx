@@ -1,31 +1,29 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
-import { XIcon } from "lucide-react";
-import { cn } from "../lib/utils";
-import { Button } from "./button";
+import * as React from "react"
+import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 
-export function Sheet({ ...props }: SheetPrimitive.Root.Props) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />;
+import { cn } from "@workspace/ui/lib/utils"
+import { Button } from "@workspace/ui/components/button"
+import { XIcon } from "lucide-react"
+
+function Sheet({ ...props }: SheetPrimitive.Root.Props) {
+  return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }
 
-export function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
-  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
+function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
+  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
 }
 
-export function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
-  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
+function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
+  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
 }
 
-export function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
+function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
+  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
 }
 
-export function SheetOverlay({
-  className,
-  ...props
-}: SheetPrimitive.Backdrop.Props) {
+function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
     <SheetPrimitive.Backdrop
       data-slot="sheet-overlay"
@@ -35,18 +33,18 @@ export function SheetOverlay({
       )}
       {...props}
     />
-  );
+  )
 }
 
-export function SheetContent({
+function SheetContent({
   className,
   children,
   side = "right",
   showCloseButton = true,
   ...props
 }: SheetPrimitive.Popup.Props & {
-  side?: "top" | "right" | "bottom" | "left";
-  showCloseButton?: boolean;
+  side?: "top" | "right" | "bottom" | "left"
+  showCloseButton?: boolean
 }) {
   return (
     <SheetPortal>
@@ -61,7 +59,7 @@ export function SheetContent({
         {...props}
       >
         {children}
-        {showCloseButton ? (
+        {showCloseButton && (
           <SheetPrimitive.Close
             data-slot="sheet-close"
             render={
@@ -72,55 +70,50 @@ export function SheetContent({
               />
             }
           >
-            <XIcon />
+            <XIcon
+            />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
-        ) : null}
+        )}
       </SheetPrimitive.Popup>
     </SheetPortal>
-  );
+  )
 }
 
-export function SheetHeader({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-header"
       className={cn("flex flex-col gap-0.5 p-4", className)}
       {...props}
     />
-  );
+  )
 }
 
-export function SheetFooter({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-footer"
       className={cn("mt-auto flex flex-col gap-2 p-4", className)}
       {...props}
     />
-  );
+  )
 }
 
-export function SheetTitle({
-  className,
-  ...props
-}: SheetPrimitive.Title.Props) {
+function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("font-heading text-base font-medium text-foreground", className)}
+      className={cn(
+        "font-heading text-base font-medium text-foreground",
+        className
+      )}
       {...props}
     />
-  );
+  )
 }
 
-export function SheetDescription({
+function SheetDescription({
   className,
   ...props
 }: SheetPrimitive.Description.Props) {
@@ -130,6 +123,16 @@ export function SheetDescription({
       className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
-  );
+  )
 }
 
+export {
+  Sheet,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+}

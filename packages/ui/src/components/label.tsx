@@ -1,12 +1,10 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { cn } from "../lib/utils";
+import * as React from "react"
 
-export function Label({
-  className,
-  ...props
-}: React.ComponentProps<"label">) {
+import { cn } from "@workspace/ui/lib/utils"
+
+function Label({ className, ...props }: React.ComponentProps<"label">) {
   return (
     <label
       data-slot="label"
@@ -16,5 +14,7 @@ export function Label({
       )}
       {...props}
     />
-  );
+  )
 }
+
+export { Label }
