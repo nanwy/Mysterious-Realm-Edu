@@ -1,3 +1,6 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { MotionItem, MotionStagger } from "@workspace/motion";
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui";
 
@@ -14,7 +17,7 @@ interface ScoreRecord {
 function renderPassedLabel(value: ScoreRecord["passed"]) {
   if (value === true) {
     return (
-      <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+      <span className="inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
         通过
       </span>
     );
@@ -22,14 +25,14 @@ function renderPassedLabel(value: ScoreRecord["passed"]) {
 
   if (value === false) {
     return (
-      <span className="inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">
+      <span className="inline-flex rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
         未通过
       </span>
     );
   }
 
   return (
-    <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+    <span className="inline-flex rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
       未知
     </span>
   );
@@ -44,6 +47,8 @@ function displayTime(value: string) {
 }
 
 export function ScoresResults({ records }: { records: ScoreRecord[] }) {
+  const router = useRouter();
+
   return (
     <MotionStagger className="grid gap-4" delayChildren={0.06}>
       <MotionItem className="hidden overflow-hidden rounded-[24px] border border-border md:block">
@@ -75,7 +80,13 @@ export function ScoresResults({ records }: { records: ScoreRecord[] }) {
                   {displayTime(record.recentExamTime)}
                 </TableCell>
                 <TableCell className="px-4 py-4 text-right">
-                  <Button size="sm" variant="outline" disabled title={record.examId || "detail-pending"}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={!record.examId}
+                    onClick={() => router.push(`/scores/${record.examId}`)}
+                    title={record.examId || "exam-id-missing"}
+                  >
                     查看详情
                   </Button>
                 </TableCell>
@@ -120,9 +131,16 @@ export function ScoresResults({ records }: { records: ScoreRecord[] }) {
                 </p>
               </div>
             </div>
-            <Button className="mt-4 w-full" variant="outline" disabled title={record.examId || "detail-pending"}>
-              查看详情
-            </Button>
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                disabled={!record.examId}
+                onClick={() => router.push(`/scores/${record.examId}`)}
+                title={record.examId || "exam-id-missing"}
+              >
+                查看详情
+              </Button>
+            </div>
           </MotionItem>
         ))}
       </div>
