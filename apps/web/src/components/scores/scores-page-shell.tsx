@@ -151,12 +151,9 @@ export function ScoresPageShell() {
     };
   }, [activeFilters]);
 
-  function handleQuery() {
-    setActiveFilters({
-      ...draftFilters,
-      examTitle: draftFilters.examTitle.trim(),
-      pageNo: 1,
-    });
+  function handleQuery(nextFilters: ScoreFiltersState) {
+    setDraftFilters(nextFilters);
+    setActiveFilters(nextFilters);
   }
 
   function handleReset() {

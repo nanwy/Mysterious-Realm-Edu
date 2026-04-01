@@ -1,5 +1,7 @@
 "use client";
 
+import { Fragment } from "react";
+
 import {
   Pagination,
   PaginationContent,
@@ -34,17 +36,19 @@ function getVisiblePages(page: number, pageCount: number) {
     .sort((left, right) => left - right);
 }
 
-export function PracticePagination({
+export function ResultsPagination({
   page,
   pageCount,
   total,
   pending,
+  itemLabel = "条结果",
   onPageChange,
 }: {
   page: number;
   pageCount: number;
   total: number;
   pending: boolean;
+  itemLabel?: string;
   onPageChange: (page: number) => void;
 }) {
   if (pageCount <= 1) {
@@ -56,15 +60,21 @@ export function PracticePagination({
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card/90 p-4 md:flex-row md:items-center md:justify-between">
       <p className="text-sm text-muted-foreground">
-        共 <span className="font-semibold text-foreground">{total}</span> 条结果，当前第{" "}
-        <span className="font-semibold text-foreground">{page}</span> / {pageCount} 页
+        共 <span className="font-semibold text-foreground">{total}</span>{" "}
+        {itemLabel}，当前第{" "}
+        <span className="font-semibold text-foreground">{page}</span> /{" "}
+        {pageCount} 页
       </p>
       <Pagination className="mx-0 w-auto justify-start md:justify-end">
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
               type="button"
-              disabled={page <= 1 || pending}
+              className={
+                page <= 1 || pending
+                  ? "cursor-not-allowed opacity-50 pointer-events-none"
+                  : ""
+              }
               onClick={() => onPageChange(page - 1)}
             />
           </PaginationItem>
@@ -73,23 +83,38 @@ export function PracticePagination({
             const showEllipsis = previous !== undefined && item - previous > 1;
 
             return (
-              <PaginationItem key={item}>
-                {showEllipsis ? <PaginationEllipsis /> : null}
-                <PaginationLink
-                  type="button"
-                  isActive={item === page}
-                  disabled={pending}
-                  onClick={() => onPageChange(item)}
-                >
-                  {item}
-                </PaginationLink>
-              </PaginationItem>
+              <Fragment key={item}>
+                {showEllipsis ? (
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : null}
+
+                <PaginationItem>
+                  <PaginationLink
+                    type="button"
+                    isActive={item === page}
+                    className={
+                      pending
+                        ? "cursor-not-allowed opacity-50 pointer-events-none"
+                        : ""
+                    }
+                    onClick={() => onPageChange(item)}
+                  >
+                    {item}
+                  </PaginationLink>
+                </PaginationItem>
+              </Fragment>
             );
           })}
           <PaginationItem>
             <PaginationNext
               type="button"
-              disabled={page >= pageCount || pending}
+              className={
+                page >= pageCount || pending
+                  ? "cursor-not-allowed opacity-50 pointer-events-none"
+                  : ""
+              }
               onClick={() => onPageChange(page + 1)}
             />
           </PaginationItem>
