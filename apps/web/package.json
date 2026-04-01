@@ -10,6 +10,7 @@
     "test": "node --test --experimental-strip-types src/components/login-form.logic.test.mts src/components/login-form.structure.test.mts"
   },
   "dependencies": {
+    "@tanstack/react-form": "^1.28.6",
     "@workspace/api": "workspace:*",
     "@workspace/motion": "workspace:*",
     "@workspace/shared": "workspace:*",

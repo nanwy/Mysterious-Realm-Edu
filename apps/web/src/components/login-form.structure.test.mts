@@ -13,3 +13,10 @@ test("login form uses shadcn field composition", () => {
   assert.match(loginFormSource, /FieldDescription/);
   assert.match(loginFormSource, /FieldError/);
 });
+
+test("login form uses TanStack Form instead of local useState field state", () => {
+  assert.doesNotMatch(loginFormSource, /useState/);
+  assert.match(loginFormSource, /useForm/);
+  assert.match(loginFormSource, /form\.Field/);
+  assert.match(loginFormSource, /field\.handleBlur/);
+});

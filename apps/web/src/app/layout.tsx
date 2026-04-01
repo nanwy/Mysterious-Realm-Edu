@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@workspace/ui";
 import "./globals.css";
-import "@workspace/ui/globals.css"
-
+import "@workspace/ui/globals.css";
+import { AIChatbot } from "@/components/common/ai/ai-chat-widget";
 
 export const metadata: Metadata = {
   title: "云学考系统",
@@ -19,6 +19,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
+          <AIChatbot />
         </ThemeProvider>
       </body>
     </html>
