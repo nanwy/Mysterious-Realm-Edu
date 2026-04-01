@@ -11,7 +11,7 @@ test("validateLoginValues reports missing required fields", () => {
   assert.deepEqual(validateLoginValues({ username: "", password: "", key: "" }), {
     username: "请输入用户名或手机号",
     password: "请输入密码",
-    key: "请输入验证码 Key",
+    key: "请输入安全校验码",
   });
 });
 
@@ -34,13 +34,13 @@ test("extractToken returns the first supported token field", () => {
 test("getSuccessMessage returns a success prompt when a token is present", () => {
   assert.equal(
     getSuccessMessage({ token: "abc123" }),
-    "登录成功，前端已收到凭证并完成本地保存。"
+    "登录成功，欢迎回到云学考。"
   );
 });
 
 test("getSuccessMessage explains successful responses without a token", () => {
   assert.equal(
     getSuccessMessage({ userId: "42" }),
-    "登录接口返回成功，但响应中暂未识别到 token 字段。"
+    "登录成功，正在为你同步学习数据。"
   );
 });

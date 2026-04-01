@@ -27,7 +27,7 @@ export function validateLoginValues(values: LoginValues): LoginErrors {
   }
 
   if (!normalized.key) {
-    errors.key = "请输入验证码 Key";
+    errors.key = "请输入安全校验码";
   }
 
   return errors;
@@ -49,6 +49,6 @@ export function extractToken(payload: unknown) {
 
 export function getSuccessMessage(payload: unknown) {
   return extractToken(payload)
-    ? "登录成功，前端已收到凭证并完成本地保存。"
-    : "登录接口返回成功，但响应中暂未识别到 token 字段。";
+    ? "登录成功，欢迎回到云学考。"
+    : "登录成功，正在为你同步学习数据。";
 }

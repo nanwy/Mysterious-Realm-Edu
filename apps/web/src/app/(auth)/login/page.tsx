@@ -9,16 +9,16 @@ export default function LoginPage() {
             <p className="text-xs uppercase tracking-[0.28em] text-cyan-100">Account Access</p>
             <h1 className="mt-4 font-serif text-4xl font-semibold">云学考学员登录</h1>
             <p className="mt-4 max-w-xl text-sm leading-7 text-cyan-50/90">
-              登录页已对接旧项目认证接口，并补充了前端校验、成功提示和暗色主题适配。后续可以继续接入图片验证码与登录后重定向流程。
+              从这里进入你的学习中心，继续课程学习、刷题练习与考试安排。页面已适配浅色与深色主题，移动端浏览同样清晰顺滑。
             </p>
             <div className="mt-8 grid gap-3 text-sm text-cyan-50/90 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
-                <p className="font-medium text-white">即时校验</p>
-                <p className="mt-1 leading-6">缺失字段会在提交前直接提示，避免无效请求。</p>
+                <p className="font-medium text-white">学习进度不断档</p>
+                <p className="mt-1 leading-6">登录后快速回到课程、考试与个人中心，保持学习节奏。</p>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
-                <p className="font-medium text-white">主题兼容</p>
-                <p className="mt-1 leading-6">页面支持浅色与深色模式，并复用现有主题切换能力。</p>
+                <p className="font-medium text-white">舒适阅读体验</p>
+                <p className="mt-1 leading-6">浅色与深色模式都经过适配，白天夜晚都能安心使用。</p>
               </div>
             </div>
           </section>

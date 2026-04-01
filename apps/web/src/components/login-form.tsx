@@ -91,13 +91,13 @@ export function LoginForm() {
       <CardHeader className="gap-3">
         <div className="flex items-center justify-between gap-3">
           <Badge variant="secondary" className="bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200">
-            Real API
+            学员入口
           </Badge>
           <ThemeToggle />
         </div>
-        <CardTitle>登录表单</CardTitle>
+        <CardTitle>欢迎登录</CardTitle>
         <CardDescription>
-          已接入旧项目 `/auth/login` 接口。当前先保留验证码 Key 输入，同时补齐前端校验、暗色主题和提交反馈。
+          使用账号、密码与安全校验完成登录，继续你的课程、题库与考试进度。
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -133,23 +133,23 @@ export function LoginForm() {
           </label>
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              验证码 Key
+              安全校验码
             </span>
             <Input
               aria-invalid={Boolean(errors.key)}
               value={values.key}
               onChange={(event) => handleFieldChange("key", event.target.value)}
-              placeholder="请输入验证码 Key"
+              placeholder="请输入安全校验码"
             />
             {errors.key ? (
               <p className="text-sm text-rose-600 dark:text-rose-300">{errors.key}</p>
             ) : null}
           </label>
           <Button type="submit" size="lg" disabled={isPending}>
-            {isPending ? "登录中..." : "登录并测试真实接口"}
+            {isPending ? "登录中..." : "进入学习中心"}
           </Button>
           <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-slate-200">
-            提交后会调用真实登录接口，并在成功时显示前端提示。
+            登录成功后会保留当前会话，并显示登录状态提示。
           </div>
           {feedback ? (
             <p
