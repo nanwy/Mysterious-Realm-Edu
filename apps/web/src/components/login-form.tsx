@@ -11,84 +11,157 @@ import {
   CardHeader,
   CardTitle,
   Input,
+  ThemeToggle,
 } from "@workspace/ui";
-
-function extractToken(payload: unknown) {
-  if (!payload || typeof payload !== "object") return null;
-  const record = payload as Record<string, unknown>;
-
-  const candidates = [
-    record.token,
-    record.accessToken,
-    record.idToken,
-    record.id_token,
-  ];
-
-  return candidates.find((item): item is string => typeof item === "string") ?? null;
-}
+import {
+  extractToken,
+  getSuccessMessage,
+  normalizeLoginValues,
+  validateLoginValues,
+} from "./login-form.logic";
 
 export function LoginForm() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [key, setKey] = useState("");
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [values, setValues] = useState({
+    username: "",
+    password: "",
+    key: "",
+  });
+  const [errors, setErrors] = useState({
+    username: "",
+    password: "",
+    key: "",
+  });
+  const [feedback, setFeedback] = useState<{
+    tone: "success" | "error";
+    message: string;
+  } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback(null);
+    const normalized = normalizeLoginValues(values);
+    const nextErrors = validateLoginValues(normalized);
+
+    setValues(normalized);
+    setErrors({
+      username: nextErrors.username ?? "",
+      password: nextErrors.password ?? "",
+      key: nextErrors.key ?? "",
+    });
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFeedback({
+        tone: "error",
+        message: "请先修正表单中的必填项。",
+      });
+      return;
+    }
 
     startTransition(async () => {
       try {
-        const response = await login({ username, password, key });
+        const response = await login(normalized);
         const payload = unwrapEnvelope(response);
         const token = extractToken(payload);
 
         if (token) {
           localStorage.setItem("token", token);
-          setFeedback("登录接口已成功返回，并已写入本地 token。");
-          return;
         }
 
-        setFeedback("登录接口已返回成功结果，但暂未识别到 token 字段。");
+        setFeedback({
+          tone: "success",
+          message: getSuccessMessage(payload),
+        });
       } catch (error) {
-        setFeedback(error instanceof Error ? error.message : "登录失败");
+        setFeedback({
+          tone: "error",
+          message: error instanceof Error ? error.message : "登录失败",
+        });
       }
     });
   }
 
+  function handleFieldChange(field: "username" | "password" | "key", value: string) {
+    setValues((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: "" }));
+  }
+
   return (
-    <Card className="border-white/80 bg-white/90 shadow-[0_32px_90px_rgba(15,23,42,0.1)]">
-      <CardHeader>
-        <Badge variant="secondary">Real API</Badge>
+    <Card className="border border-white/70 bg-white/85 shadow-[0_32px_90px_rgba(15,23,42,0.12)] backdrop-blur dark:border-white/10 dark:bg-slate-950/80">
+      <CardHeader className="gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <Badge variant="secondary" className="bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200">
+            Real API
+          </Badge>
+          <ThemeToggle />
+        </div>
         <CardTitle>登录表单</CardTitle>
         <CardDescription>
-          已接入旧项目 `/auth/login` 接口。验证码 key 先保留为手动输入，下一步再补图片验证码读取。
+          已接入旧项目 `/auth/login` 接口。当前先保留验证码 Key 输入，同时补齐前端校验、暗色主题和提交反馈。
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <Input
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            placeholder="用户名 / 手机号"
-          />
-          <Input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="密码"
-          />
-          <Input
-            value={key}
-            onChange={(event) => setKey(event.target.value)}
-            placeholder="验证码 Key（首期手动输入）"
-          />
-          <Button type="submit" disabled={isPending}>
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              用户名 / 手机号
+            </span>
+            <Input
+              aria-invalid={Boolean(errors.username)}
+              value={values.username}
+              onChange={(event) => handleFieldChange("username", event.target.value)}
+              placeholder="请输入用户名或手机号"
+            />
+            {errors.username ? (
+              <p className="text-sm text-rose-600 dark:text-rose-300">{errors.username}</p>
+            ) : null}
+          </label>
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              密码
+            </span>
+            <Input
+              type="password"
+              aria-invalid={Boolean(errors.password)}
+              value={values.password}
+              onChange={(event) => handleFieldChange("password", event.target.value)}
+              placeholder="请输入登录密码"
+            />
+            {errors.password ? (
+              <p className="text-sm text-rose-600 dark:text-rose-300">{errors.password}</p>
+            ) : null}
+          </label>
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              验证码 Key
+            </span>
+            <Input
+              aria-invalid={Boolean(errors.key)}
+              value={values.key}
+              onChange={(event) => handleFieldChange("key", event.target.value)}
+              placeholder="请输入验证码 Key"
+            />
+            {errors.key ? (
+              <p className="text-sm text-rose-600 dark:text-rose-300">{errors.key}</p>
+            ) : null}
+          </label>
+          <Button type="submit" size="lg" disabled={isPending}>
             {isPending ? "登录中..." : "登录并测试真实接口"}
           </Button>
+          <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-slate-200">
+            提交后会调用真实登录接口，并在成功时显示前端提示。
+          </div>
           {feedback ? (
-            <p className="text-sm leading-6 text-slate-600">{feedback}</p>
+            <p
+              role={feedback.tone === "error" ? "alert" : "status"}
+              className={
+                feedback.tone === "success"
+                  ? "rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
+                  : "rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"
+              }
+            >
+              {feedback.message}
+            </p>
           ) : null}
         </form>
       </CardContent>
