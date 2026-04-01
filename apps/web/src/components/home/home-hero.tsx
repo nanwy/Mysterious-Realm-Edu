@@ -24,8 +24,8 @@ function HeroStat({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex cursor-pointer items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:border-indigo-300 hover:shadow-md dark:bg-slate-900/75 dark:hover:border-indigo-400 dark:hover:shadow-md">
-      <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+    <div className="home-panel home-interactive group flex cursor-pointer items-center gap-4 rounded-2xl border border-border p-5 transition-shadow hover:shadow-md">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
         {icon ? icon : <div className="size-2 rounded-full bg-current" />}
       </div>
       <div>
@@ -95,11 +95,11 @@ export function HomeHero({
 
   return (
     <section className="space-y-6">
-      <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+      <div className="home-panel overflow-hidden rounded-3xl border border-border">
         <div className="flex flex-col lg:flex-row">
           <MotionStagger className="flex-1 p-8 lg:p-12" delayChildren={0.06}>
             <MotionItem>
-              <Badge className="mb-6 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-bold tracking-wider text-indigo-600 hover:bg-indigo-50 dark:bg-sky-500/12 dark:text-sky-200 dark:hover:bg-sky-500/12">
+              <Badge className="mb-6 rounded-full bg-accent px-3 py-1 text-[11px] font-bold tracking-wider text-primary hover:bg-accent">
                 新一代学习中枢
               </Badge>
             </MotionItem>
@@ -107,7 +107,7 @@ export function HomeHero({
               <h1 className="mb-6 max-w-3xl text-4xl font-extrabold leading-[1.15] tracking-tight text-foreground sm:text-5xl">
                 把课程与练习
                 <br />
-                <span className="text-indigo-600 dark:text-sky-300">
+                <span className="text-primary">
                   放进更清晰的学习路径
                 </span>
               </h1>
@@ -120,14 +120,14 @@ export function HomeHero({
             <MotionItem className="flex flex-wrap items-center gap-4">
               <Link
                 href="/courses"
-                className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-indigo-700 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:brightness-95"
               >
                 进入课程中心
                 <ArrowRight className="size-4" />
               </Link>
               <Link
                 href="/exams"
-                className="inline-flex items-center rounded-full border border-border bg-card px-6 py-3 text-sm font-bold text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-muted dark:border-white/10 dark:bg-slate-900/80"
+                className="home-panel-muted inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:bg-muted"
               >
                 查看近期考试
               </Link>
@@ -137,7 +137,7 @@ export function HomeHero({
           <MotionReveal
             direction="left"
             delay={0.16}
-            className="border-t border-border bg-muted p-8 lg:w-[400px] lg:border-l lg:border-t-0 dark:border-white/10 dark:bg-slate-900/70"
+            className="home-panel-strong border-t border-border p-8 lg:w-[400px] lg:border-l lg:border-t-0"
           >
             <div className="mb-6 flex items-center justify-between">
               <div>
@@ -148,7 +148,7 @@ export function HomeHero({
                   今日学习面板
                 </h2>
               </div>
-              <div className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold text-indigo-700 dark:bg-sky-500/12 dark:text-sky-300">
+              <div className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-primary">
                 实时同步
               </div>
             </div>
@@ -161,7 +161,7 @@ export function HomeHero({
               <ErrorLine message={bannerError} />
             </div>
 
-            <div className="mb-6 flex h-32 items-center justify-center overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-100 to-blue-50 shadow-inner dark:border-white/10 dark:bg-slate-800">
+            <div className="home-banner-surface mb-6 flex h-32 items-center justify-center overflow-hidden rounded-2xl border shadow-inner">
               {leadBannerImage ? (
                 <img
                   src={leadBannerImage}
@@ -170,18 +170,18 @@ export function HomeHero({
                 />
               ) : (
                 <div className="relative h-20 w-32">
-                  <div className="absolute bottom-2 left-1/2 h-10 w-24 -translate-x-1/2 rounded-full bg-indigo-300/50 blur-lg" />
-                  <div className="absolute bottom-4 left-6 h-10 w-10 rounded-full bg-blue-300/50 blur-lg" />
-                  <div className="absolute bottom-3 right-6 h-12 w-12 rounded-full bg-indigo-200/50 blur-lg" />
-                  <div className="absolute bottom-3 left-1/2 h-8 w-20 -translate-x-1/2 rounded-full border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm" />
-                  <div className="absolute bottom-6 left-6 h-8 w-8 rounded-full border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm" />
-                  <div className="absolute bottom-5 right-6 h-10 w-10 rounded-full border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm" />
+                  <div className="absolute bottom-2 left-1/2 h-10 w-24 -translate-x-1/2 rounded-full bg-[var(--home-accent-surface)] blur-lg" />
+                  <div className="absolute bottom-4 left-6 h-10 w-10 rounded-full bg-[var(--home-accent-surface)] blur-lg" />
+                  <div className="absolute bottom-3 right-6 h-12 w-12 rounded-full bg-[var(--home-accent-surface)] blur-lg" />
+                  <div className="home-glass absolute bottom-3 left-1/2 h-8 w-20 -translate-x-1/2 rounded-full border shadow-sm backdrop-blur-sm" />
+                  <div className="home-glass absolute bottom-6 left-6 h-8 w-8 rounded-full border shadow-sm backdrop-blur-sm" />
+                  <div className="home-glass absolute bottom-5 right-6 h-10 w-10 rounded-full border shadow-sm backdrop-blur-sm" />
                 </div>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-indigo-300 hover:shadow-md cursor-pointer dark:bg-slate-900/75 dark:hover:border-indigo-400 dark:hover:shadow-md">
+              <div className="home-panel home-interactive cursor-pointer rounded-2xl border border-border p-4 hover:shadow-md">
                 <div className="mb-1 text-xs font-bold text-muted-foreground">
                   学习聚焦
                 </div>
@@ -189,7 +189,7 @@ export function HomeHero({
                   42%
                 </div>
               </div>
-              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-indigo-300 hover:shadow-md cursor-pointer dark:bg-slate-900/75 dark:hover:border-indigo-400 dark:hover:shadow-md">
+              <div className="home-panel home-interactive cursor-pointer rounded-2xl border border-border p-4 hover:shadow-md">
                 <div className="mb-1 text-xs font-bold text-muted-foreground">
                   今日提醒
                 </div>

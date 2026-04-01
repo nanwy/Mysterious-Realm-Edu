@@ -1,32 +1,146 @@
 @import "@workspace/ui/globals.css";
 
-@layer utilities {
-  /* Residual dark-mode compatibility for screens that have not migrated to semantic tokens yet. */
-  /* Backgrounds */
-  .dark .bg-white { background-color: #0f172a; } /* slate-900 */
-  .dark .bg-white\/90 { background-color: rgba(15, 23, 42, 0.9); }
-  .dark .bg-slate-50 { background-color: #1e293b; } /* slate-800 */
-  .dark .bg-slate-100 { background-color: #334155; } /* slate-700 */
-  .dark .bg-indigo-50 { background-color: #1e1b4b; } /* indigo-950 */
-  .dark .bg-indigo-100 { background-color: #312e81; } /* indigo-900 */
-  .dark .bg-emerald-50 { background-color: #022c22; } /* emerald-950 */
-  .dark .bg-amber-50 { background-color: #451a03; } /* amber-950 */
+@layer base {
+  :root {
+    --home-page-background: linear-gradient(
+      180deg,
+      #f8f9fd 0%,
+      #eef2ff 26%,
+      #f5f6fb 62%,
+      #f7f8fc 100%
+    );
+    --home-panel: rgba(255, 255, 255, 0.92);
+    --home-panel-muted: linear-gradient(
+      180deg,
+      rgba(243, 245, 251, 0.92),
+      rgba(255, 255, 255, 0.88)
+    );
+    --home-panel-strong: linear-gradient(
+      160deg,
+      rgba(91, 75, 255, 0.12),
+      rgba(243, 245, 251, 0.96) 72%
+    );
+    --home-panel-emphasis: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.96),
+      rgba(238, 241, 255, 0.92)
+    );
+    --home-hover-border: rgba(91, 75, 255, 0.34);
+    --home-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    --home-accent-border: rgba(91, 75, 255, 0.16);
+    --home-banner-surface: linear-gradient(
+      135deg,
+      rgba(91, 75, 255, 0.14),
+      rgba(79, 140, 255, 0.08)
+    );
+    --home-accent-surface: rgba(91, 75, 255, 0.2);
+    --home-glass: rgba(255, 255, 255, 0.68);
+    --home-glass-border: rgba(255, 255, 255, 0.84);
+    --home-progress-track: rgba(91, 75, 255, 0.16);
+    --home-primary-panel: linear-gradient(160deg, #5b4bff 0%, #4f8cff 100%);
+    --home-primary-panel-text: #ffffff;
+    --home-primary-panel-muted: rgba(255, 255, 255, 0.76);
+    --home-primary-glow: rgba(91, 75, 255, 0.2);
+    --home-warning-bg: #fff7db;
+    --home-warning-border: #f7d37a;
+    --home-warning-text: #92400e;
+  }
 
-  /* Borders */
-  .dark .border-slate-100 { border-color: #334155; } /* slate-700 */
-  .dark .border-slate-200 { border-color: #1e293b; } /* slate-800 */
-  .dark .border-indigo-100 { border-color: #312e81; } /* indigo-900 */
-  .dark .border-emerald-200 { border-color: #064e3b; } /* emerald-900 */
-  .dark .border-amber-200 { border-color: #78350f; } /* amber-900 */
+  .dark {
+    --home-page-background: linear-gradient(
+      180deg,
+      #020617 0%,
+      #081121 26%,
+      #0f172a 62%,
+      #020617 100%
+    );
+    --home-panel: rgba(15, 23, 42, 0.8);
+    --home-panel-muted: linear-gradient(
+      180deg,
+      rgba(15, 23, 42, 0.8),
+      rgba(8, 17, 33, 0.9)
+    );
+    --home-panel-strong: linear-gradient(
+      160deg,
+      rgba(56, 189, 248, 0.22),
+      rgba(8, 17, 33, 0.94) 70%
+    );
+    --home-panel-emphasis: linear-gradient(
+      180deg,
+      rgba(15, 23, 42, 0.95),
+      rgba(8, 17, 33, 0.92)
+    );
+    --home-hover-border: rgba(56, 189, 248, 0.48);
+    --home-shadow: 0 20px 50px rgba(2, 6, 23, 0.32);
+    --home-accent-border: rgba(56, 189, 248, 0.22);
+    --home-banner-surface: linear-gradient(
+      135deg,
+      rgba(56, 189, 248, 0.18),
+      rgba(15, 23, 42, 0.92)
+    );
+    --home-accent-surface: rgba(56, 189, 248, 0.18);
+    --home-glass: rgba(15, 23, 42, 0.62);
+    --home-glass-border: rgba(255, 255, 255, 0.18);
+    --home-progress-track: rgba(255, 255, 255, 0.12);
+    --home-primary-panel: linear-gradient(160deg, #2563eb 0%, #1d4ed8 100%);
+    --home-primary-panel-text: #eff6ff;
+    --home-primary-panel-muted: rgba(191, 219, 254, 0.84);
+    --home-primary-glow: rgba(37, 99, 235, 0.24);
+    --home-warning-bg: rgba(245, 158, 11, 0.12);
+    --home-warning-border: rgba(245, 158, 11, 0.28);
+    --home-warning-text: #fde68a;
+  }
+}
 
-  /* Text Colors */
-  .dark .text-slate-900 { color: #f8fafc; } /* slate-50 */
-  .dark .text-slate-700 { color: #e2e8f0; } /* slate-200 */
-  .dark .text-slate-600 { color: #cbd5e1; } /* slate-300 */
-  .dark .text-slate-500 { color: #94a3b8; } /* slate-400 */
-  .dark .text-slate-400 { color: #64748b; } /* slate-500 */
-  .dark .text-indigo-600 { color: #818cf8; } /* indigo-400 */
-  .dark .text-indigo-700 { color: #a5b4fc; } /* indigo-300 */
-  .dark .text-emerald-700 { color: #34d399; } /* emerald-400 */
-  .dark .text-amber-700 { color: #fbbf24; } /* amber-400 */
+@layer components {
+  .home-page-shell {
+    background: var(--home-page-background);
+  }
+
+  .home-panel {
+    background: var(--home-panel);
+    box-shadow: var(--home-shadow);
+  }
+
+  .home-panel-muted {
+    background: var(--home-panel-muted);
+  }
+
+  .home-panel-strong {
+    background: var(--home-panel-strong);
+  }
+
+  .home-panel-emphasis {
+    background: var(--home-panel-emphasis);
+  }
+
+  .home-interactive:hover {
+    border-color: var(--home-hover-border);
+  }
+
+  .home-banner-surface {
+    border-color: var(--home-accent-border);
+    background: var(--home-banner-surface);
+  }
+
+  .home-glass {
+    border-color: var(--home-glass-border);
+    background: var(--home-glass);
+  }
+
+  .home-progress-track {
+    background: var(--home-progress-track);
+  }
+
+  .home-primary-panel {
+    background: var(--home-primary-panel);
+    color: var(--home-primary-panel-text);
+    box-shadow: 0 16px 40px var(--home-primary-glow);
+  }
+
+  .home-warning {
+    border-color: var(--home-warning-border);
+    background: var(--home-warning-bg);
+    color: var(--home-warning-text);
+  }
 }
