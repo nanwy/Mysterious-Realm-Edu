@@ -4,8 +4,8 @@ import { startTransition, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard } from "@workspace/ui";
+import { ResultsPagination } from "../common/results-pagination";
 import { fetchCourses, normalizeCourseError } from "./courses-data";
-import { CoursesPagination } from "./courses-pagination";
 import { CoursesResults } from "./courses-results";
 import { CoursesSearchForm } from "./courses-search-form";
 import {
@@ -191,11 +191,12 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
         </MotionReveal>
 
         <MotionReveal direction="up" delay={0.1}>
-          <CoursesPagination
+          <ResultsPagination
             page={Math.min(initialQuery.page, totalPages)}
             pageCount={totalPages}
             total={total}
             pending={isPending}
+            itemLabel="门课程"
             onPageChange={(page) =>
               navigate({
                 ...initialQuery,

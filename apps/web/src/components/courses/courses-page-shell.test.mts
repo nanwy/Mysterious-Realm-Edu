@@ -14,13 +14,15 @@ test("courses page shell renders filters and results sections", () => {
   assert.match(shellSource, /data-testid="courses-results-section"/);
   assert.match(shellSource, /CoursesSearchForm/);
   assert.match(shellSource, /CoursesResults/);
-  assert.match(shellSource, /CoursesPagination/);
+  assert.match(shellSource, /ResultsPagination/);
 });
 
 test("courses page shell keeps query and reset affordances", () => {
   assert.match(filtersSource, /关键词搜索/);
   assert.match(filtersSource, /排序方式/);
   assert.match(filtersSource, /课程分类/);
+  assert.match(filtersSource, /SelectTrigger/);
+  assert.match(filtersSource, /SelectContent/);
   assert.match(filtersSource, /查询/);
   assert.match(filtersSource, /重置/);
 });

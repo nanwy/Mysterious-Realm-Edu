@@ -4,11 +4,17 @@ import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { startTransition, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { fetchPracticeRepositories, normalizePracticeError } from "./practice-data";
-import { PracticePagination } from "./practice-pagination";
+import { ResultsPagination } from "../common/results-pagination";
+import {
+  fetchPracticeRepositories,
+  normalizePracticeError,
+} from "./practice-data";
 import { PracticeRepositoryList } from "./practice-repository-list";
 import { PracticeSearchForm } from "./practice-search-form";
-import { PRACTICE_PAGE_SIZE, type PracticeRepositoryItem } from "./practice-types";
+import {
+  PRACTICE_PAGE_SIZE,
+  type PracticeRepositoryItem,
+} from "./practice-types";
 
 function createQueryString(page: number, keyword: string) {
   const query = new URLSearchParams();
@@ -104,7 +110,9 @@ export function PracticePageShell({
             <div className="space-y-3">
               <Badge className="rounded-full">Practice</Badge>
               <div className="space-y-2">
-                <h2 className="text-2xl font-semibold text-foreground">练习仓库列表</h2>
+                <h2 className="text-2xl font-semibold text-foreground">
+                  练习仓库列表
+                </h2>
                 <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
                   迁移旧 Vue 练习仓库页的搜索、列表与分页结构，继续使用
                   <code className="mx-1 rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">
@@ -114,18 +122,30 @@ export function PracticePageShell({
                 </p>
               </div>
             </div>
-            <MotionStagger className="grid gap-3 sm:grid-cols-3" delayChildren={0.08}>
+            <MotionStagger
+              className="grid gap-3 sm:grid-cols-3"
+              delayChildren={0.08}
+            >
               {[
                 { label: "分页规模", value: `${PRACTICE_PAGE_SIZE} 条/页` },
                 { label: "当前关键字", value: initialKeyword || "全部题库" },
-                { label: "结果状态", value: error ? "接口异常" : isLoading ? "加载中" : `${total} 条` },
+                {
+                  label: "结果状态",
+                  value: error
+                    ? "接口异常"
+                    : isLoading
+                      ? "加载中"
+                      : `${total} 条`,
+                },
               ].map((item) => (
                 <MotionItem key={item.label}>
                   <div className="rounded-2xl border border-border bg-background/70 px-4 py-3">
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                       {item.label}
                     </p>
-                    <p className="mt-2 text-base font-semibold text-foreground">{item.value}</p>
+                    <p className="mt-2 text-base font-semibold text-foreground">
+                      {item.value}
+                    </p>
                   </div>
                 </MotionItem>
               ))}
@@ -156,12 +176,13 @@ export function PracticePageShell({
         }}
       />
 
-      <PracticePagination
+      <ResultsPagination
         page={Math.min(initialPage, totalPages)}
         pageCount={totalPages}
         total={total}
         pending={isPending}
-        onPageChange={(page) => navigate(page, initialKeyword)}
+        itemLabel="条结果"
+        onPageChange={(page: number) => navigate(page, initialKeyword)}
       />
     </div>
   );

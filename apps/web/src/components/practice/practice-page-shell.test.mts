@@ -12,7 +12,7 @@ const dataSource = readFileSync(join(currentDir, "practice-data.ts"), "utf8");
 test("practice page shell composes search, list, and pagination modules", () => {
   assert.match(shellSource, /PracticeSearchForm/);
   assert.match(shellSource, /PracticeRepositoryList/);
-  assert.match(shellSource, /PracticePagination/);
+  assert.match(shellSource, /ResultsPagination/);
 });
 
 test("practice page shell preserves loading, empty, and error states", () => {

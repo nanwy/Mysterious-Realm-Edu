@@ -2,12 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const paginationSource = readFileSync(
-  new URL("../common/results-pagination.tsx", import.meta.url),
-  "utf8"
-);
+const paginationSource = readFileSync(new URL("./results-pagination.tsx", import.meta.url), "utf8");
 
-test("results pagination uses shared pagination primitives", () => {
+test("results pagination uses shared ui pagination primitives", () => {
   assert.match(paginationSource, /Pagination/);
   assert.match(paginationSource, /PaginationContent/);
   assert.match(paginationSource, /PaginationItem/);
