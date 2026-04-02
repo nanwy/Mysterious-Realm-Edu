@@ -64,23 +64,39 @@ function getDepartmentNames(result: StudentProfileResult) {
   return deptNames.length > 0 ? deptNames.join(" / ") : "暂无";
 }
 
-function hasContent(viewModel: Omit<ProfilePageShellProps, "state">) {
-  if (viewModel.summary?.avatarUrl) {
+function hasProfileContent(
+  profile: Record<string, unknown> | null,
+  currentDept: Record<string, unknown> | null,
+  result: StudentProfileResult
+) {
+  const profileFields = [
+    pickText(profile, ["realName", "realname", "name", "nickName", "nickname", "userName"]),
+    pickText(profile, ["avatar", "avatarUrl", "headImg", "headimg", "photo"]),
+    pickText(profile, ["birthday", "birthDay", "birth"]),
+    pickText(profile, ["sex", "gender"]),
+    pickText(profile, ["integral", "score", "points"]),
+    pickText(profile, ["email", "mail"]),
+    pickText(profile, ["phone", "mobile", "mobilePhone", "tel"]),
+    pickText(profile, ["wechat", "weChat", "wxCode"]),
+    pickText(profile, ["qq"]),
+  ];
+
+  if (profileFields.some(Boolean)) {
     return true;
   }
 
-  const summaryValues = [
-    viewModel.summary?.name,
-    viewModel.summary?.subtitle,
-    viewModel.summary?.secondaryLine,
-  ].filter(Boolean);
+  const currentDeptFields = [
+    pickText(currentDept, ["deptName", "departName", "departmentName", "orgName"]),
+    pickText(currentDept, ["deptId", "departId", "departmentId", "id"]),
+    pickText(currentDept, ["companyName", "tenantName", "schoolName"]),
+  ];
 
-  if (summaryValues.some((value) => value && !value.includes("暂无") && !value.includes("未填写"))) {
+  if (currentDeptFields.some(Boolean)) {
     return true;
   }
 
-  return (viewModel.sections ?? []).some((section) =>
-    section.items.some((item) => !["未填写", "暂无"].includes(item.value))
+  return result.departs.some((item) =>
+    Boolean(pickText(item, ["deptName", "departName", "departmentName", "orgName"]))
   );
 }
 
@@ -198,7 +214,7 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
     sections: [...sections],
   };
 
-  if (!hasContent(readyState)) {
+  if (!hasProfileContent(profile, currentDept, result)) {
     return {
       state: "empty",
     };

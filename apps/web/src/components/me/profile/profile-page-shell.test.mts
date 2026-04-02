@@ -18,3 +18,12 @@ test("profile page shell keeps the migrated profile, contact, and department sec
   assert.match(contentSource, /testId: "profile-contact-section"/);
   assert.match(contentSource, /testId: "profile-department-section"/);
 });
+
+test("profile empty state is derived from raw profile data instead of fallback labels", () => {
+  assert.match(contentSource, /function hasProfileContent\(/);
+  assert.match(contentSource, /if \(!hasProfileContent\(profile, currentDept, result\)\)/);
+  assert.doesNotMatch(
+    contentSource,
+    /summaryValues\.some\(\(value\) => value && !value\.includes\("暂无"\) && !value\.includes\("未填写"\)\)/
+  );
+});
