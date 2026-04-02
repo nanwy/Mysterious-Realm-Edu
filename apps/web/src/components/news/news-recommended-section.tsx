@@ -16,7 +16,7 @@ function NewsCover({
   }
 
   return (
-    <div className="flex h-44 items-end bg-[linear-gradient(135deg,hsl(var(--muted)),transparent_70%)] p-5 dark:bg-[linear-gradient(135deg,rgba(14,165,233,0.14),rgba(15,23,42,0.92))]">
+    <div className="flex h-44 items-end bg-[linear-gradient(135deg,hsl(var(--muted)),hsl(var(--card))_72%)] p-5">
       <div className="rounded-2xl border border-border/70 bg-card/95 px-4 py-3 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">News</p>
         <p className="mt-2 text-sm text-foreground">资讯封面待接入</p>
