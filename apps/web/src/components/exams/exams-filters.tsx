@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
-import { Button, Field, FieldLabel, Input } from "@workspace/ui";
+import { Button, Field, FieldGroup, FieldLabel, Input } from "@workspace/ui";
 import type { ExamFiltersState } from "./exams-types";
 
 export function ExamsFilters({
@@ -43,7 +43,7 @@ export function ExamsFilters({
           void form.handleSubmit();
         }}
       >
-        <div className="min-w-0 flex-1">
+        <FieldGroup className="grid gap-4 xl:grid-cols-3 xl:col-span-4 grid-cols-subgrid  xl:items-end">
           <form.Field name="examTitle">
             {(field) => (
               <Field>
@@ -59,29 +59,29 @@ export function ExamsFilters({
               </Field>
             )}
           </form.Field>
-        </div>
 
-        <div className="flex flex-wrap gap-3">
-          <Button size="lg" type="submit" disabled={pending}>
-            查询
-          </Button>
-          <Button
-            size="lg"
-            type="button"
-            variant="outline"
-            disabled={pending}
-            onClick={() => {
-              form.reset({
-                ...defaultValues,
-                examTitle: "",
-                pageNo: 1,
-              });
-              onReset();
-            }}
-          >
-            重置
-          </Button>
-        </div>
+          <div className="flex flex-wrap gap-3">
+            <Button size="lg" type="submit" disabled={pending}>
+              查询
+            </Button>
+            <Button
+              size="lg"
+              type="button"
+              variant="outline"
+              disabled={pending}
+              onClick={() => {
+                form.reset({
+                  ...defaultValues,
+                  examTitle: "",
+                  pageNo: 1,
+                });
+                onReset();
+              }}
+            >
+              重置
+            </Button>
+          </div>
+        </FieldGroup>
       </form>
     </section>
   );

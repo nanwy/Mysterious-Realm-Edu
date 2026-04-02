@@ -5,11 +5,12 @@ coverage
 .turbo
 .vercel
 .DS_Store
-pnpm-lock.yaml
 *.log
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+migration-progress
+**/docs/*
 

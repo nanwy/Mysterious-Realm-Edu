@@ -69,6 +69,7 @@ export function ResultsPagination({
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
+              text="上一页"
               type="button"
               className={
                 page <= 1 || pending
@@ -110,6 +111,7 @@ export function ResultsPagination({
           <PaginationItem>
             <PaginationNext
               type="button"
+              text="下一页"
               className={
                 page >= pageCount || pending
                   ? "cursor-not-allowed opacity-50 pointer-events-none"

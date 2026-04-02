@@ -23,7 +23,7 @@ function CoursesLoadingState() {
   );
 }
 
-function CoursesEmptyState({ keyword }: { keyword: string }) {
+function CoursesEmptyState({ keyword }: { keyword?: string }) {
   return (
     <MotionReveal
       data-state="empty"
@@ -80,7 +80,7 @@ export function CoursesResults({
   items: CourseListItem[];
   loading: boolean;
   error: string | null;
-  keyword: string;
+  keyword?: string;
   onRetry: () => void;
 }) {
   if (loading) {

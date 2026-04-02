@@ -196,7 +196,7 @@ export async function fetchCourses(query: CourseQueryState): Promise<CourseListR
   return {
     items,
     total: getCourseTotal(payload, items.length),
-    categories: collectCategories(items, query.categoryId),
+    categories: collectCategories(items, query.categoryId as string),
   };
 }
 

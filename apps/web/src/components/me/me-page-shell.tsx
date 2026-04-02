@@ -1,6 +1,6 @@
 "use client";
 
-import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
+import { MotionReveal } from "@workspace/motion";
 import { SurfaceCard } from "@workspace/ui";
 import { MeNavigation } from "./me-navigation";
 import { ME_ENTRY_GROUPS, ME_OVERVIEW_STATS } from "./me-data";
@@ -8,8 +8,8 @@ import { MeSectionGrid } from "./me-section-grid";
 
 export function MePageShell() {
   return (
-    <MotionStagger className="grid gap-6" delayChildren={0.08}>
-      <MotionItem>
+    <div className="grid gap-6">
+      <MotionReveal direction="up">
         <SurfaceCard
           eyebrow="Profile Hub"
           title="学员中心入口总览"
@@ -40,34 +40,28 @@ export function MePageShell() {
             })}
           </div>
         </SurfaceCard>
-      </MotionItem>
+      </MotionReveal>
 
-      <MotionItem>
-        <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]" data-testid="me-layout">
-          <MotionReveal direction="left">
-            <aside className="xl:sticky xl:top-24 xl:self-start">
-              <SurfaceCard
-                eyebrow="Navigation"
-                title="个人中心导航"
-                description="桌面端保留左侧导航逻辑，移动端改为顶部堆叠卡片，便于快速定位对应分组。"
-              >
-                <MeNavigation groups={ME_ENTRY_GROUPS} />
-              </SurfaceCard>
-            </aside>
-          </MotionReveal>
+      <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]" data-testid="me-layout">
+        <aside className="xl:sticky xl:top-24 xl:self-start">
+          <SurfaceCard
+            eyebrow="Navigation"
+            title="个人中心导航"
+            description="桌面端保留左侧导航逻辑，移动端改为顶部堆叠卡片，便于快速定位对应分组。"
+          >
+            <MeNavigation groups={ME_ENTRY_GROUPS} />
+          </SurfaceCard>
+        </aside>
 
-          <MotionReveal direction="up" delay={0.05}>
-            <div className="grid gap-6">
-              <SurfaceCard
-                title="入口分组"
-                description="以下入口卡片完整对应旧站个人中心信息架构；当前仅提供静态迁移结果和目标路由说明，不接真实接口。"
-              >
-                <MeSectionGrid groups={ME_ENTRY_GROUPS} />
-              </SurfaceCard>
-            </div>
-          </MotionReveal>
+        <div className="grid gap-6">
+          <SurfaceCard
+            title="入口分组"
+            description="以下入口卡片完整对应旧站个人中心信息架构；当前仅提供静态迁移结果和目标路由说明，不接真实接口。"
+          >
+            <MeSectionGrid groups={ME_ENTRY_GROUPS} />
+          </SurfaceCard>
         </div>
-      </MotionItem>
-    </MotionStagger>
+      </div>
+    </div>
   );
 }

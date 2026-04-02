@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const shellSource = readFileSync(join(currentDir, "me-page-shell.tsx"), "utf8");
 const dataSource = readFileSync(join(currentDir, "me-data.ts"), "utf8");
+const motionSource = readFileSync(join(currentDir, "../../../../../packages/motion/src/reveal.tsx"), "utf8");
 
 test("me page shell renders overview, navigation, and grouped sections", () => {
   assert.match(shellSource, /data-testid="me-overview-stats"/);
@@ -15,6 +16,23 @@ test("me page shell renders overview, navigation, and grouped sections", () => {
   assert.match(shellSource, /入口分组/);
   assert.match(shellSource, /MeNavigation/);
   assert.match(shellSource, /MeSectionGrid/);
+});
+
+test("me page shell avoids nested parent reveal wrappers around the two-column layout", () => {
+  assert.doesNotMatch(shellSource, /<MotionStagger/);
+  assert.match(shellSource, /<MotionReveal direction="up">\s*<SurfaceCard/s);
+  assert.match(shellSource, /<div className="grid gap-6 xl:grid-cols-\[280px_minmax\(0,1fr\)\]" data-testid="me-layout">/);
+  assert.doesNotMatch(shellSource, /<MotionReveal direction="left"/);
+  assert.doesNotMatch(shellSource, /<MotionReveal direction="up" delay=\{0\.06\}>/);
+});
+
+test("motion reveal primitives recover visible elements after browser history restore", () => {
+  assert.match(motionSource, /window\.addEventListener\("pageshow", handlePageShow\)/);
+  assert.match(motionSource, /window\.addEventListener\("popstate", handlePopState\)/);
+  assert.match(motionSource, /document\.addEventListener\("visibilitychange", handleVisibilityChange\)/);
+  assert.match(motionSource, /requestAnimationFrame\(\(\) => \{\s*recoverIfVisible\(\);\s*window\.requestAnimationFrame\(\(\) => \{\s*recoverIfVisible\(\);/s);
+  assert.match(motionSource, /animate=\{isRecovered \? "show" : undefined\}/);
+  assert.match(motionSource, /onViewportEnter=\{\(\) => \{\s*markRecovered\(\);/s);
 });
 
 test("me page data keeps the migrated personal center entries from the legacy site", () => {

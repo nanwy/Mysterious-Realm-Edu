@@ -42,14 +42,22 @@ function createQueryString(filters: ExamFiltersState) {
 }
 
 function getStatusSummary(status: ExamStatusFilter) {
-  return EXAM_STATUS_OPTIONS.find((item) => item.value === status)?.label ?? "全部";
+  return (
+    EXAM_STATUS_OPTIONS.find((item) => item.value === status)?.label ?? "全部"
+  );
 }
 
 function getTypeSummary(type: ExamTypeFilter) {
-  return EXAM_TYPE_OPTIONS.find((item) => item.value === type)?.label ?? "公开考试";
+  return (
+    EXAM_TYPE_OPTIONS.find((item) => item.value === type)?.label ?? "公开考试"
+  );
 }
 
-export function ExamsPageShell({ initialFilters }: { initialFilters: ExamFiltersState }) {
+export function ExamsPageShell({
+  initialFilters,
+}: {
+  initialFilters: ExamFiltersState;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const [draftFilters, setDraftFilters] = useState(initialFilters);
@@ -106,7 +114,9 @@ export function ExamsPageShell({ initialFilters }: { initialFilters: ExamFilters
     setIsPending(true);
     setDraftFilters(nextFilters);
     startTransition(() => {
-      router.push(`${pathname}${createQueryString(nextFilters)}`, { scroll: false });
+      router.push(`${pathname}${createQueryString(nextFilters)}`, {
+        scroll: false,
+      });
     });
   }
 
@@ -120,7 +130,10 @@ export function ExamsPageShell({ initialFilters }: { initialFilters: ExamFilters
   }
 
   function updateStatus(nextStatus: string) {
-    const state = nextStatus === "0" || nextStatus === "2" || nextStatus === "3" ? nextStatus : "";
+    const state =
+      nextStatus === "0" || nextStatus === "2" || nextStatus === "3"
+        ? nextStatus
+        : "";
     navigate({
       ...draftFilters,
       state,
@@ -153,18 +166,33 @@ export function ExamsPageShell({ initialFilters }: { initialFilters: ExamFilters
                   <div className="w-fit">
                     <Badge>真实接口</Badge>
                   </div>
-                  <h2 className="text-2xl font-semibold text-foreground">在线考试总览</h2>
+                  <h2 className="text-2xl font-semibold text-foreground">
+                    在线考试总览
+                  </h2>
                   <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
                     保留公开考试与我的考试切换，支持按状态筛选、关键词检索和分页浏览。若服务未配置或接口失败，下方仅展示错误态。
                   </p>
                 </div>
-                <MotionStagger className="grid gap-3 sm:grid-cols-3" delayChildren={0.06}>
+                <MotionStagger
+                  className="grid gap-3 sm:grid-cols-3"
+                  delayChildren={0.06}
+                >
                   {[
-                    { label: "考试类型", value: getTypeSummary(initialFilters.examType) },
-                    { label: "筛选状态", value: getStatusSummary(initialFilters.state) },
+                    {
+                      label: "考试类型",
+                      value: getTypeSummary(initialFilters.examType),
+                    },
+                    {
+                      label: "筛选状态",
+                      value: getStatusSummary(initialFilters.state),
+                    },
                     {
                       label: "结果总数",
-                      value: error ? "接口异常" : isLoading ? "加载中" : `${total} 条`,
+                      value: error
+                        ? "接口异常"
+                        : isLoading
+                          ? "加载中"
+                          : `${total} 条`,
                     },
                   ].map((item) => (
                     <MotionItem key={item.label}>
@@ -172,7 +200,9 @@ export function ExamsPageShell({ initialFilters }: { initialFilters: ExamFilters
                         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                           {item.label}
                         </p>
-                        <p className="mt-2 text-base font-semibold text-foreground">{item.value}</p>
+                        <p className="mt-2 text-base font-semibold text-foreground">
+                          {item.value}
+                        </p>
                       </div>
                     </MotionItem>
                   ))}
@@ -181,33 +211,47 @@ export function ExamsPageShell({ initialFilters }: { initialFilters: ExamFilters
             </MotionReveal>
 
             <section data-testid="exams-tabs-section" className="grid gap-4">
-              <div className="grid gap-2 rounded-[28px] border border-border bg-card/90 p-4 shadow-sm">
-                <p className="text-sm font-medium text-foreground">考试类型</p>
-                <div className="overflow-x-auto">
-                  <Tabs value={draftFilters.examType} onValueChange={updateType}>
-                    <TabsList aria-label="考试类型">
-                      {EXAM_TYPE_OPTIONS.map((option) => (
-                        <TabsTrigger key={option.value} value={option.value}>
-                          {option.label}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                  </Tabs>
+              <div className="grid gap-2 grid-cols-2 rounded-[28px] border border-border bg-card/90 p-4 shadow-sm">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    考试类型
+                  </p>
+                  <div className="overflow-x-auto">
+                    <Tabs
+                      value={draftFilters.examType}
+                      onValueChange={updateType}
+                    >
+                      <TabsList aria-label="考试类型">
+                        {EXAM_TYPE_OPTIONS.map((option) => (
+                          <TabsTrigger key={option.value} value={option.value}>
+                            {option.label}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
+                  </div>
                 </div>
-              </div>
-
-              <div className="grid gap-2 rounded-[28px] border border-border bg-card/90 p-4 shadow-sm">
-                <p className="text-sm font-medium text-foreground">考试状态</p>
-                <div className="overflow-x-auto">
-                  <Tabs value={draftFilters.state} onValueChange={updateStatus}>
-                    <TabsList aria-label="考试状态">
-                      {EXAM_STATUS_OPTIONS.map((option) => (
-                        <TabsTrigger key={option.value || "all"} value={option.value}>
-                          {option.label}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                  </Tabs>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    考试状态
+                  </p>
+                  <div className="overflow-x-auto">
+                    <Tabs
+                      value={draftFilters.state}
+                      onValueChange={updateStatus}
+                    >
+                      <TabsList aria-label="考试状态">
+                        {EXAM_STATUS_OPTIONS.map((option) => (
+                          <TabsTrigger
+                            key={option.value || "all"}
+                            value={option.value}
+                          >
+                            {option.label}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
+                  </div>
                 </div>
               </div>
             </section>
@@ -246,7 +290,8 @@ export function ExamsPageShell({ initialFilters }: { initialFilters: ExamFilters
                   {Math.min(initialFilters.pageNo, totalPages)}
                 </span>{" "}
                 / {totalPages} 页，共{" "}
-                <span className="font-semibold text-foreground">{total}</span> 场考试。
+                <span className="font-semibold text-foreground">{total}</span>{" "}
+                场考试。
               </p>
               <ResultsPagination
                 page={Math.min(initialFilters.pageNo, totalPages)}

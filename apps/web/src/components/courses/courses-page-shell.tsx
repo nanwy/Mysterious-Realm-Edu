@@ -22,7 +22,7 @@ function createQueryString(query: CourseQueryState) {
     params.set("page", String(query.page));
   }
 
-  if (query.keyword.trim()) {
+  if (query.keyword?.trim()) {
     params.set("keyword", query.keyword.trim());
   }
 
