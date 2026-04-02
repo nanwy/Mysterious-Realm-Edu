@@ -146,7 +146,7 @@ export function ExamsPageShell({
       return;
     }
 
-    router.push(`/scores/${item.examId}`);
+    router.push(`/exams/${item.examId}/preview`);
   }
 
   const totalPages = Math.max(1, Math.ceil(total / EXAMS_PAGE_SIZE));
