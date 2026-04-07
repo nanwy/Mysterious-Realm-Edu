@@ -57,11 +57,9 @@ function withFallback(value: string, fallback = "未填写") {
 }
 
 function getDepartmentNames(result: StudentProfileResult) {
-  const deptNames = result.departs
+  return result.departs
     .map((item) => pickText(item, ["deptName", "departName", "departmentName", "orgName"]))
     .filter(Boolean);
-
-  return deptNames.length > 0 ? deptNames.join(" / ") : "暂无";
 }
 
 function hasProfileContent(
@@ -119,6 +117,7 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
     pickText(currentDept, ["deptName", "departName", "departmentName", "orgName"]),
     "暂无当前部门"
   );
+  const departmentNames = getDepartmentNames(result);
   const loginIdentity = withFallback(
     pickText(profile, ["userName", "username", "studentNo", "studentNumber", "userId"]),
     "暂无学员编号"
@@ -134,7 +133,7 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
   const sections = [
     {
       title: "详细资料",
-      description: "承接旧版基础资料展示，只读呈现生日、性别与积分等字段。",
+      description: "聚合展示学员基础身份字段，保持只读结构并统一缺失值表达。",
       testId: "profile-details-section",
       items: [
         {
@@ -157,7 +156,7 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
     },
     {
       title: "联系信息",
-      description: "展示当前已聚合到前端的联系渠道，缺失字段统一降级为未填写。",
+      description: "统一展示当前可用的联系渠道，便于快速确认资料完整度。",
       testId: "profile-contact-section",
       items: [
         {
@@ -180,7 +179,7 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
     },
     {
       title: "当前部门",
-      description: "补齐当前组织归属与部门列表说明，方便承接后续资料编辑流程。",
+      description: "梳理当前组织归属与可见部门范围，处理多部门和长名称场景。",
       testId: "profile-department-section",
       items: [
         {
@@ -203,7 +202,7 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
         },
         {
           label: "可见部门",
-          value: getDepartmentNames(result),
+          value: departmentNames.length > 0 ? departmentNames.join("\n") : "暂无",
         },
       ],
     },

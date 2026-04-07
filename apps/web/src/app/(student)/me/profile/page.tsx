@@ -7,7 +7,7 @@ export default function ProfilePage() {
   return (
     <StudentShell
       title="个人资料"
-      description="迁移旧版学员端个人资料展示体验，当前只承接资料浏览、状态反馈和占位编辑入口。"
+      description="统一展示学员基础资料、联系信息与组织归属，保留只读呈现并覆盖完整状态反馈。"
     >
       <Suspense fallback={<ProfilePageShell state="loading" />}>
         <ProfilePageContent />

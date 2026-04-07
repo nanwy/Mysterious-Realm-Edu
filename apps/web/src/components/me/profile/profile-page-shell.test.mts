@@ -11,12 +11,15 @@ const contentSource = readFileSync(join(currentDir, "profile-page-content.tsx"),
 test("profile page shell keeps the migrated profile, contact, and department sections", () => {
   assert.match(shellSource, /ProfileSummary/);
   assert.match(shellSource, /InfoSection/);
+  assert.match(shellSource, /Badge variant="outline">资料只读</);
+  assert.match(shellSource, /whitespace-pre-line break-words/);
   assert.match(contentSource, /title: "详细资料"/);
   assert.match(contentSource, /title: "联系信息"/);
   assert.match(contentSource, /title: "当前部门"/);
   assert.match(contentSource, /testId: "profile-details-section"/);
   assert.match(contentSource, /testId: "profile-contact-section"/);
   assert.match(contentSource, /testId: "profile-department-section"/);
+  assert.match(contentSource, /departmentNames.length > 0 \? departmentNames.join\("\\n"\) : "暂无"/);
 });
 
 test("profile empty state is derived from raw profile data instead of fallback labels", () => {
