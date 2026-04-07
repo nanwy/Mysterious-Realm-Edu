@@ -6,7 +6,6 @@ import { HomeHero } from "./home-hero";
 import { HomeHotNewsSection } from "./home-hot-news-section";
 import { HomeNewsSection } from "./home-news-section";
 import { HomeQuestionnairesSection } from "./home-questionnaires-section";
-import { HomeSidebar } from "./home-sidebar";
 import type { HomePayload } from "./home-types";
 
 export function HomePage({
@@ -26,10 +25,10 @@ export function HomePage({
   hotNewsError,
 }: HomePayload) {
   return (
-    <div className="min-h-screen bg-background text-foreground dark:bg-[linear-gradient(180deg,#020617_0%,#081121_26%,#0f172a_62%,#020617_100%)]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(79,70,255,0.08),transparent_24%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.08),transparent_22%),linear-gradient(180deg,#f4f6fb_0%,#f7f9fc_34%,#fbfcfe_100%)] text-foreground dark:bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.12),transparent_24%),radial-gradient(circle_at_top_right,rgba(79,70,255,0.16),transparent_22%),linear-gradient(180deg,#020617_0%,#081121_26%,#0f172a_62%,#020617_100%)]">
       <SiteHeader />
 
-      <main className="relative mx-auto flex max-w-7xl flex-col gap-12 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <main className="relative mx-auto flex max-w-[1400px] flex-col gap-16 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <HomeHero
           banner={banners[0]}
           bannerError={bannerError}
@@ -40,30 +39,32 @@ export function HomePage({
           announcementCount={announcements.length}
         />
 
-        <HomeCoursesSection
-          courses={hotCourses}
-          courseError={courseError}
-          announcements={announcements}
-          announcementError={announcementError}
-          examCount={latestExams.length}
-        />
-
-        <HomeExamsSection exams={latestExams} examError={examError} />
-
-        <section className="grid gap-6">
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_minmax(320px,0.82fr)] xl:items-start">
-            <HomeNewsSection
-              recommendedNews={recommendedNews}
-              recommendedNewsError={recommendedNewsError}
+        <section className="grid gap-8 xl:grid-cols-[minmax(0,1.22fr)_340px] xl:items-start">
+          <div className="grid gap-10">
+            <HomeCoursesSection
+              courses={hotCourses}
+              courseError={courseError}
+              announcements={announcements}
+              announcementError={announcementError}
+              examCount={latestExams.length}
             />
-            <HomeHotNewsSection hotNews={hotNews} hotNewsError={hotNewsError} />
+
+            <HomeExamsSection exams={latestExams} examError={examError} />
           </div>
 
-          <HomeQuestionnairesSection
-            questionnaires={questionnaires}
-            questionnaireError={questionnaireError}
-          />
+          <aside className="grid gap-8 xl:sticky xl:top-24">
+            <HomeHotNewsSection hotNews={hotNews} hotNewsError={hotNewsError} />
+            <HomeQuestionnairesSection
+              questionnaires={questionnaires}
+              questionnaireError={questionnaireError}
+            />
+          </aside>
         </section>
+
+        <HomeNewsSection
+          recommendedNews={recommendedNews}
+          recommendedNewsError={recommendedNewsError}
+        />
 
         <HomeCtaSection />
       </main>

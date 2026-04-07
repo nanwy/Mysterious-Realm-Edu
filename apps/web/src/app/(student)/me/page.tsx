@@ -4,8 +4,8 @@ import { MePageShell } from "@/components/me/me-page-shell";
 export default function MePage() {
   return (
     <StudentShell
-      title="个人中心"
-      description="对应旧项目用户信息、账号安全、课程学习、订单、证书与消息中心等整组个人中心入口页。"
+      title="我的空间"
+      description="把学习状态、考试提醒、消息和账户管理收进同一个个人工作区，让你一进来就知道先处理什么。"
     >
       <MePageShell />
     </StudentShell>

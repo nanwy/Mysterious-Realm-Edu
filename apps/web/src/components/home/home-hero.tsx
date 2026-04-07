@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
@@ -6,39 +7,62 @@ import type { HomeRecord } from "./home-types";
 import { ErrorLine } from "./home-section-heading";
 import {
   ArrowRight,
+  BellDot,
   BookOpen,
-  FileText,
-  Layout,
-  HelpCircle,
+  Radar,
+  ScanSearch,
+  Sparkles,
 } from "lucide-react";
 
-function HeroStat({
+function FocusChip({
   label,
   value,
   note,
-  icon,
 }: {
   label: string;
   value: string;
   note: string;
-  icon?: React.ReactNode;
 }) {
   return (
-    <div className="group flex cursor-pointer items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:border-primary/40 hover:shadow-md">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-        {icon ? icon : <div className="size-2 rounded-full bg-current" />}
+    <div className="rounded-2xl border border-border/70 bg-card/85 px-4 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.05)] backdrop-blur">
+      <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+        {label}
       </div>
-      <div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-xs font-bold text-muted-foreground">
-            {label}
-          </span>
-          <span className="text-xl font-extrabold text-foreground">
-            {value}
-          </span>
+      <div className="mt-2 flex items-end gap-2">
+        <div className="text-2xl font-extrabold tracking-[-0.04em] text-foreground">
+          {value}
         </div>
-        <div className="mt-0.5 text-xs font-medium text-muted-foreground">
+        <div className="pb-1 text-[11px] font-semibold text-muted-foreground">
           {note}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkspaceStrip({
+  icon,
+  title,
+  value,
+  note,
+}: {
+  icon: ReactNode;
+  title: string;
+  value: string;
+  note: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-[1.1rem] border border-white/10 bg-white/6 px-4 py-3">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">
+          {title}
+        </div>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="text-lg font-extrabold text-white">{value}</span>
+          <span className="truncate text-xs font-medium text-slate-400">{note}</span>
         </div>
       </div>
     </div>
@@ -66,157 +90,173 @@ export function HomeHero({
     String(banner?.imgUrl ?? banner?.image ?? "")
   );
 
-  const heroStats = [
-    {
-      label: "课程",
-      value: `${hotCourseCount || 8}+`,
-      desc: "学习入口",
-      icon: <BookOpen className="size-6" />,
-    },
-    {
-      label: "考试",
-      value: `${examCount || 6}+`,
-      desc: "近期安排",
-      icon: <FileText className="size-6" />,
-    },
-    {
-      label: "资讯",
-      value: `${newsCount + announcementCount || 8}+`,
-      desc: "教务动态",
-      icon: <Layout className="size-6" />,
-    },
-    {
-      label: "问卷",
-      value: `${questionnaireCount || 4}`,
-      desc: "待办任务",
-      icon: <HelpCircle className="size-6" />,
-    },
-  ];
-
   return (
-    <section className="space-y-6">
-      <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-        <div className="flex flex-col lg:flex-row">
-          <MotionStagger className="flex-1 p-8 lg:p-12" delayChildren={0.06}>
-            <MotionItem>
-              <Badge className="mb-6 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold tracking-wider text-primary hover:bg-primary/10">
-                新一代学习中枢
-              </Badge>
-            </MotionItem>
-            <MotionItem>
-              <h1 className="mb-6 max-w-3xl text-4xl font-extrabold leading-[1.15] tracking-tight text-foreground sm:text-5xl">
-                把课程与练习
-                <br />
-                <span className="text-primary">
-                  放进更清晰的学习路径
-                </span>
-              </h1>
-            </MotionItem>
-            <MotionItem>
-              <p className="mb-8 max-w-lg text-lg font-medium leading-relaxed text-muted-foreground">
-                首页聚合课程入口、考试提醒、学习进度和教务通知，让学员一进来就知道下一步该做什么。
-              </p>
-            </MotionItem>
-            <MotionItem className="flex flex-wrap items-center gap-4">
-              <Link
-                href="/courses"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-primary/90"
-              >
-                进入课程中心
-                <ArrowRight className="size-4" />
-              </Link>
-              <Link
-                href="/exams"
-                className="inline-flex items-center rounded-full border border-border bg-card px-6 py-3 text-sm font-bold text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-muted"
-              >
-                查看近期考试
-              </Link>
-            </MotionItem>
-          </MotionStagger>
+    <section className="relative overflow-hidden rounded-[2rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(246,248,255,0.98))] shadow-[0_24px_80px_rgba(15,23,42,0.08)] dark:bg-[linear-gradient(180deg,rgba(2,6,23,0.94),rgba(7,12,25,0.98))]">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.08)_1px,transparent_1px)] bg-[size:28px_28px] [mask-image:linear-gradient(180deg,black,transparent_82%)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)]" />
+      <div className="pointer-events-none absolute -left-24 top-16 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(91,75,255,0.18),transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(56,189,248,0.16),transparent_68%)]" />
+      <div className="pointer-events-none absolute right-[-6rem] top-[-5rem] h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(34,197,94,0.08),transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(96,165,250,0.14),transparent_68%)]" />
 
-          <MotionReveal
-            direction="left"
-            delay={0.16}
-            className="border-t border-border bg-muted p-8 lg:w-[400px] lg:border-l lg:border-t-0"
-          >
-            <div className="mb-6 flex items-center justify-between">
+      <div className="relative grid gap-10 p-5 md:p-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] xl:p-10">
+        <MotionStagger className="space-y-8" delayChildren={0.06}>
+          <MotionItem className="flex flex-wrap items-center gap-3">
+            <Badge className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-primary hover:bg-primary/10">
+              Today Board
+            </Badge>
+            <span className="text-[11px] font-medium text-muted-foreground">
+              云学考系统 / 平台门户 / 今日中枢
+            </span>
+          </MotionItem>
+
+          <MotionItem className="max-w-4xl">
+            <h1 className="max-w-4xl text-[clamp(3.2rem,7vw,6rem)] font-black leading-[0.92] tracking-[-0.07em] text-foreground">
+              平台重点
+              <br />
+              课程、考试与动态
+              <br />
+              <span className="text-primary">先看这一屏</span>
+            </h1>
+          </MotionItem>
+
+          <MotionItem className="max-w-2xl">
+            <p className="text-base font-medium leading-8 text-muted-foreground md:text-lg">
+              首页不再只是功能目录。课程入口、考试安排、教务通知和推荐内容会先被编排，再告诉你今天从哪里开始。
+            </p>
+          </MotionItem>
+
+          <MotionItem className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/courses"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-[0_16px_36px_rgba(91,75,255,0.28)] transition-all hover:-translate-y-0.5 hover:bg-primary/90"
+            >
+              继续今日学习
+              <ArrowRight className="size-4" />
+            </Link>
+            <Link
+              href="/exams"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card/90 px-6 py-3.5 text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background"
+            >
+              查看考试安排
+            </Link>
+          </MotionItem>
+
+          <MotionItem>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <FocusChip label="课程" value={`${hotCourseCount || 8}+`} note="学习入口" />
+              <FocusChip label="考试" value={`${examCount || 6}+`} note="今日信号" />
+              <FocusChip label="动态" value={`${announcementCount || 4}+`} note="教务更新" />
+              <FocusChip label="内容" value={`${newsCount || 4}+`} note="推荐资讯" />
+            </div>
+          </MotionItem>
+        </MotionStagger>
+
+        <MotionReveal
+          direction="left"
+          delay={0.12}
+          className="relative overflow-hidden rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,#0b1327_0%,#121d36_100%)] p-5 text-white shadow-[0_30px_80px_rgba(15,23,42,0.32)]"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(91,75,255,0.22),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.18),transparent_32%)]" />
+          <div className="relative space-y-4">
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  学习总览
+                <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-sky-300/90">
+                  Live Workspace
                 </div>
-                <h2 className="text-lg font-extrabold text-foreground">
-                  今日学习面板
+                <h2 className="mt-1 text-2xl font-extrabold tracking-[-0.04em] text-white">
+                  实时工作区
                 </h2>
               </div>
-              <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-                实时同步
+              <div className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[11px] font-semibold text-slate-300">
+                同步在线
               </div>
             </div>
 
-            <p className="mb-6 text-sm font-medium text-muted-foreground">
-              课程、考试和首页主视觉在这里汇总，减少首屏干扰。
-            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <WorkspaceStrip
+                icon={<BookOpen className="size-4" />}
+                title="课程进度"
+                value="42%"
+                note="今日主线"
+              />
+              <WorkspaceStrip
+                icon={<BellDot className="size-4" />}
+                title="考试提醒"
+                value={String(examCount || 6)}
+                note="即将开始"
+              />
+              <WorkspaceStrip
+                icon={<ScanSearch className="size-4" />}
+                title="内容扫描"
+                value={String(newsCount + announcementCount || 8)}
+                note="平台更新"
+              />
+            </div>
 
-            <div className="mb-6">
+            <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                  Focus Stream
+                </div>
+                  <div className="text-[10px] font-semibold text-slate-500">
+                    今日焦点
+                  </div>
+                </div>
+
               <ErrorLine message={bannerError} />
-            </div>
 
-            <div className="mb-6 flex h-32 items-center justify-center overflow-hidden rounded-2xl border border-border/60 bg-[linear-gradient(135deg,var(--muted),var(--background))] shadow-inner">
-              {leadBannerImage ? (
-                <img
-                  src={leadBannerImage}
-                  alt={toText(banner?.title ?? banner?.name, "首页 Banner")}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="relative h-20 w-32">
-                  <div className="absolute bottom-2 left-1/2 h-10 w-24 -translate-x-1/2 rounded-full bg-indigo-300/50 blur-lg" />
-                  <div className="absolute bottom-4 left-6 h-10 w-10 rounded-full bg-blue-300/50 blur-lg" />
-                  <div className="absolute bottom-3 right-6 h-12 w-12 rounded-full bg-indigo-200/50 blur-lg" />
-                  <div className="absolute bottom-3 left-1/2 h-8 w-20 -translate-x-1/2 rounded-full border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm" />
-                  <div className="absolute bottom-6 left-6 h-8 w-8 rounded-full border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm" />
-                  <div className="absolute bottom-5 right-6 h-10 w-10 rounded-full border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm" />
+              <div className="mt-3 grid gap-3">
+                <div className="relative overflow-hidden rounded-[1.2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(129,140,248,0.16),rgba(56,189,248,0.12))] p-4">
+                  {leadBannerImage ? (
+                    <img
+                      src={leadBannerImage}
+                      alt={toText(banner?.title ?? banner?.name, "首页 Banner")}
+                      className="h-40 w-full rounded-[1rem] object-cover opacity-80"
+                    />
+                  ) : (
+                    <div className="grid h-40 place-items-center rounded-[1rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))]">
+                      <div className="space-y-3 text-center">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/8">
+                          <Sparkles className="size-5 text-sky-300" />
+                        </div>
+                        <div>
+                        <div className="text-sm font-bold text-white">主内容面板</div>
+                        <div className="mt-1 text-xs font-medium text-slate-400">
+                          课程、考试与推荐内容会在这里联动组织
+                        </div>
+                      </div>
+                    </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="cursor-pointer rounded-2xl border border-border bg-card p-4 shadow-sm transition-shadow hover:border-primary/40 hover:shadow-md">
-                <div className="mb-1 text-xs font-bold text-muted-foreground">
-                  学习聚焦
-                </div>
-                <div className="text-2xl font-extrabold text-foreground">
-                  42%
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[1.1rem] border border-white/10 bg-white/6 p-4">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                        平台流
+                      </div>
+                      <div className="mt-2 text-lg font-extrabold text-white">
+                        {newsCount || 4} 条推荐内容
+                    </div>
+                    <div className="mt-1 text-xs font-medium text-slate-400">
+                      新课程、新文章与平台动态正在更新
+                    </div>
+                  </div>
+                  <div className="rounded-[1.1rem] border border-white/10 bg-white/6 p-4">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                        待处理
+                      </div>
+                      <div className="mt-2 text-lg font-extrabold text-white">
+                        {questionnaireCount || 4} 项待处理
+                    </div>
+                    <div className="mt-1 text-xs font-medium text-slate-400">
+                      问卷、通知和考试提醒会集中出现在这里
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="cursor-pointer rounded-2xl border border-border bg-card p-4 shadow-sm transition-shadow hover:border-primary/40 hover:shadow-md">
-                <div className="mb-1 text-xs font-bold text-muted-foreground">
-                  今日提醒
-                </div>
-                <div className="text-2xl font-extrabold text-foreground">
-                  {examCount || 6} 项
-                </div>
-              </div>
             </div>
-          </MotionReveal>
-        </div>
+          </div>
+        </MotionReveal>
       </div>
-
-      <MotionStagger
-        className="grid grid-cols-2 gap-4 sm:grid-cols-4"
-        delayChildren={0.1}
-      >
-        {heroStats.map((stat) => (
-          <MotionItem key={stat.label}>
-            <HeroStat
-              icon={stat.icon}
-              label={stat.label}
-              value={stat.value}
-              note={stat.desc}
-            />
-          </MotionItem>
-        ))}
-      </MotionStagger>
     </section>
   );
 }
