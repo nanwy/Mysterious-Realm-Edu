@@ -95,12 +95,12 @@ export const ME_ENTRY_GROUPS: MeEntryGroup[] = [
   {
     id: "purchased-goods",
     title: "已购商品",
-    description: "承接旧站已购商品与交付内容查看入口。",
+    description: "承接旧站已购课程与考试内容查看入口。",
     icon: Package,
     items: [
       {
         title: "已购商品",
-        description: "查看已购买课程、资料包与商品交付信息。",
+        description: "查看已购买课程、考试与对应的后续入口说明。",
         href: "/me/purchases",
         routeLabel: "/me/purchases",
       },
