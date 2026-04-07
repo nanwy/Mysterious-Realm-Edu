@@ -2,7 +2,7 @@
 
 import type { HTMLMotionProps, Transition, Variants } from "motion/react";
 import { motion, useReducedMotion } from "motion/react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 type Direction = "up" | "down" | "left" | "right" | "none";
 
@@ -36,6 +36,65 @@ function revealVariants(direction: Direction, distance: number): Variants {
   };
 }
 
+function useRecoveredReveal() {
+  const [isRecovered, setIsRecovered] = useState(false);
+  const nodeRef = useRef<HTMLDivElement | null>(null);
+
+  const markRecovered = () => {
+    setIsRecovered(true);
+  };
+
+  useEffect(() => {
+    const recoverIfVisible = () => {
+      const node = nodeRef.current;
+
+      if (!node) {
+        return;
+      }
+
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+      const isVisible =
+        rect.bottom >= 0 &&
+        rect.right >= 0 &&
+        rect.top <= viewportHeight &&
+        rect.left <= viewportWidth;
+
+      if (isVisible) {
+        markRecovered();
+      }
+    };
+
+    const handlePageShow = () => {
+      requestAnimationFrame(() => {
+        recoverIfVisible();
+        window.requestAnimationFrame(() => {
+          recoverIfVisible();
+        });
+      });
+    };
+    const handlePopState = handlePageShow;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        handlePageShow();
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("popstate", handlePopState);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("popstate", handlePopState);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  return { isRecovered, markRecovered, nodeRef };
+}
+
 export function MotionReveal({
   children,
   direction = "up",
@@ -56,18 +115,24 @@ export function MotionReveal({
   amount?: number;
 }) {
   const reduce = useReducedMotion();
+  const { isRecovered, markRecovered, nodeRef } = useRecoveredReveal();
   const transition: Transition = reduce
     ? { duration: 0 }
     : { duration, delay, ease: [0.22, 1, 0.36, 1] };
 
   return (
     <motion.div
+      ref={nodeRef}
       className={className}
       initial="hidden"
       whileInView="show"
+      animate={isRecovered ? "show" : undefined}
       viewport={{ once, amount }}
       variants={reduce ? revealVariants("none", 0) : revealVariants(direction, distance)}
       transition={transition}
+      onViewportEnter={() => {
+        markRecovered();
+      }}
       {...props}
     >
       {children}
