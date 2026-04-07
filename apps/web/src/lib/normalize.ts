@@ -1,4 +1,3 @@
-
 export function toRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -54,5 +53,37 @@ export function toNumber(value: unknown, fallback = 0): number {
 }
 
 export function stripHtmlTags(content: string): string {
-  return content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return content
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function toNumberOrNull(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+export function toNumberOrFallback(value: unknown, fallback = 0): number {
+  return toNumberOrNull(value) ?? fallback;
+}
+
+export function toBooleanOrNull(value: unknown): boolean | null {
+  if (value === true || value === 1 || value === "1") {
+    return true;
+  }
+
+  if (value === false || value === 0 || value === "0") {
+    return false;
+  }
+
+  return null;
 }
