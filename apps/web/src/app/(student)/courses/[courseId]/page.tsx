@@ -1,4 +1,6 @@
-import { StudentShell, SurfaceCard } from "@workspace/ui";
+import { StudentShell } from "@workspace/ui";
+import { CourseStudyPageShell } from "@/components/courses/course-study-page-shell";
+import { getCourseStudy } from "@/lib/course-study";
 
 export default async function CourseDetailPage({
   params,
@@ -6,18 +8,14 @@ export default async function CourseDetailPage({
   params: Promise<{ courseId: string }>;
 }) {
   const { courseId } = await params;
+  const studyResult = await getCourseStudy(courseId);
 
   return (
     <StudentShell
-      title={`课程学习 · ${courseId}`}
-      description="后续在该页面挂接视频播放器、防挂机检测、任务解锁、进度计算与学完后考试逻辑。"
+      title="课程学习工作台"
+      description="把课程详情、学习进度、最近任务和考试联动收敛成统一工作台，先让继续学习路径成立，再逐步接入播放器、目录树、学习计时与防挂机逻辑。"
     >
-      <SurfaceCard
-        eyebrow="Online Study"
-        title="学习流程骨架"
-        description="旧项目的 `OnlineStudy.vue` 涉及任务目录、学习时长统计与考试入口，这里先拆出可扩展的 Next.js 页面。"
-      />
+      <CourseStudyPageShell courseId={courseId} studyResult={studyResult} />
     </StudentShell>
   );
 }
-

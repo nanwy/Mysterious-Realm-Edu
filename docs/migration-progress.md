@@ -22,7 +22,7 @@ Target project: /Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu
 ## Course
 - [-] /course 课程学习
 - [-] /course/courseList 课程列表（已重构首屏层次、筛选区节奏与结果卡信息表达，待继续补齐详情页与联动链路）
-- [-] /course/onlineStudy/:id 在线学习（已重构为学习工作台，补齐课程详情/进度/最近任务/异常态；待继续接入播放器、目录树与学习计时链路）
+- [-] /course/onlineStudy/:id 在线学习（已重构为学习工作台，补齐课程详情/进度/最近任务/异常态，并重做继续学习工作台的主视觉、信号侧栏与响应式层级；待继续接入播放器、目录树与学习计时链路）
 - [ ] /course/comment/:courseId 课程评价
 - [ ] /course/myCollect/:searchType 我的收藏
 - [ ] /course/footprint/:searchType 我的足迹
