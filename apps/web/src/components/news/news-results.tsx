@@ -116,7 +116,7 @@ export function NewsResults({
 
   return (
     <MotionStagger data-testid="news-results-section" className="grid gap-4" delayChildren={0.08}>
-      {items.map((item) => (
+      {items.map((item, index) => (
         <MotionItem key={item.id}>
           <article className="overflow-hidden rounded-[28px] border border-border bg-card/95 p-5 shadow-sm">
             <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
@@ -125,6 +125,9 @@ export function NewsResults({
               </a>
               <div className="grid gap-4">
                 <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground">
+                  <span className="rounded-full border border-border/70 bg-background/80 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-primary">
+                    #{String(index + 1).padStart(2, "0")}
+                  </span>
                   <span>{item.publishTime}</span>
                   <span>{item.viewCountLabel}</span>
                 </div>
@@ -134,12 +137,13 @@ export function NewsResults({
                   </a>
                   <p className="line-clamp-3 text-sm leading-7 text-muted-foreground">{item.summary}</p>
                 </div>
-                <div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">从列表直接进入详情页，继续阅读完整正文。</p>
                   <a
                     href={item.href}
                     className="inline-flex items-center rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/40"
                   >
-                    查看详情入口
+                    查看详情
                   </a>
                 </div>
               </div>
