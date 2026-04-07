@@ -40,7 +40,7 @@ Target project: /Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu
 - [ ] /exam/userExamResult/examDetail/:id 考试结果明细
 
 ## Questionnaire
-- [x] /questionnaire 问卷调查
+- [x] /questionnaire 问卷调查（已重构为任务导向问卷面板，补齐首屏状态摘要、横向筛选节奏与结果卡层级）
 
 ## News
 - [x] /news 新闻资讯
