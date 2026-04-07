@@ -9,30 +9,34 @@ const shellSource = readFileSync(join(currentDir, "me-page-shell.tsx"), "utf8");
 const dataSource = readFileSync(join(currentDir, "me-data.ts"), "utf8");
 const motionSource = readFileSync(join(currentDir, "../../../../../packages/motion/src/reveal.tsx"), "utf8");
 
-test("me page shell renders overview, navigation, and grouped sections", () => {
-  assert.match(shellSource, /data-testid="me-overview-stats"/);
+test("me page shell renders portal hero, navigation, and grouped sections", () => {
+  assert.match(shellSource, /data-testid="me-portal-hero"/);
+  assert.match(shellSource, /data-testid="me-priority-actions"/);
   assert.match(shellSource, /data-testid="me-layout"/);
+  assert.match(shellSource, /Student Portal/);
+  assert.match(shellSource, /页面主用途/);
   assert.match(shellSource, /个人中心导航/);
-  assert.match(shellSource, /入口分组/);
+  assert.match(shellSource, /全部入口分区/);
   assert.match(shellSource, /MeNavigation/);
   assert.match(shellSource, /MeSectionGrid/);
 });
 
-test("me page shell avoids nested parent reveal wrappers around the two-column layout", () => {
+test("me page shell prioritizes portal hero before navigation map and grouped sections", () => {
   assert.doesNotMatch(shellSource, /<MotionStagger/);
-  assert.match(shellSource, /<MotionReveal direction="up">\s*<SurfaceCard/s);
-  assert.match(shellSource, /<div className="grid gap-6 xl:grid-cols-\[280px_minmax\(0,1fr\)\]" data-testid="me-layout">/);
-  assert.doesNotMatch(shellSource, /<MotionReveal direction="left"/);
-  assert.doesNotMatch(shellSource, /<MotionReveal direction="up" delay=\{0\.06\}>/);
+  assert.match(shellSource, /data-testid="me-portal-hero"/);
+  assert.match(shellSource, /xl:grid-cols-\[minmax\(0,1\.45fr\)_320px\]/);
+  assert.match(shellSource, /保留完整旧站分组，桌面端作为门户地图固定在右侧/);
+  assert.match(shellSource, /形成从“先处理什么”到“还有哪些入口”的稳定阅读路径/);
+  assert.match(shellSource, /阅读顺序/);
 });
 
-test("motion reveal primitives recover visible elements after browser history restore", () => {
-  assert.match(motionSource, /window\.addEventListener\("pageshow", handlePageShow\)/);
-  assert.match(motionSource, /window\.addEventListener\("popstate", handlePopState\)/);
-  assert.match(motionSource, /document\.addEventListener\("visibilitychange", handleVisibilityChange\)/);
-  assert.match(motionSource, /requestAnimationFrame\(\(\) => \{\s*recoverIfVisible\(\);\s*window\.requestAnimationFrame\(\(\) => \{\s*recoverIfVisible\(\);/s);
-  assert.match(motionSource, /animate=\{isRecovered \? "show" : undefined\}/);
-  assert.match(motionSource, /onViewportEnter=\{\(\) => \{\s*markRecovered\(\);/s);
+test("motion reveal primitives keep viewport-driven reveal behavior with reduced-motion fallback", () => {
+  assert.match(motionSource, /initial="hidden"/);
+  assert.match(motionSource, /whileInView="show"/);
+  assert.match(motionSource, /viewport=\{\{ once, amount \}\}/);
+  assert.match(motionSource, /const reduce = useReducedMotion\(\);/);
+  assert.match(motionSource, /transition: Transition = reduce/);
+  assert.match(motionSource, /variants=\{reduce \? revealVariants\("none", 0\) : revealVariants\(direction, distance\)\}/);
 });
 
 test("me page data keeps the migrated personal center entries from the legacy site", () => {
