@@ -6,6 +6,7 @@ import { EmptyState, SurfaceCard } from "@workspace/ui";
 import { startTransition, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ResultsPagination } from "../common/results-pagination";
+import { toBooleanOrNull, toNumberOrNull, toText } from "@/lib/normalize";
 import { ScoresFilters } from "./scores-filters";
 import { ScoresResults } from "./scores-results";
 
@@ -69,35 +70,6 @@ function createQueryString(filters: ScoreFiltersState) {
   return query ? `?${query}` : "";
 }
 
-function toStringValue(value: unknown) {
-  return typeof value === "string" ? value : "";
-}
-
-function toNumberValue(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
-function toBooleanValue(value: unknown) {
-  if (value === 1 || value === "1" || value === true) {
-    return true;
-  }
-
-  if (value === 0 || value === "0" || value === false) {
-    return false;
-  }
-
-  return null;
-}
-
 function normalizeScoreRecord(item: unknown, index: number): ScoreRecord {
   const record = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
   const identifier =
@@ -111,10 +83,10 @@ function normalizeScoreRecord(item: unknown, index: number): ScoreRecord {
     id: String(identifier),
     examId: String(record.examId ?? record.id ?? ""),
     examTitle: String(record.examTitle ?? record.title ?? `考试 ${index + 1}`),
-    tryCount: toNumberValue(record.tryCount),
-    maxScore: toNumberValue(record.maxScore ?? record.score),
-    passed: toBooleanValue(record.passed),
-    recentExamTime: toStringValue(record.updateTime ?? record.examTime ?? record.createTime),
+    tryCount: toNumberOrNull(record.tryCount),
+    maxScore: toNumberOrNull(record.maxScore ?? record.score),
+    passed: toBooleanOrNull(record.passed),
+    recentExamTime: toText(record.updateTime ?? record.examTime ?? record.createTime),
   };
 }
 

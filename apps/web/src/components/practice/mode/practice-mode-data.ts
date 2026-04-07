@@ -3,6 +3,7 @@ import {
   getRepositoryById,
   unwrapEnvelope,
 } from "@workspace/api";
+import { toNumberOrFallback, toText } from "@/lib/normalize";
 import type {
   PracticeModeAction,
   PracticeModeOverview,
@@ -53,31 +54,6 @@ const QUESTION_TYPE_DEFINITIONS = [
   },
 ] as const;
 
-function toText(value: unknown, fallback: string) {
-  if (typeof value === "string" && value.trim()) {
-    return value.trim();
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-
-  return fallback;
-}
-
-function toNumber(value: unknown, fallback = 0) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-
-  return fallback;
-}
-
 function normalizePracticeModeError(error: unknown, suffix: string) {
   const message = error instanceof Error ? error.message : "练习模式接口调用失败";
 
@@ -100,9 +76,9 @@ function normalizeQuestionTypes(payload: unknown): PracticeQuestionType[] {
       : [];
 
   return QUESTION_TYPE_DEFINITIONS.map((definition) => {
-    const match = questionList.find((item) => toNumber(item.type, -1) === definition.type);
+    const match = questionList.find((item) => toNumberOrFallback(item.type, -1) === definition.type);
     const count = match
-      ? toNumber(
+      ? toNumberOrFallback(
           match.num ??
             match.count ??
             match.questionNum ??
@@ -155,7 +131,7 @@ function normalizeRecentRecords(payload: unknown): PracticeRecentRecord[] {
       item.practiceName ?? item.title ?? item.name,
       `最近练习 ${index + 1}`
     ),
-    accuracy: `${toNumber(item.accuracy ?? item.correctRate, 0)}%`,
+    accuracy: `${toNumberOrFallback(item.accuracy ?? item.correctRate, 0)}%`,
     committedAt: toText(
       item.commitTime ?? item.updatedAt ?? item.createTime,
       "时间待补充"

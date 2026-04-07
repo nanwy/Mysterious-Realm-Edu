@@ -1,4 +1,5 @@
 import { checkExamLimit, examRecordExist, queryExamById, unwrapEnvelope } from "@workspace/api";
+import { toBooleanOrNull, toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 
 interface ExamPreviewPayload {
   id: string;
@@ -11,47 +12,6 @@ interface ExamPreviewPayload {
   startDisabled: boolean;
   startLabel: string;
   startHint: string;
-}
-
-function toRecord(value: unknown) {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-}
-
-function toText(value: unknown, fallback = "") {
-  if (typeof value === "string" && value.trim()) {
-    return value.trim();
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-
-  return fallback;
-}
-
-function toNumber(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
-function toBoolean(value: unknown) {
-  if (value === true || value === 1 || value === "1") {
-    return true;
-  }
-
-  if (value === false || value === 0 || value === "0") {
-    return false;
-  }
-
-  return null;
 }
 
 function formatDate(value: unknown) {
@@ -92,16 +52,16 @@ function resolveState(record: Record<string, unknown>) {
 }
 
 function buildInstructions(record: Record<string, unknown>) {
-  const paper = toRecord(record.paper);
+  const paper = toRecordOrEmpty(record.paper);
   const questionCount = toText(paper.questionCount, "--");
   const joinType = toText(paper.joinType_dictText, "固定组卷");
   const totalScore = toText(paper.totalScore, "--");
   const qualifyScore = toText(record.qualifyScore, "--");
   const totalTime = toText(record.totalTime ?? record.examDuration ?? record.duration, "--");
-  const limitCount = toNumber(record.limitCount);
-  const leaveOn = toBoolean(record.leaveOn);
+  const limitCount = toNumberOrNull(record.limitCount);
+  const leaveOn = toBooleanOrNull(record.leaveOn);
   const leaveTimes = toText(record.totalLeaveTimes, "--");
-  const snapOn = toBoolean(record.snapOn);
+  const snapOn = toBooleanOrNull(record.snapOn);
   const snapInterval = toText(record.snapIntervalTime, "--");
 
   const instructions = [
@@ -119,7 +79,7 @@ function buildInstructions(record: Record<string, unknown>) {
 
 function buildStartState(record: Record<string, unknown>, reachedLimit: boolean) {
   const state = resolveState(record);
-  const paper = toRecord(record.paper);
+  const paper = toRecordOrEmpty(record.paper);
   const hasPaper = Object.keys(paper).length > 0;
 
   if (!hasPaper) {
@@ -166,7 +126,7 @@ function normalizeExamPreview(
   payload: unknown,
   options: { hasRecord: boolean; reachedLimit: boolean }
 ): ExamPreviewPayload | null {
-  const record = toRecord(payload);
+  const record = toRecordOrEmpty(payload);
   const resolvedId = toText(record.id ?? record.examId, examId);
   const title = toText(record.title ?? record.examName ?? record.name);
 
@@ -174,7 +134,7 @@ function normalizeExamPreview(
     return null;
   }
 
-  const paper = toRecord(record.paper);
+  const paper = toRecordOrEmpty(record.paper);
   const startState = buildStartState(record, options.reachedLimit);
   const description = toText(
     record.description ?? record.examDesc ?? record.remark ?? record.introduction,

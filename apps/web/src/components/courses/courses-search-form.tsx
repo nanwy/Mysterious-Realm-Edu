@@ -60,14 +60,20 @@ export function CoursesSearchForm({
     >
       <div className="flex flex-col gap-3 border-b border-border/60 pb-5 md:flex-row md:items-end md:justify-between">
         <div className="space-y-1.5">
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">Course filters</p>
-          <h3 className="text-xl font-semibold tracking-tight text-foreground">缩小范围后再进入课程</h3>
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
+            Course filters
+          </p>
+          <h3 className="text-xl font-semibold tracking-tight text-foreground">
+            缩小范围后再进入课程
+          </h3>
           <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
             关键词适合找具体课程，分类适合快速浏览专题，排序适合在新课与热度之间切换。
           </p>
         </div>
         <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
-          {pending ? "筛选条件更新中..." : "修改任一条件后点击查询，结果会保持在当前页面内刷新。"}
+          {pending
+            ? "筛选条件更新中..."
+            : "修改任一条件后点击查询，结果会保持在当前页面内刷新。"}
         </div>
       </div>
 
@@ -78,7 +84,7 @@ export function CoursesSearchForm({
           void form.handleSubmit();
         }}
       >
-        <FieldGroup className="grid grid-cols-1 gap-4 xl:col-span-4 xl:grid-cols-3 xl:items-end xl:grid-cols-subgrid">
+        <FieldGroup className="grid gap-4 xl:grid-cols-3 xl:col-span-4 grid-cols-subgrid  xl:items-end">
           <form.Field name="keyword">
             {(field) => (
               <Field>
@@ -106,7 +112,10 @@ export function CoursesSearchForm({
                   value={field.state.value}
                   onValueChange={field.handleChange}
                 >
-                  <SelectTrigger id="courses-order-by" className="bg-background">
+                  <SelectTrigger
+                    id="courses-order-by"
+                    className="bg-background"
+                  >
                     <SelectValue placeholder="综合排序" />
                   </SelectTrigger>
                   <SelectContent>
@@ -137,7 +146,10 @@ export function CoursesSearchForm({
                   value={field.state.value}
                   onValueChange={field.handleChange}
                 >
-                  <SelectTrigger id="courses-category" className="bg-background">
+                  <SelectTrigger
+                    id="courses-category"
+                    className="bg-background"
+                  >
                     <SelectValue placeholder="全部分类" />
                   </SelectTrigger>
                   <SelectContent>
@@ -159,7 +171,12 @@ export function CoursesSearchForm({
           </form.Field>
 
           <div className="flex flex-wrap gap-3 xl:justify-end">
-            <Button size="lg" type="submit" disabled={pending} className="min-w-24 rounded-2xl">
+            <Button
+              size="lg"
+              type="submit"
+              disabled={pending}
+              className="min-w-24 rounded-2xl"
+            >
               查询
             </Button>
             <Button

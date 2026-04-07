@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ResultsPagination } from "@/components/common/results-pagination";
+import { toNumberOrFallback, toRecordOrEmpty } from "@/lib/normalize";
 import {
   resolveCertificateDownloadUrl,
   resolveCertificatePreviewUrl,
@@ -83,23 +84,6 @@ const DEFAULT_QUERY: CertificatesQuery = {
   certificateType: "",
 };
 
-function toRecord(value: unknown) {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-}
-
-function toNumberValue(value: unknown, fallback = 0) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-
-  return fallback;
-}
-
 function getTabMeta(tab: string) {
   return TABS.find((item) => item.value === tab) ?? TABS[0];
 }
@@ -122,7 +106,7 @@ function getErrorMessage(error: unknown) {
 }
 
 function normalizeCertificateRecord(item: unknown, index: number): CertificateRecord {
-  const record = toRecord(item);
+  const record = toRecordOrEmpty(item);
   const certificatePath = toText(
     record.certificatePath ?? record.objectName ?? record.filePath,
     ""
@@ -177,7 +161,7 @@ async function fetchCertificates(query: CertificatesQuery) {
 
   return {
     records,
-    total: toNumberValue(result.total, records.length),
+    total: toNumberOrFallback(result.total, records.length),
   };
 }
 

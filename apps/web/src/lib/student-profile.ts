@@ -4,6 +4,7 @@ import {
   getCurrentUserDeparts,
   queryUserInfo,
 } from "@workspace/api/modules/user";
+import { toRecord } from "@/lib/normalize";
 
 export const STUDENT_PROFILE_CONFIG_ERROR =
   "未配置 NEXT_PUBLIC_API_BASE_URL，当前属于环境问题，不是页面渲染问题。";
@@ -26,12 +27,6 @@ interface RequestOutcome<T> {
   data: T | null;
   error: string | null;
   errorType: Exclude<StudentProfileErrorType, "config_missing" | null> | null;
-}
-
-function toRecord(value: unknown) {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
 }
 
 function toRecordList(value: unknown) {

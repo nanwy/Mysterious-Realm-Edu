@@ -2,13 +2,8 @@ import {
   type StudentProfileErrorType,
   getStudentProfile,
 } from "@/lib/student-profile";
+import { toRecord } from "@/lib/normalize";
 import { SecurityPageShell, type SecurityPageShellProps } from "./security-page-shell";
-
-function toRecord(value: unknown) {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
-}
 
 function pickText(source: Record<string, unknown> | null, keys: string[], fallback = "") {
   if (!source) {

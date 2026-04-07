@@ -7,6 +7,7 @@ import {
   searchNewsList,
   unwrapEnvelope,
 } from "@workspace/api";
+import { toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 import { NEWS_DETAIL_PLACEHOLDER_PATH, NEWS_PAGE_SIZE, type NewsListItem, type NewsPageData, type NewsQueryState, type NewsSectionCard, type NewsSuggestionItem } from "./news-types";
 
 interface NewsListPayload {
@@ -17,33 +18,12 @@ interface NewsListPayload {
   data?: unknown[];
 }
 
-function toRecord(value: unknown) {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-}
-
-function toText(value: unknown, fallback = "") {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
-}
-
-function toNumber(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
 function toArray(value: unknown): unknown[] {
   if (Array.isArray(value)) {
     return value;
   }
 
-  const record = toRecord(value) as NewsListPayload;
+  const record = toRecordOrEmpty(value) as NewsListPayload;
 
   if (Array.isArray(record.records)) {
     return record.records;
@@ -65,7 +45,7 @@ function toArray(value: unknown): unknown[] {
 }
 
 function getTotal(value: unknown, count: number) {
-  const record = toRecord(value) as NewsListPayload;
+  const record = toRecordOrEmpty(value) as NewsListPayload;
   return typeof record.total === "number" && Number.isFinite(record.total) ? record.total : count;
 }
 
@@ -93,12 +73,12 @@ function formatSummary(record: Record<string, unknown>) {
 }
 
 function formatViewCount(value: unknown) {
-  const count = toNumber(value);
+  const count = toNumberOrNull(value);
   return count !== null && count >= 0 ? `${count} 次浏览` : "热度待同步";
 }
 
 function normalizeNewsItem(value: unknown, index: number): NewsListItem {
-  const record = toRecord(value);
+  const record = toRecordOrEmpty(value);
   const id = record.id ?? record.articleId ?? record.newsId ?? `news-${index + 1}`;
   const title = toText(record.title) || `资讯 ${index + 1}`;
 
