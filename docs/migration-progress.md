@@ -57,7 +57,7 @@ Target project: /Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu
 - [ ] /userCenter/myExam 我的考试
 - [ ] /userCenter/myPurchaseGoods 已购商品
 - [ ] /userCenter/practice/record 练习记录
-- [x] /userCenter/exam/examScore 考试成绩
+- [x] /userCenter/exam/examScore 考试成绩（已重构为成绩工作台，重做首屏查询策略、结果摘要与移动端成绩卡层级）
 - [x] /userCenter/exam/examScore/userExamResult/:id 用户考试列表
 - [ ] /userCenter/course/studyRecord 课程学习记录
 - [ ] /userCenter/course/studyProcess 课程学习进度
