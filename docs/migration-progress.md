@@ -43,8 +43,8 @@ Target project: /Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu
 - [x] /questionnaire 问卷调查（已重构为任务导向问卷面板，补齐首屏状态摘要、横向筛选节奏与结果卡层级）
 
 ## News
-- [x] /news 新闻资讯
-- [x] /news/detail/:id 资讯详情
+- [x] /news 新闻资讯（已重构为内容门户式资讯页，强化首屏阅读总览、主推荐位、检索工作台与热榜追踪的联动节奏）
+- [x] /news/detail/:id 资讯详情（已重构详情首屏阅读层级、返回语境、可点击热榜与移动端正文承接节奏）
 
 ## AI
 - [ ] /ai 智能助手
