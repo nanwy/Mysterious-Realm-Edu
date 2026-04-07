@@ -26,6 +26,7 @@ import { useForm } from "@tanstack/react-form";
 import { startTransition, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ResultsPagination } from "../common/results-pagination";
+import { toBooleanOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 
 type PassedFilter = "" | "1" | "0";
 
@@ -62,36 +63,8 @@ const client = createApiClient({
   },
 });
 
-function toRecord(value: unknown) {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-}
-
-function toText(value: unknown, fallback = "--") {
-  if (typeof value === "string" && value.trim()) {
-    return value.trim();
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-
-  return fallback;
-}
-
-function toBooleanValue(value: unknown) {
-  if (value === 1 || value === "1" || value === true) {
-    return true;
-  }
-
-  if (value === 0 || value === "0" || value === false) {
-    return false;
-  }
-
-  return null;
-}
-
 function normalizeDetailRecord(item: unknown, index: number): ScoreDetailRecord {
-  const record = toRecord(item);
+  const record = toRecordOrEmpty(item);
   const identifier = record.id ?? record.userExamId ?? `score-detail-${index + 1}`;
 
   return {
@@ -103,7 +76,7 @@ function normalizeDetailRecord(item: unknown, index: number): ScoreDetailRecord 
     userScore: toText(record.userScore ?? record.score),
     qualifyScore: toText(record.qualifyScore ?? record.passScore),
     stateLabel: toText(record.state_dictText ?? record.stateText ?? record.state, "待同步"),
-    passed: toBooleanValue(record.passed),
+    passed: toBooleanOrNull(record.passed),
   };
 }
 

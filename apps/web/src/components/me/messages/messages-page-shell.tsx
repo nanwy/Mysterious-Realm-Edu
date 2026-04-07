@@ -19,7 +19,7 @@ import {
 import { AlertCircle, BellRing, BriefcaseBusiness, RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ResultsPagination } from "@/components/common/results-pagination";
-import { stripHtmlTags, toNumber, toRecord, toText } from "@/lib/normalize";
+import { stripHtmlTags, toNumber, toRecord, toRecordOrEmpty, toText } from "@/lib/normalize";
 
 type MessageTab = "system" | "business";
 
@@ -84,7 +84,7 @@ function getErrorMessage(error: unknown) {
 }
 
 function normalizeMessageRecord(item: unknown, index: number): MessageRecord {
-  const record = toRecord(item);
+  const record = toRecordOrEmpty(item);
   const title =
     toText(record.title) ||
     toText(record.titile) ||
@@ -124,7 +124,7 @@ async function fetchMessages(query: MessageQuery) {
       ? await getSystemMessageList(payload)
       : await getBusinessMessageList(payload);
   const unwrapped = unwrapEnvelope(response);
-  const result = toRecord(unwrapped) as MessageListPayload;
+  const result = toRecordOrEmpty(unwrapped) as MessageListPayload;
   const records = Array.isArray(result.records) ? result.records.map(normalizeMessageRecord) : [];
   const total = toNumber(result.total);
 

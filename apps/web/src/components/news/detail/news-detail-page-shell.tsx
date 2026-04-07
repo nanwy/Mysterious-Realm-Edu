@@ -10,6 +10,7 @@ import {
   SurfaceCard,
 } from "@workspace/ui";
 import { resolveMediaUrl } from "@/lib/media";
+import { toRecordOrEmpty, toText } from "@/lib/normalize";
 import { useEffect, useState } from "react";
 
 interface NewsDetailState {
@@ -37,22 +38,6 @@ interface HotNewsRecord {
   viewCountText: string;
 }
 
-function toRecord(value: unknown) {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-}
-
-function toText(value: unknown, fallback = "") {
-  if (typeof value === "string" && value.trim()) {
-    return value.trim();
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-
-  return fallback;
-}
-
 function toHtml(value: unknown) {
   const text = toText(value);
   if (!text) {
@@ -70,7 +55,7 @@ function toHtml(value: unknown) {
 }
 
 function normalizeNewsDetail(payload: unknown, newsId: string): NewsDetailRecord | null {
-  const record = toRecord(payload);
+  const record = toRecordOrEmpty(payload);
   const title = toText(record.title);
   const content = toHtml(record.content ?? record.articleContent ?? record.remark);
 
@@ -92,14 +77,15 @@ function normalizeNewsDetail(payload: unknown, newsId: string): NewsDetailRecord
 }
 
 function normalizeHotNews(payload: unknown) {
+  const normalizedPayload = toRecordOrEmpty(payload);
   const records = Array.isArray(payload)
     ? payload
-    : Array.isArray(toRecord(payload).records)
-      ? (toRecord(payload).records as unknown[])
+    : Array.isArray(normalizedPayload.records)
+      ? (normalizedPayload.records as unknown[])
       : [];
 
   return records.slice(0, 5).map((item, index) => {
-    const record = toRecord(item);
+    const record = toRecordOrEmpty(item);
 
     return {
       id: toText(record.id, `hot-news-${index + 1}`),

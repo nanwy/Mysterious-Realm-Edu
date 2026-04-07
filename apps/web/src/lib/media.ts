@@ -1,3 +1,6 @@
+import { toText } from "@/lib/normalize";
+export { toText } from "@/lib/normalize";
+
 export function resolveMediaUrl(path?: string | null) {
   if (!path) return null;
   if (/^https?:\/\//.test(path)) return path;
@@ -7,11 +10,6 @@ export function resolveMediaUrl(path?: string | null) {
 
   return `${base.replace(/\/$/, "")}/common/static/${path.replace(/^\//, "")}`;
 }
-
-export function toText(value: unknown, fallback: string) {
-  return typeof value === "string" && value.trim() ? value : fallback;
-}
-
 export interface CertificateMediaResolution {
   url: string | null;
   reason: string | null;

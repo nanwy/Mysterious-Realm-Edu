@@ -22,7 +22,7 @@ Target project: /Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu
 ## Course
 - [-] /course 课程学习
 - [-] /course/courseList 课程列表（已重构首屏层次、筛选区节奏与结果卡信息表达，待继续补齐详情页与联动链路）
-- [-] /course/onlineStudy/:id 在线学习（骨架页与课程聚合层已就绪）
+- [-] /course/onlineStudy/:id 在线学习（已重构为学习工作台，补齐课程详情/进度/最近任务/异常态；待继续接入播放器、目录树与学习计时链路）
 - [ ] /course/comment/:courseId 课程评价
 - [ ] /course/myCollect/:searchType 我的收藏
 - [ ] /course/footprint/:searchType 我的足迹
@@ -66,7 +66,7 @@ Target project: /Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu
 - [ ] /userCenter/myOrder/refund/:orderSn 订单退款
 - [ ] /userCenter/myOrder/addEval/:orderSn/:orderGoodsId 订单商品评价
 - [x] /userCenter/certificate 我的证书
-- [x] /userCenter/message 消息中心
+- [x] /userCenter/message 消息中心（已重构为双频道收件箱工作台，强化首屏状态层级、阅读卡片与移动端扫读节奏）
 
 ## Mall / Payment
 - [ ] /mall/cart 购物车

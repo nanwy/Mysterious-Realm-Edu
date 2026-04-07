@@ -3,14 +3,9 @@ import {
   type StudentProfileResult,
   getStudentProfile,
 } from "@/lib/student-profile";
+import { toRecord } from "@/lib/normalize";
 import { resolveMediaUrl } from "@/lib/media";
 import { ProfilePageShell, type ProfilePageShellProps } from "./profile-page-shell";
-
-function toRecord(value: unknown) {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
-}
 
 function pickText(
   source: Record<string, unknown> | null,
@@ -207,7 +202,7 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
         },
       ],
     },
-  ] as const;
+  ];
 
   const readyState = {
     summary,

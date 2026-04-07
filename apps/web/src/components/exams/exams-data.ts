@@ -1,5 +1,11 @@
 import { getExamList, unwrapEnvelope } from "@workspace/api";
 import {
+  toNumberOrNull,
+  toDate,
+  toRecordOrEmpty,
+  toText,
+} from "@/lib/normalize";
+import {
   EXAM_STATUS_OPTIONS,
   EXAM_TYPE_OPTIONS,
   type ExamFiltersState,
@@ -12,54 +18,6 @@ import {
 interface ListPayload {
   records: Array<Record<string, unknown>>;
   total: number;
-}
-
-function toRecord(value: unknown) {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-}
-
-function toText(value: unknown, fallback = "") {
-  if (typeof value === "string" && value.trim()) {
-    return value.trim();
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-
-  return fallback;
-}
-
-function toNumber(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
-function toDate(value: unknown) {
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value;
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    const normalized = value > 1e12 ? value : value * 1000;
-    const date = new Date(normalized);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-
-  return null;
 }
 
 function formatDate(date: Date | null) {
@@ -78,46 +36,60 @@ function formatDate(date: Date | null) {
 function toListPayload(value: unknown): ListPayload {
   if (Array.isArray(value)) {
     return {
-      records: value.map(toRecord),
+      records: value.map(toRecordOrEmpty),
       total: value.length,
     };
   }
 
-  const payload = toRecord(value);
+  const payload = toRecordOrEmpty(value);
   const records = Array.isArray(payload.records)
-    ? payload.records.map(toRecord)
+    ? payload.records.map(toRecordOrEmpty)
     : Array.isArray(payload.list)
-      ? payload.list.map(toRecord)
+      ? payload.list.map(toRecordOrEmpty)
       : Array.isArray(payload.rows)
-        ? payload.rows.map(toRecord)
+        ? payload.rows.map(toRecordOrEmpty)
         : Array.isArray(payload.data)
-          ? payload.data.map(toRecord)
+          ? payload.data.map(toRecordOrEmpty)
           : [];
 
   const totalValue =
-    payload.total ?? payload.count ?? payload.totalCount ?? payload.recordTotal ?? records.length;
-  const total = toNumber(totalValue) ?? records.length;
+    payload.total ??
+    payload.count ??
+    payload.totalCount ??
+    payload.recordTotal ??
+    records.length;
+  const total = toNumberOrNull(totalValue) ?? records.length;
 
   return { records, total };
 }
 
 function getExamTypeLabel(value: ExamTypeFilter) {
-  return EXAM_TYPE_OPTIONS.find((item) => item.value === value)?.label ?? "公开考试";
+  return (
+    EXAM_TYPE_OPTIONS.find((item) => item.value === value)?.label ?? "公开考试"
+  );
 }
 
 function getExamStatusLabel(value: Exclude<ExamStatusFilter, "">) {
-  return EXAM_STATUS_OPTIONS.find((item) => item.value === value)?.label ?? "进行中";
+  return (
+    EXAM_STATUS_OPTIONS.find((item) => item.value === value)?.label ?? "进行中"
+  );
 }
 
-function resolveStatus(record: Record<string, unknown>): Exclude<ExamStatusFilter, ""> {
+function resolveStatus(
+  record: Record<string, unknown>
+): Exclude<ExamStatusFilter, ""> {
   const raw = toText(record.state ?? record.status ?? record.examStatus);
   if (raw === "0" || raw === "2" || raw === "3") {
     return raw;
   }
 
   const now = Date.now();
-  const startAt = toDate(record.startTime ?? record.beginTime ?? record.examStartTime);
-  const endAt = toDate(record.endTime ?? record.finishTime ?? record.examEndTime);
+  const startAt = toDate(
+    record.startTime ?? record.beginTime ?? record.examStartTime
+  );
+  const endAt = toDate(
+    record.endTime ?? record.finishTime ?? record.examEndTime
+  );
 
   if (startAt && now < startAt.getTime()) {
     return "2";
@@ -136,8 +108,12 @@ function buildTimeText(record: Record<string, unknown>) {
     return directText;
   }
 
-  const startAt = toDate(record.startTime ?? record.beginTime ?? record.examStartTime);
-  const endAt = toDate(record.endTime ?? record.finishTime ?? record.examEndTime);
+  const startAt = toDate(
+    record.startTime ?? record.beginTime ?? record.examStartTime
+  );
+  const endAt = toDate(
+    record.endTime ?? record.finishTime ?? record.examEndTime
+  );
   const startText = formatDate(startAt);
   const endText = formatDate(endAt);
 
@@ -158,13 +134,18 @@ function buildTimeText(record: Record<string, unknown>) {
 
 function buildSummary(record: Record<string, unknown>, statusLabel: string) {
   const summary = toText(
-    record.examDesc ?? record.description ?? record.remark ?? record.introduction
+    record.examDesc ??
+      record.description ??
+      record.remark ??
+      record.introduction
   );
   if (summary) {
     return summary;
   }
 
-  const duration = toText(record.examDuration ?? record.duration ?? record.limitTime);
+  const duration = toText(
+    record.examDuration ?? record.duration ?? record.limitTime
+  );
   if (duration) {
     return `当前状态：${statusLabel}，考试时长 ${duration}。`;
   }
@@ -191,11 +172,19 @@ function buildActionLabel(status: Exclude<ExamStatusFilter, "">) {
   return "进入考试";
 }
 
-function normalizeExamRecord(item: Record<string, unknown>, index: number): ExamListItem {
-  const examType = (toText(item.examType ?? item.type, "1") === "2" ? "2" : "1") as ExamTypeFilter;
+function normalizeExamRecord(
+  item: Record<string, unknown>,
+  index: number
+): ExamListItem {
+  const examType = (
+    toText(item.examType ?? item.type, "1") === "2" ? "2" : "1"
+  ) as ExamTypeFilter;
   const status = resolveStatus(item);
   const statusLabel = getExamStatusLabel(status);
-  const title = toText(item.examName ?? item.title ?? item.name, `考试 ${index + 1}`);
+  const title = toText(
+    item.examName ?? item.title ?? item.name,
+    `考试 ${index + 1}`
+  );
   const examId = toText(item.examId ?? item.id ?? item.userExamId);
 
   return {
@@ -213,7 +202,10 @@ function normalizeExamRecord(item: Record<string, unknown>, index: number): Exam
 }
 
 export function normalizeExamError(error: unknown) {
-  const message = error instanceof Error && error.message ? error.message : "考试列表加载失败";
+  const message =
+    error instanceof Error && error.message
+      ? error.message
+      : "考试列表加载失败";
 
   if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
     return `${message}。未检测到 NEXT_PUBLIC_API_BASE_URL，当前仅展示错误态，不能宣称考试接口已打通。`;
@@ -226,8 +218,12 @@ export function normalizeExamError(error: unknown) {
   return message;
 }
 
-export async function fetchExamList(filters: ExamFiltersState): Promise<ExamListResult> {
-  const response = await getExamList(filters);
+export async function fetchExamList(
+  filters: ExamFiltersState
+): Promise<ExamListResult> {
+  const response = await getExamList(
+    filters as unknown as Record<string, unknown>
+  );
   const payload = toListPayload(unwrapEnvelope(response));
 
   return {

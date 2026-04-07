@@ -1,6 +1,7 @@
 "use client";
 
 import { createApiClient, unwrapEnvelope } from "@workspace/api";
+import { toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 import {
   COURSE_PAGE_SIZE,
   type CourseCategoryOption,
@@ -26,29 +27,8 @@ const client = createApiClient({
   },
 });
 
-function toRecord(value: unknown) {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-}
-
-function toText(value: unknown, fallback = "") {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
-}
-
-function toNumber(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
 function formatPrice(value: unknown) {
-  const amount = toNumber(value);
+  const amount = toNumberOrNull(value);
   if (amount === null) {
     return "价格待更新";
   }
@@ -61,7 +41,7 @@ function formatPrice(value: unknown) {
 }
 
 function formatProgress(value: unknown) {
-  const progress = toNumber(value);
+  const progress = toNumberOrNull(value);
   if (progress === null) {
     return "进度待同步";
   }
@@ -71,7 +51,7 @@ function formatProgress(value: unknown) {
 }
 
 function formatLessonCount(value: unknown) {
-  const count = toNumber(value);
+  const count = toNumberOrNull(value);
   return count && count > 0 ? `${count} 节内容` : "课时待补充";
 }
 
@@ -80,12 +60,12 @@ function formatStatus(record: Record<string, unknown>) {
     toText(record.studyStatusName) ||
     toText(record.statusText) ||
     toText(record.learnStatus) ||
-    (toNumber(record.studyProcess) && Number(record.studyProcess) > 0 ? "学习中" : "可开始")
+    (toNumberOrNull(record.studyProcess) && Number(record.studyProcess) > 0 ? "学习中" : "可开始")
   );
 }
 
 function normalizeCourseItem(value: unknown, index: number): CourseListItem {
-  const record = toRecord(value);
+  const record = toRecordOrEmpty(value);
   const id =
     record.id ??
     record.courseId ??
@@ -119,7 +99,7 @@ function normalizeCourseItem(value: unknown, index: number): CourseListItem {
 }
 
 function getCourseArray(payload: unknown) {
-  const result = toRecord(payload) as CourseListPayload;
+  const result = toRecordOrEmpty(payload) as CourseListPayload;
 
   if (Array.isArray(result.records)) {
     return result.records;
@@ -137,7 +117,7 @@ function getCourseArray(payload: unknown) {
 }
 
 function getCourseTotal(payload: unknown, count: number) {
-  const result = toRecord(payload) as CourseListPayload;
+  const result = toRecordOrEmpty(payload) as CourseListPayload;
   return typeof result.total === "number" && Number.isFinite(result.total) ? result.total : count;
 }
 
@@ -199,4 +179,3 @@ export async function fetchCourses(query: CourseQueryState): Promise<CourseListR
     categories: collectCategories(items, query.categoryId as string),
   };
 }
-

@@ -1,22 +1,11 @@
 import { getQuestionnaireList, unwrapEnvelope } from "@workspace/api";
+import { toText } from "@/lib/normalize";
 import {
   QUESTIONNAIRE_PAGE_SIZE,
   type QuestionnaireItem,
   type QuestionnaireQueryState,
   type QuestionnaireResult,
 } from "./questionnaire-types";
-
-function toText(value: unknown, fallback: string) {
-  if (typeof value === "string" && value.trim()) {
-    return value.trim();
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-
-  return fallback;
-}
 
 function toListPayload(value: unknown) {
   if (Array.isArray(value)) {
