@@ -57,16 +57,16 @@ export function ScoresFilters({
 
   return (
     <form
-      className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_220px_auto] lg:items-end"
+      className="grid gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         void form.handleSubmit();
       }}
     >
-      <Field className="grid gap-4 xl:grid-cols-3 xl:col-span-4 grid-cols-subgrid  xl:items-end">
+      <FieldGroup className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_220px_auto] xl:items-end">
         <form.Field name="examTitle">
           {(field) => (
-            <Field>
+            <Field className="gap-2">
               <FieldLabel htmlFor="scores-exam-title">考试名称</FieldLabel>
               <Input
                 id="scores-exam-title"
@@ -82,7 +82,7 @@ export function ScoresFilters({
                   field.handleChange(event.target.value);
                   onChange(nextFilters);
                 }}
-                placeholder="请输入考试名称"
+                placeholder="输入考试名称，快速锁定对应成绩"
               />
             </Field>
           )}
@@ -90,7 +90,7 @@ export function ScoresFilters({
 
         <form.Field name="passed">
           {(field) => (
-            <Field>
+            <Field className="gap-2">
               <FieldLabel htmlFor="scores-passed">是否通过</FieldLabel>
               <Select
                 items={[
@@ -127,7 +127,7 @@ export function ScoresFilters({
           )}
         </form.Field>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 xl:justify-end">
           <Button size="lg" type="submit" disabled={isLoading}>
             查询
           </Button>
@@ -149,7 +149,7 @@ export function ScoresFilters({
             清空
           </Button>
         </div>
-      </Field>
+      </FieldGroup>
     </form>
   );
 }

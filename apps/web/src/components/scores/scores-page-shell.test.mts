@@ -13,10 +13,11 @@ const scoresFiltersSource = readFileSync(join(currentDir, "scores-filters.tsx"),
 
 test("scores page shell renders filter controls", () => {
   assert.match(scoresPageShellSource, /data-testid="scores-filter-section"/);
-  assert.match(scoresPageShellSource, /考试名称/);
-  assert.match(scoresPageShellSource, /是否通过/);
-  assert.match(scoresPageShellSource, /查询/);
-  assert.match(scoresPageShellSource, /清空/);
+  assert.match(scoresPageShellSource, /当前查询策略/);
+  assert.match(scoresFiltersSource, /考试名称/);
+  assert.match(scoresFiltersSource, /是否通过/);
+  assert.match(scoresFiltersSource, /查询/);
+  assert.match(scoresFiltersSource, /清空/);
 });
 
 test("scores page shell renders results states", () => {
