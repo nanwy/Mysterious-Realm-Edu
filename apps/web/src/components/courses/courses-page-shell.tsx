@@ -2,6 +2,7 @@
 
 import { startTransition, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Compass, Layers3, SearchCheck, Sparkles } from "lucide-react";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard } from "@workspace/ui";
 import { ResultsPagination } from "../common/results-pagination";
@@ -51,7 +52,7 @@ function getStatusCopy(error: string | null, loading: boolean, total: number) {
 }
 
 function getActiveFilterSummary(query: CourseQueryState, categories: CourseCategoryOption[]) {
-  const summary = [];
+  const summary: string[] = [];
 
   if (query.keyword?.trim()) {
     summary.push(`关键词：${query.keyword.trim()}`);
@@ -72,6 +73,34 @@ function getActiveFilterSummary(query: CourseQueryState, categories: CourseCateg
   }
 
   return summary;
+}
+
+function getResultsHeadline({
+  loading,
+  error,
+  total,
+  activeFilters,
+}: {
+  loading: boolean;
+  error: string | null;
+  total: number;
+  activeFilters: string[];
+}) {
+  if (loading) {
+    return "正在根据当前条件整理课程结果";
+  }
+
+  if (error) {
+    return "结果区已切换为异常兜底";
+  }
+
+  if (!total) {
+    return activeFilters.length ? "当前条件下暂未找到课程" : "当前暂无可浏览课程";
+  }
+
+  return activeFilters.length
+    ? `已筛出 ${total} 门更贴近当前目标的课程`
+    : `已整理 ${total} 门可浏览课程`;
 }
 
 export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQueryState }) {
@@ -141,9 +170,38 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
   const totalPages = Math.max(1, Math.ceil(total / COURSE_PAGE_SIZE));
   const activeFilters = getActiveFilterSummary(initialQuery, categories);
   const heroStats = [
-    { label: "分页规模", value: `${COURSE_PAGE_SIZE} 门/页`, detail: "延续旧站列表节奏" },
-    { label: "当前视图", value: activeFilters.length ? "精准筛选" : "全部课程", detail: activeFilters.length ? `${activeFilters.length} 个条件生效` : "适合先快速浏览" },
-    { label: "接口状态", value: getStatusCopy(error, isLoading, total), detail: error ? "优先暴露真实异常" : "与真实接口保持同步" },
+    {
+      label: "分页规模",
+      value: `${COURSE_PAGE_SIZE} 门/页`,
+      detail: "沿用旧站分页节奏，但把信息判断前置。",
+      Icon: Layers3,
+    },
+    {
+      label: "当前视图",
+      value: activeFilters.length ? "精准筛选" : "全部课程",
+      detail: activeFilters.length ? `${activeFilters.length} 个条件正在收窄结果` : "适合先浏览、再缩小范围。",
+      Icon: SearchCheck,
+    },
+    {
+      label: "接口状态",
+      value: getStatusCopy(error, isLoading, total),
+      detail: error ? "真实暴露异常，不再用假数据撑满页面。" : "课程结果与真实接口同步联动。",
+      Icon: Compass,
+    },
+  ];
+  const selectionSignals = [
+    {
+      title: "先选路径",
+      detail: activeFilters.length ? "当前已进入定向查找模式，可直接比较结果卡片。" : "先用分类或关键词确定学习主题，再进入课程。",
+    },
+    {
+      title: "再看状态",
+      detail: "结果卡会优先告诉你这门课是待开始、学习中还是已接近完成。",
+    },
+    {
+      title: "最后判断动作",
+      detail: "继续学习、查看课时规模与价格判断会收敛在同一张卡里。",
+    },
   ];
 
   return (
@@ -155,40 +213,62 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
           description="将旧学员端课程列表整理成更清晰的选课工作台：先判断接口状态，再围绕关键词、分类和排序快速缩小范围。"
         >
           <div className="grid gap-6">
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.95fr)]">
-              <div className="space-y-5">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.95fr)]">
+              <div className="space-y-5 rounded-[32px] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--card)_86%,var(--accent)_14%),color-mix(in_oklab,var(--background)_82%,var(--primary)_18%))] p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-6">
                 <div className="flex flex-wrap items-center gap-3">
                   <Badge className="w-fit rounded-full">真实接口</Badge>
                   <span className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
                     学习主链路 / 课程检索
                   </span>
+                  <span className="inline-flex items-center rounded-full border border-border/70 bg-background/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    {activeFilters.length ? "Focused browsing" : "Open browsing"}
+                  </span>
                 </div>
 
                 <div className="space-y-3">
-                  <h2 className="max-w-3xl text-3xl font-semibold tracking-tight text-foreground sm:text-[2.15rem]">
-                    把课程筛选、进度判断和继续学习入口收敛到同一个视图里。
+                  <h2 className="max-w-3xl text-3xl font-black tracking-[-0.05em] text-foreground sm:text-[2.5rem]">
+                    让找课、判断优先级和继续学习，落在同一块学习雷达里。
                   </h2>
                   <p className="max-w-2xl text-base leading-8 text-muted-foreground">
-                    这不是静态展示页。它会优先暴露真实接口状态，让你能在分页浏览、关键词检索和分类切换之间快速定位下一门该学的课程。
+                    页面不再只是课程平铺列表，而是把筛选策略、课程状态和进入动作压缩到一次浏览决策里。你先判断方向，再决定现在点进去的是哪门课。
                   </p>
                 </div>
 
-                <MotionStagger className="grid gap-3 sm:grid-cols-3" delayChildren={0.08}>
-                  {heroStats.map((item) => (
-                    <MotionItem key={item.label}>
-                      <div className="rounded-[24px] border border-border/70 bg-background/75 px-4 py-4">
-                        <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
-                          {item.label}
-                        </p>
-                        <p className="mt-3 text-lg font-semibold text-foreground">{item.value}</p>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.detail}</p>
+                <MotionStagger className="grid gap-3 sm:grid-cols-3" delayChildren={0.08} data-testid="courses-hero-stats">
+                  {heroStats.map(({ label, value, detail, Icon }) => (
+                    <MotionItem key={label}>
+                      <div className="rounded-[24px] border border-border/70 bg-background/78 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                            {label}
+                          </p>
+                          <div className="flex size-8 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                            <Icon className="size-4" />
+                          </div>
+                        </div>
+                        <p className="mt-4 text-xl font-semibold text-foreground">{value}</p>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">{detail}</p>
                       </div>
                     </MotionItem>
                   ))}
                 </MotionStagger>
+
+                <div className="grid gap-3 rounded-[28px] border border-border/60 bg-background/72 p-4 lg:grid-cols-3">
+                  {selectionSignals.map((item) => (
+                    <div key={item.title} className="rounded-[22px] border border-border/60 bg-card/88 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        {item.title}
+                      </p>
+                      <p className="mt-3 text-sm leading-7 text-foreground/90">{item.detail}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="rounded-[28px] border border-border/70 bg-background/75 p-5">
+              <div
+                className="rounded-[32px] border border-border/70 bg-background/80 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]"
+                data-testid="courses-filter-strategy"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
@@ -201,18 +281,30 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
                   </Badge>
                 </div>
 
+                <div className="mt-5 rounded-[24px] border border-border/60 bg-card/85 p-4">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    <Sparkles className="size-4" />
+                    浏览建议
+                  </div>
+                  <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                    {activeFilters.length
+                      ? "当前已经进入目标式筛选。优先看结果卡上的状态与进度，避免只按标题判断。"
+                      : "当前适合做第一轮扫读。先浏览结果，再决定是否加关键词或缩小分类。"}
+                  </p>
+                </div>
+
                 <div className="mt-5 grid gap-3">
                   {activeFilters.length ? (
                     activeFilters.map((item) => (
                       <div
                         key={item}
-                        className="rounded-2xl border border-border/60 bg-card/80 px-4 py-3 text-sm text-foreground"
+                        className="rounded-[22px] border border-border/60 bg-card/80 px-4 py-3 text-sm text-foreground"
                       >
                         {item}
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-border/70 bg-card/70 px-4 py-4 text-sm leading-7 text-muted-foreground">
+                    <div className="rounded-[22px] border border-dashed border-border/70 bg-card/70 px-4 py-4 text-sm leading-7 text-muted-foreground">
                       当前正在浏览全部课程。建议先输入课程名、讲师名或切换分类，缩短找到目标课程的时间。
                     </div>
                   )}
@@ -229,6 +321,7 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
                 defaultValues={initialQuery}
                 categoryOptions={categories}
                 pending={isPending}
+                activeFilters={activeFilters}
                 onSubmit={(values) => navigate(values)}
                 onReset={() =>
                   navigate({
@@ -251,22 +344,36 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
             description="结果区围绕“这门课值不值得现在点进去”组织信息，优先呈现状态、进度、内容规模和进入动作。"
           >
             <div className="grid gap-5">
-              <div className="flex flex-col gap-3 border-b border-border/60 pb-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="grid gap-4 border-b border-border/60 pb-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.9fr)] xl:items-end">
                 <div className="space-y-2">
                   <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">Results summary</p>
-                  <h3 className="text-2xl font-semibold tracking-tight text-foreground">
-                    {isLoading ? "正在整理课程结果" : error ? "结果区已切换为异常兜底" : `已整理 ${total} 门可浏览课程`}
+                  <h3 className="max-w-3xl text-2xl font-semibold tracking-tight text-foreground">
+                    {getResultsHeadline({
+                      loading: isLoading,
+                      error,
+                      total,
+                      activeFilters,
+                    })}
                   </h3>
+                  <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
+                    课程卡片会把学习状态、进度、价格与课时规模放在同一视线里，减少来回进详情页确认信息的次数。
+                  </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {(activeFilters.length ? activeFilters : ["全部课程"]).map((item) => (
-                    <span
-                      key={item}
-                      className="inline-flex items-center rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-sm text-muted-foreground"
-                    >
-                      {item}
-                    </span>
-                  ))}
+
+                <div className="rounded-[24px] border border-border/70 bg-background/75 p-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                    当前结果策略
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(activeFilters.length ? activeFilters : ["全部课程"]).map((item) => (
+                      <span
+                        key={item}
+                        className="inline-flex items-center rounded-full border border-border/70 bg-card/85 px-3 py-1.5 text-sm text-muted-foreground"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
