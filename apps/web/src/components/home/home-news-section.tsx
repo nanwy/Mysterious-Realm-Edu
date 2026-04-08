@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { resolveMediaUrl, toText } from "@/lib/media";
 import type { HomeRecord } from "./home-types";
-import { ArrowRight } from "lucide-react";
-import { MotionItem, MotionStagger } from "@workspace/motion";
+import { ArrowUpRight, Image as ImageIcon } from "lucide-react";
 
 export function HomeNewsSection({
   recommendedNews,
@@ -14,62 +13,85 @@ export function HomeNewsSection({
   const visibleNews = recommendedNews.slice(0, 4);
 
   return (
-    <section className="flex flex-col">
-      <div className="flex items-baseline justify-between border-b border-border/40 pb-5 mb-8">
-        <h2 className="text-2xl font-heading font-black tracking-tight text-foreground">
-          推荐资讯
-        </h2>
-        <Link href="/news" className="group flex items-center text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground hover:text-primary transition-colors">
-          信息流
-          <ArrowRight className="ml-1 w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+    <section className="flex flex-col py-2">
+      <div className="flex items-end justify-between border-b border-border/40 pb-8 mb-10 group/header">
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+            Content Stream
+          </span>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            资讯推荐流
+          </h2>
+        </div>
+        <Link
+          href="/news"
+          className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors flex items-center mb-1"
+        >
+          查看更多{" "}
+          <ArrowUpRight className="w-3.5 h-3.5 ml-1.5 opacity-50 transition-transform group-hover/header:translate-x-0.5 group-hover/header:-translate-y-0.5" />
         </Link>
       </div>
 
       {recommendedNewsError && (
-        <div className="py-4 text-sm text-destructive">{recommendedNewsError}</div>
+        <div className="text-[10px] font-mono text-destructive uppercase bg-destructive/10 px-2 py-1 mb-6 inline-block">
+          {recommendedNewsError}
+        </div>
       )}
 
       {visibleNews.length === 0 && !recommendedNewsError ? (
-        <div className="py-16 flex flex-col items-center justify-center text-center rounded-2xl bg-muted/20 border border-border/30">
-          <p className="text-sm font-semibold text-foreground">资讯流待更新</p>
-          <p className="text-xs text-muted-foreground mt-1">系统暂无推荐的最新文章</p>
+        <div className="py-20 flex flex-col items-center justify-center text-center border-t border-b border-border/40 border-dashed">
+          <p className="text-base font-medium tracking-tight text-foreground">
+            资讯流待更新
+          </p>
+          <p className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground mt-3">
+            WAITING_FOR_CONTENT
+          </p>
         </div>
       ) : (
-        <MotionStagger className="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4" delayChildren={0.05}>
+        <div className="grid gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
           {visibleNews.map((news, index) => {
             const coverUrl = resolveMediaUrl(String(news.cover ?? ""));
             return (
-              <MotionItem key={index}>
-                <Link
-                  href={`/news/${String(news.id ?? "")}`}
-                  className="group flex flex-col gap-4"
-                >
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted/30 border border-border/40 rounded-2xl isolation-auto">
-                    {coverUrl ? (
-                      <img
-                        src={coverUrl}
-                        alt={toText(news.title, `资讯 ${index + 1}`)}
-                        className="object-cover w-full h-full transition-transform duration-[600ms] ease-out group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex bg-card items-center justify-center h-full w-full">
-                        <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-muted-foreground">暂无缩略图</span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="line-clamp-2 text-sm font-bold tracking-tight leading-loose text-foreground transition-colors group-hover:text-primary">
-                      {toText(news.title, "未知资讯")}
-                    </h3>
-                    <div className="mt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                      {toText(news.publishTime ?? news.time, "未知时间")}
+              <Link
+                key={index}
+                href={`/news/${String(news.id ?? "")}`}
+                className="group flex flex-col gap-6"
+              >
+                <div className="relative aspect-video w-full overflow-hidden bg-muted/20 border border-border/50">
+                  {coverUrl ? (
+                    <img
+                      src={coverUrl}
+                      alt={toText(news.title, `资讯 ${index + 1}`)}
+                      className="object-cover w-full h-full transition-transform duration-[1000ms] ease-out group-hover:scale-105 grayscale-[0.2] group-hover:grayscale-0"
+                    />
+                  ) : (
+                    <div className="flex flex-col bg-background/50 items-center justify-center h-full w-full text-muted-foreground/30">
+                      <ImageIcon className="w-6 h-6 mb-2" />
+                      <span className="text-[10px] uppercase font-mono tracking-widest">
+                        NO_MEDIA
+                      </span>
                     </div>
+                  )}
+                  <div className="absolute top-0 left-0 bg-background/90 backdrop-blur px-3 py-1.5 border-r border-b border-border/50 text-[10px] font-mono text-foreground font-bold">
+                    #{String(index + 1).padStart(2, "0")}
                   </div>
-                </Link>
-              </MotionItem>
+                </div>
+                <div>
+                  <h3 className="line-clamp-2 text-base font-medium tracking-tight leading-relaxed text-foreground transition-colors group-hover:text-primary">
+                    {toText(news.title, "系统预备推流内容加载中...")}
+                  </h3>
+                  <div className="mt-4 flex items-center justify-between text-[11px] font-mono tracking-widest uppercase text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
+                    <span>
+                      {toText(news.publishTime ?? news.time, "00:00:00")}
+                    </span>
+                    <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+                  </div>
+                </div>
+              </Link>
             );
           })}
-        </MotionStagger>
+        </div>
       )}
     </section>
   );

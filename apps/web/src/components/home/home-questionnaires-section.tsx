@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, ClipboardPenLine } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { HomeRecord } from "./home-types";
 import { toText } from "@/lib/media";
 
@@ -10,49 +10,49 @@ export function HomeQuestionnairesSection({
   questionnaires: HomeRecord[];
   questionnaireError: string | null;
 }) {
-  const visibleItems = questionnaires.slice(0, 6);
+  const visibleItems = questionnaires.slice(0, 4);
 
   return (
-    <section className="flex flex-col">
-      <div className="flex items-baseline justify-between border-b border-primary/20 pb-3 mb-5">
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary">
-          待处理工作
-        </h3>
+    <section className="flex flex-col bg-background/50">
+      <div className="px-8 py-6 border-b border-border/50 bg-background flex items-center justify-between">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary">Ticketing Task</span>
+          <h3 className="text-xl font-semibold tracking-tight text-foreground">待办工单队列</h3>
+        </div>
+        {questionnaireError && (
+          <span className="text-[10px] font-mono text-destructive uppercase bg-destructive/10 px-2 py-0.5">
+            {questionnaireError}
+          </span>
+        )}
       </div>
 
-      {questionnaireError && (
-        <div className="py-2 text-sm text-destructive">{questionnaireError}</div>
-      )}
-
-      {visibleItems.length === 0 && !questionnaireError ? (
-        <div className="py-8 flex flex-col items-center justify-center text-center">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">当前队列清空</p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {visibleItems.map((item, index) => (
+      <div className="flex flex-col p-8 lg:p-10 gap-8">
+        {visibleItems.length === 0 && !questionnaireError ? (
+          <div className="py-6 flex justify-center">
+            <span className="text-[10px] font-mono text-muted-foreground opacity-50 uppercase tracking-widest">
+              QUEUE_EMPTY
+            </span>
+          </div>
+        ) : (
+          visibleItems.map((item, index) => (
             <Link
               key={index}
               href={`/questionnaire/${String(item.id ?? "")}`}
-              className="group flex flex-col gap-3 rounded-[1.25rem] border border-primary/20 bg-primary/[0.04] p-5 transition-colors hover:bg-primary/10 hover:border-primary/40"
+              className="group cursor-pointer block"
             >
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <ClipboardPenLine className="size-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="mt-1 line-clamp-2 text-sm font-bold leading-relaxed tracking-tight text-foreground transition-colors group-hover:text-primary">
-                    {toText(item.title ?? item.name, "问卷或任务")}
-                  </h4>
-                  <div className="mt-3 text-[10px] font-bold uppercase tracking-[0.15em] text-primary/80">
-                    立即填写 <ArrowUpRight className="inline-block size-3 opacity-70" />
-                  </div>
-                </div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-mono text-primary opacity-80 uppercase tracking-widest">
+                  ## TICKET_{String(index).padStart(2, "0")}
+                </span>
+                <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:text-primary transition-all duration-300" />
               </div>
+              <p className="text-[0.95rem] font-medium text-foreground leading-relaxed group-hover:text-primary transition-colors line-clamp-2">
+                {toText(item.title ?? item.name, "工单同步预备中...")}
+              </p>
             </Link>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </section>
   );
 }

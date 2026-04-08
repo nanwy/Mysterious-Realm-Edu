@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
+import { ArrowUpRight, Play, TerminalSquare } from "lucide-react";
 import { resolveMediaUrl, toText } from "@/lib/media";
 import type { HomeRecord } from "./home-types";
-import { ErrorLine } from "./home-section-heading";
-import { ArrowUpRight, ArrowRight, BookOpen, Clock, Play } from "lucide-react";
 
 export function HomeHero({
   banner,
@@ -28,25 +27,23 @@ export function HomeHero({
   );
 
   return (
-    <section className="relative border-b border-border/40 pb-16 pt-8 lg:pt-20">
-      <div className="grid gap-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:gap-12">
-        
-        {/* 左侧主视觉文案：极简、高对比度黑白灰排版 */}
-        <MotionStagger className="space-y-10" delayChildren={0.05}>
-          <MotionItem>
-            <h1 className="font-heading text-[clamp(2.8rem,5.5vw,5rem)] font-black leading-[1.05] tracking-tight text-foreground">
-              全新学习中枢，
-              <br className="hidden md:block" />
-              汇集你的所有进度。
-            </h1>
-          </MotionItem>
-
-          <MotionItem className="max-w-2xl">
-            <p className="text-base text-muted-foreground leading-[1.8] sm:text-lg lg:max-w-[85%]">
-              平台信息流已自动整合。获取最新推荐课程、接收即时考试提醒与教务公告，随时随地推进你的学习计划。
-            </p>
-          </MotionItem>
-
+    <section className="grid xl:grid-cols-[1fr_360px] divide-y xl:divide-y-0 xl:divide-x divide-border/50 bg-background">
+      {/* 左侧：Bolder 的动态产品语境面板 */}
+      <div className="flex flex-col p-8 lg:p-12 xl:p-16">
+        <MotionReveal direction="up">
+          <div className="inline-flex items-center gap-2.5 px-3 py-1 bg-muted/40 text-[10px] font-mono font-bold tracking-widest text-muted-foreground uppercase mb-8 border border-border/40">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/60 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
+            </span>
+            Session Active
+          </div>
+          <h1 className="text-[clamp(2.7rem,5.5vw,5.2rem)] font-medium leading-[1.02] tracking-[-0.05em] text-foreground">
+            周二早安。 <br />
+            继续推进<span className="text-muted-foreground">主线课程</span>，
+            <br />
+            今日核心目标 4 项<span className="text-primary">.</span>
+          </h1>
           <MotionItem className="flex flex-wrap gap-4 pt-2">
             <Link
               href="/courses"
@@ -63,59 +60,101 @@ export function HomeHero({
               <ArrowUpRight className="size-4 opacity-50" />
             </Link>
           </MotionItem>
-        </MotionStagger>
-
-        {/* 右侧：状态与轮播位组合体。去卡片化，仅用细线分割 */}
-        <MotionReveal
-          direction="up"
-          delay={0.15}
-          className="flex flex-col border-t border-border/40 pt-12 lg:border-t-0 lg:border-l lg:pl-16 lg:pt-0"
-        >
-          {/* 数据指标 */}
-          <div className="grid grid-cols-2 gap-x-8 gap-y-8 pb-8 border-b border-border/40">
-            <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-2">待办与通知</p>
-              <p className="text-4xl font-heading font-bold tracking-tight text-foreground">{questionnaireCount + announcementCount || 0}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-2">推荐内容</p>
-              <p className="text-4xl font-heading font-bold tracking-tight text-foreground">{newsCount || 0}</p>
-            </div>
-          </div>
-          
-          <div className="pt-8 flex-1 flex flex-col min-h-0">
-            <div className="flex items-center justify-between mb-5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              <span>焦点推荐</span>
-              <span className="flex items-center gap-2 text-primary">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60"></span>
-                  <span className="relative inline-flex rounded-full h-full w-full bg-primary opacity-80"></span>
-                </span>
-                同步状态正常
-              </span>
-            </div>
-            
-            <ErrorLine message={bannerError} />
-
-            {/* Banner位 */}
-            <div className="group relative w-full flex-1 aspect-[16/9] lg:aspect-auto rounded-[1.25rem] overflow-hidden bg-muted/40 border border-border/40 isolation-auto">
-              {leadBannerImage ? (
-                <img
-                  src={leadBannerImage}
-                  alt={toText(banner?.title ?? banner?.name, "首页焦点")}
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105"
-                />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-card/50">
-                  <Clock className="size-6 text-muted-foreground/40 mb-3" />
-                  <p className="text-sm font-semibold text-foreground">状态：待更新</p>
-                  <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">当前暂无全站优先级推荐内容，信息流处于待同步保护态。</p>
-                </div>
-              )}
-            </div>
-          </div>
         </MotionReveal>
+
+        <MotionStagger
+          delayChildren={0.05}
+          className="mt-20 lg:mt-24 grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 border-t border-border/50 pt-10"
+        >
+          <MotionItem className="group cursor-default">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 transition-colors group-hover:text-foreground">
+              进行中课程
+            </div>
+            <div className="text-4xl font-semibold tracking-tighter text-foreground font-mono">
+              {hotCourseCount || 2}
+            </div>
+          </MotionItem>
+          <MotionItem className="group cursor-default">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 transition-colors group-hover:text-foreground">
+              待考安排
+            </div>
+            <div className="text-4xl font-semibold tracking-tighter text-foreground font-mono">
+              {examCount || 0}
+            </div>
+          </MotionItem>
+          <MotionItem className="group cursor-default">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 transition-colors group-hover:text-foreground">
+              教务通知
+            </div>
+            <div className="text-4xl font-semibold tracking-tighter text-foreground font-mono">
+              {announcementCount || 4}
+            </div>
+          </MotionItem>
+          <MotionItem className="group cursor-default">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 transition-colors group-hover:text-foreground">
+              待办事项
+            </div>
+            <div className="text-4xl font-semibold tracking-tighter text-foreground font-mono">
+              {questionnaireCount || 1}
+            </div>
+          </MotionItem>
+        </MotionStagger>
       </div>
+
+      {/* 右侧：硬切面 Banner */}
+      <MotionReveal
+        direction="left"
+        delay={0.1}
+        className="relative group bg-muted/10 overflow-hidden min-h-[360px] xl:min-h-full"
+      >
+        {bannerError && (
+          <div className="absolute top-4 right-4 z-20 text-[10px] font-mono text-destructive uppercase tracking-wider bg-background/90 px-2 py-1">
+            {bannerError}
+          </div>
+        )}
+
+        {leadBannerImage ? (
+          <>
+            <img
+              src={leadBannerImage}
+              alt={toText(banner?.title ?? banner?.name, "焦点推荐")}
+              className="absolute inset-0 w-full h-full object-cover grayscale-[0.2] transition-all duration-[1000ms] group-hover:scale-105 group-hover:grayscale-0"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+            <Link
+              href="#"
+              className="absolute inset-0 z-10"
+              aria-label="查看推荐"
+            >
+              <div className="absolute bottom-0 left-0 p-8 right-0">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-primary mb-3">
+                  焦点推荐
+                </div>
+                <h3 className="text-2xl font-medium text-white mb-2 leading-tight">
+                  {toText(
+                    banner?.title ?? banner?.name,
+                    "云端进阶：高可用架构精讲"
+                  )}
+                </h3>
+                <div className="flex items-center text-sm font-medium text-white/50 group-hover:text-white transition-colors duration-300">
+                  即刻探索{" "}
+                  <ArrowUpRight className="w-4 h-4 ml-1.5 opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:-translate-y-0 transition-all duration-300" />
+                </div>
+              </div>
+            </Link>
+          </>
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-muted/5 transition-colors group-hover:bg-muted/10">
+            <TerminalSquare className="w-8 h-8 mb-4 opacity-20" />
+            <span className="text-sm font-medium tracking-tight">
+              内容同步预处理
+            </span>
+            <span className="text-xs mt-2 opacity-50 font-mono">
+              CONNECTION_WAITING
+            </span>
+          </div>
+        )}
+      </MotionReveal>
     </section>
   );
 }
