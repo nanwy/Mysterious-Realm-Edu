@@ -12,6 +12,8 @@ const resultsSource = readFileSync(join(currentDir, "courses-results.tsx"), "utf
 test("courses page shell renders filters and results sections", () => {
   assert.match(shellSource, /data-testid="courses-filter-section"/);
   assert.match(shellSource, /data-testid="courses-results-section"/);
+  assert.match(shellSource, /data-testid="courses-hero-stats"/);
+  assert.match(shellSource, /data-testid="courses-filter-strategy"/);
   assert.match(shellSource, /CoursesSearchForm/);
   assert.match(shellSource, /CoursesResults/);
   assert.match(shellSource, /ResultsPagination/);
@@ -31,4 +33,5 @@ test("courses results preserves loading, empty, and error states", () => {
   assert.match(resultsSource, /data-state="loading"/);
   assert.match(resultsSource, /data-state="empty"/);
   assert.match(resultsSource, /data-state="error"/);
+  assert.match(resultsSource, /data-testid="courses-results-grid"/);
 });

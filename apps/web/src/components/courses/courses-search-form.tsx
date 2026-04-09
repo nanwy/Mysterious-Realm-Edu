@@ -29,12 +29,14 @@ export function CoursesSearchForm({
   defaultValues,
   categoryOptions,
   pending,
+  activeFilters,
   onSubmit,
   onReset,
 }: {
   defaultValues: CourseQueryState;
   categoryOptions: CourseCategoryOption[];
   pending: boolean;
+  activeFilters: string[];
   onSubmit: (values: CourseQueryState) => void;
   onReset: () => void;
 }) {
@@ -56,7 +58,7 @@ export function CoursesSearchForm({
   return (
     <section
       data-testid="courses-filter-section"
-      className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm"
+      className="rounded-[32px] border border-border bg-card/90 p-5 shadow-sm sm:p-6"
     >
       <div className="flex flex-col gap-3 border-b border-border/60 pb-5 md:flex-row md:items-end md:justify-between">
         <div className="space-y-1.5">
@@ -77,6 +79,33 @@ export function CoursesSearchForm({
         </div>
       </div>
 
+      <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(16rem,0.75fr)]">
+        <div className="rounded-[24px] border border-border/70 bg-background/72 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            当前已生效的筛选
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(activeFilters.length ? activeFilters : ["全部课程"]).map((item) => (
+              <span
+                key={item}
+                className="inline-flex items-center rounded-full border border-border/70 bg-card/85 px-3 py-1.5 text-sm text-foreground"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-[24px] border border-border/70 bg-background/72 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            快速建议
+          </p>
+          <p className="mt-3 text-sm leading-7 text-muted-foreground">
+            找具体课程时优先输入关键词；做第一次扫读时先切分类，再根据热度或上新排序决定进入顺序。
+          </p>
+        </div>
+      </div>
+
       <form
         className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_220px_220px_auto] xl:items-end"
         onSubmit={(event) => {
@@ -84,7 +113,7 @@ export function CoursesSearchForm({
           void form.handleSubmit();
         }}
       >
-        <FieldGroup className="grid gap-4 xl:grid-cols-3 xl:col-span-4 grid-cols-subgrid  xl:items-end">
+        <FieldGroup className="grid grid-cols-subgrid gap-4 xl:col-span-4 xl:grid-cols-3 xl:items-end">
           <form.Field name="keyword">
             {(field) => (
               <Field>
