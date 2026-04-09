@@ -2,17 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { MotionItem, MotionStagger } from "@workspace/motion";
-import {
-  Badge,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui";
-import { ArrowUpRight, CircleAlert, Trophy } from "lucide-react";
+import { Badge, Button } from "@workspace/ui";
+import { ArrowUpRight, CircleAlert, Clock3, Trophy } from "lucide-react";
 
 interface ScoreRecord {
   id: string;
@@ -73,70 +64,74 @@ export function ScoresResults({ records }: { records: ScoreRecord[] }) {
 
   return (
     <MotionStagger className="grid gap-4" delayChildren={0.06}>
-      <MotionItem className="hidden overflow-hidden rounded-[24px] border border-border md:block">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="px-4">考试名称</TableHead>
-              <TableHead>考试次数</TableHead>
-              <TableHead>最高分</TableHead>
-              <TableHead>是否通过</TableHead>
-              <TableHead>最近考试</TableHead>
-              <TableHead className="px-4 text-right">操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {records.map((record) => (
-              <TableRow key={record.id} className="bg-background/80">
-                <TableCell className="px-4 py-4 whitespace-normal text-foreground">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-foreground">{record.examTitle}</p>
-                      {record.maxScore !== null && record.maxScore >= 90 ? (
-                        <Badge className="rounded-full" variant="secondary">
-                          高分段
-                        </Badge>
-                      ) : null}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{getAttemptLabel(record.tryCount)}</p>
-                  </div>
-                </TableCell>
-                <TableCell className="py-4 text-muted-foreground">
-                  {displayMetric(record.tryCount)}
-                </TableCell>
-                <TableCell className="py-4 text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="size-4 text-primary" />
-                    <span>{displayMetric(record.maxScore, " 分")}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-4">{renderPassedLabel(record.passed)}</TableCell>
-                <TableCell className="py-4 text-muted-foreground">
-                  {displayTime(record.recentExamTime)}
-                </TableCell>
-                <TableCell className="px-4 py-4 text-right">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={!record.examId}
-                    onClick={() => router.push(`/scores/${record.examId}`)}
-                    title={record.examId || "exam-id-missing"}
-                  >
-                    查看详情
-                    <ArrowUpRight className="size-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <MotionItem className="hidden overflow-hidden rounded-[28px] border border-border/70 bg-background/55 md:block">
+        <div className="grid grid-cols-[minmax(0,1.7fr)_120px_140px_150px_150px_132px] gap-4 border-b border-border/70 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+          <span>考试记录</span>
+          <span>次数</span>
+          <span>最高分</span>
+          <span>结果</span>
+          <span>最近考试</span>
+          <span className="text-right">动作</span>
+        </div>
+
+        <div className="divide-y divide-border/60">
+          {records.map((record) => (
+            <article
+              key={record.id}
+              className="grid grid-cols-[minmax(0,1.7fr)_120px_140px_150px_150px_132px] gap-4 px-5 py-5 transition-colors hover:bg-background/70"
+            >
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-base font-semibold text-foreground">{record.examTitle}</p>
+                  {record.maxScore !== null && record.maxScore >= 90 ? (
+                    <Badge className="rounded-full" variant="secondary">
+                      高分段
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="max-w-xl text-sm leading-6 text-muted-foreground">
+                  {getAttemptLabel(record.tryCount)}
+                </p>
+              </div>
+
+              <div className="flex items-center text-sm font-medium text-foreground">
+                {displayMetric(record.tryCount)}
+              </div>
+
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Trophy className="size-4 text-primary" />
+                <span>{displayMetric(record.maxScore, " 分")}</span>
+              </div>
+
+              <div className="flex items-center">{renderPassedLabel(record.passed)}</div>
+
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock3 className="size-4" />
+                <span>{displayTime(record.recentExamTime)}</span>
+              </div>
+
+              <div className="flex items-center justify-end">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!record.examId}
+                  onClick={() => router.push(`/scores/${record.examId}`)}
+                  title={record.examId || "exam-id-missing"}
+                >
+                  查看详情
+                  <ArrowUpRight className="size-4" />
+                </Button>
+              </div>
+            </article>
+          ))}
+        </div>
       </MotionItem>
 
       <div className="grid gap-3 md:hidden">
         {records.map((record) => (
           <MotionItem
             key={record.id}
-            className="rounded-[28px] border border-border/70 bg-background/90 p-5 shadow-[0_20px_48px_rgba(15,23,42,0.08)]"
+            className="rounded-[28px] border border-border/70 bg-background/90 p-5"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-2">
@@ -155,7 +150,7 @@ export function ScoresResults({ records }: { records: ScoreRecord[] }) {
               </div>
               {renderPassedLabel(record.passed)}
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-3 rounded-[22px] bg-muted/50 p-4">
+            <div className="mt-4 grid grid-cols-2 gap-3 rounded-[22px] border border-border/60 bg-muted/35 p-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   考试次数
