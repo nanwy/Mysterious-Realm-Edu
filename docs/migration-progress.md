@@ -93,91 +93,91 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 ### Global / Shell
 
-| Old Route | Source | Target | Status | Notes |
-| --- | --- | --- | --- | --- |
-| `/login` | `src/views/Login.vue` | `/login` | `[-]` | 登录页存在，但视觉和业务链路仍是首版实现。 |
-| `/register` | `src/views/register/Register.vue` | none | `[ ]` | 当前仓库无注册页。 |
-| `404 / fallback` | `src/views/404.vue` | `not-found.tsx` | `[-]` | 仅有统一承接页，仍是“页面暂未接入”语义。 |
-| 全局页头 / 导航 / 页脚 | `src/components/Header.vue` | `packages/ui` + `apps/web` 壳层 | `[-]` | 新壳层已形成，但与旧站导航能力和搜索联动并未等价。 |
+| Old Route | Source | Target | Status | Impeccable | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `/login` | `src/views/Login.vue` | `/login` | `[-]` | `[ ]` | 登录页存在，但视觉和业务链路仍是首版实现。 |
+| `/register` | `src/views/register/Register.vue` | none | `[ ]` | `[ ]` | 当前仓库无注册页。 |
+| `404 / fallback` | `src/views/404.vue` | `not-found.tsx` | `[-]` | `[ ]` | 仅有统一承接页，仍是“页面暂未接入”语义。 |
+| 全局页头 / 导航 / 页脚 | `src/components/Header.vue` | `packages/ui` + `apps/web` 壳层 | `[-]` | `[-]` | 新壳层已形成，但与旧站导航能力和搜索联动并未等价。 |
 
 ### 首页 / 门户
 
-| Old Route | Source | Target | Status | Notes |
-| --- | --- | --- | --- | --- |
-| `/home` | `src/views/home/Index.vue` | `/` | `[x]` | 首页已重构为平台封面，承接课程、考试、资讯、问卷、热点信号。 |
-| 首页课程区 | `src/components/course/index/HotCourse.vue` | `home-courses-section.tsx` | `[x]` | 已完成新版学习焦点工作台，不再按旧站模块原样平移。 |
-| 首页考试区 | `src/components/exam/LastestExam.vue` | `home-exams-section.tsx` | `[x]` | 已承接为考试时间带。 |
-| 首页资讯区 | `src/components/news/NewsHome.vue` | `home-news-section.tsx` | `[x]` | 已承接为主稿 + feed。 |
-| 首页热榜 | `src/components/news/HotNews.vue` | `home-hot-news-section.tsx` | `[x]` | 已承接为 signal column。 |
-| 首页问卷区 | `src/components/questionnaire/QuestionnaireHome.vue` | `home-questionnaires-section.tsx` | `[x]` | 已承接为 task queue。 |
+| Old Route | Source | Target | Status | Impeccable | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `/home` | `src/views/home/Index.vue` | `/` | `[x]` | `[x]` | 首页已重构为平台封面，承接课程、考试、资讯、问卷、热点信号。 |
+| 首页课程区 | `src/components/course/index/HotCourse.vue` | `home-courses-section.tsx` | `[x]` | `[x]` | 已完成新版学习焦点工作台，不再按旧站模块原样平移。 |
+| 首页考试区 | `src/components/exam/LastestExam.vue` | `home-exams-section.tsx` | `[x]` | `[x]` | 已承接为考试时间带。 |
+| 首页资讯区 | `src/components/news/NewsHome.vue` | `home-news-section.tsx` | `[x]` | `[x]` | 已承接为主稿 + feed。 |
+| 首页热榜 | `src/components/news/HotNews.vue` | `home-hot-news-section.tsx` | `[x]` | `[x]` | 已承接为 signal column。 |
+| 首页问卷区 | `src/components/questionnaire/QuestionnaireHome.vue` | `home-questionnaires-section.tsx` | `[x]` | `[x]` | 已承接为 task queue。 |
 
 ### Course
 
-| Old Route | Source | Target | Status | Notes |
-| --- | --- | --- | --- | --- |
-| `/course/courseList` | `src/views/course/CourseList.vue` | `/courses` | `[x]` | 列表、筛选、分页已迁移。 |
-| `/course/onlineStudy/:id` | `src/views/course/OnlineStudy.vue` | `/courses/[courseId]` | `[-]` | 工作台已成型，但播放器、目录树、学习计时、防挂机等旧站关键链路未迁完。 |
-| `/course/comment/:courseId` | `src/views/course/coursedetail/Comment.vue` | none | `[ ]` | 未迁移。 |
-| `/course/myCollect/:searchType` | 旧站课程收藏 | none | `[ ]` | 未迁移。 |
-| `/course/footprint/:searchType` | 旧站课程足迹 | none | `[ ]` | 未迁移。 |
-| 课程详情其他子区 | `Catalog / Introduce / CourseExam / TeacherDetail` | 内嵌到工作台或独立页 | `[ ]` | 当前未形成与旧站等价的详情子页面体系。 |
+| Old Route | Source | Target | Status | Impeccable | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `/course/courseList` | `src/views/course/CourseList.vue` | `/courses` | `[x]` | `[-]` | 列表、筛选、分页已迁移。 |
+| `/course/onlineStudy/:id` | `src/views/course/OnlineStudy.vue` | `/courses/[courseId]` | `[-]` | `[-]` | 工作台已成型，但播放器、目录树、学习计时、防挂机等旧站关键链路未迁完。 |
+| `/course/comment/:courseId` | `src/views/course/coursedetail/Comment.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/course/myCollect/:searchType` | 旧站课程收藏 | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/course/footprint/:searchType` | 旧站课程足迹 | none | `[ ]` | `[ ]` | 未迁移。 |
+| 课程详情其他子区 | `Catalog / Introduce / CourseExam / TeacherDetail` | 内嵌到工作台或独立页 | `[ ]` | `[ ]` | 当前未形成与旧站等价的详情子页面体系。 |
 
 ### Practice
 
-| Old Route | Source | Target | Status | Notes |
-| --- | --- | --- | --- | --- |
-| `/practice` | `src/views/practice/Index.vue` | `/practice` | `[x]` | 题库列表、搜索、分页已迁移。 |
-| `/practice/practiceMode/:id` | `src/views/practice/PracticeMode.vue` | `/practice/practiceMode/[id]` | `[x]` | 模式承接页已迁移。 |
-| `/practice/onlinePractice/:id` | `src/views/practice/OnlinePractice.vue` | none | `[ ]` | 未迁移。 |
-| `/practice/userPracticeResult/:id` | `src/views/practice/UserPracticeResult.vue` | none | `[ ]` | 未迁移。 |
+| Old Route | Source | Target | Status | Impeccable | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `/practice` | `src/views/practice/Index.vue` | `/practice` | `[x]` | `[-]` | 题库列表、搜索、分页已迁移。 |
+| `/practice/practiceMode/:id` | `src/views/practice/PracticeMode.vue` | `/practice/practiceMode/[id]` | `[x]` | `[ ]` | 模式承接页已迁移。 |
+| `/practice/onlinePractice/:id` | `src/views/practice/OnlinePractice.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/practice/userPracticeResult/:id` | `src/views/practice/UserPracticeResult.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
 
 ### Exam
 
-| Old Route | Source | Target | Status | Notes |
-| --- | --- | --- | --- | --- |
-| `/exam` | `src/views/exam/Index.vue` | `/exams` | `[x]` | 考试列表、筛选、分页已迁移。 |
-| `/exam/preview/:id` | `src/views/exam/ExamPreview.vue` | `/exams/[examId]/preview` | `[x]` | 预览页已迁移。 |
-| `/exam/onlineExam/:id` | `src/views/exam/OnlineExam.vue` | none | `[ ]` | 在线考试主链路未迁移。 |
-| `/userCenter/exam/examScore/userExamResult/:id` | `src/views/user/UserExamResult.vue` | `/scores/[examId]` | `[x]` | 成绩明细已落地。 |
+| Old Route | Source | Target | Status | Impeccable | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `/exam` | `src/views/exam/Index.vue` | `/exams` | `[x]` | `[-]` | 考试列表、筛选、分页已迁移。 |
+| `/exam/preview/:id` | `src/views/exam/ExamPreview.vue` | `/exams/[examId]/preview` | `[x]` | `[ ]` | 预览页已迁移。 |
+| `/exam/onlineExam/:id` | `src/views/exam/OnlineExam.vue` | none | `[ ]` | `[ ]` | 在线考试主链路未迁移。 |
+| `/userCenter/exam/examScore/userExamResult/:id` | `src/views/user/UserExamResult.vue` | `/scores/[examId]` | `[x]` | `[ ]` | 成绩明细已落地。 |
 
 ### News / Questionnaire / Scores
 
-| Old Route | Source | Target | Status | Notes |
-| --- | --- | --- | --- | --- |
-| `/news` | `src/views/news/Index.vue` | `/news` | `[x]` | 资讯主页已迁移。 |
-| `/news/detail/:id` | `src/views/news/NewsDetail.vue` | `/news/detail/[id]` | `[x]` | 资讯详情已迁移。 |
-| `/questionnaire` | `src/views/questionnaire/Index.vue` | `/questionnaire` | `[x]` | 问卷列表页已迁移。 |
-| `/userCenter/exam/examScore` | `src/views/user/ExamScore.vue` | `/scores` | `[x]` | 成绩列表已迁移。 |
+| Old Route | Source | Target | Status | Impeccable | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `/news` | `src/views/news/Index.vue` | `/news` | `[x]` | `[-]` | 资讯主页已迁移。 |
+| `/news/detail/:id` | `src/views/news/NewsDetail.vue` | `/news/detail/[id]` | `[x]` | `[-]` | 资讯详情已迁移。 |
+| `/questionnaire` | `src/views/questionnaire/Index.vue` | `/questionnaire` | `[x]` | `[-]` | 问卷列表页已迁移。 |
+| `/userCenter/exam/examScore` | `src/views/user/ExamScore.vue` | `/scores` | `[x]` | `[ ]` | 成绩列表已迁移。 |
 
 ### User Center
 
-| Old Route | Source | Target | Status | Notes |
-| --- | --- | --- | --- | --- |
-| `/userCenter` | `src/views/user/Index.vue` | `/me` | `[x]` | 个人中心首页已重构为学习状态 + 账户管理混合空间。 |
-| `/userCenter/baseSetting` | `src/views/user/BaseSetting.vue` | `/me/profile` | `[-]` | 已有资料页，但编辑与提交仍是占位承接。 |
-| `/userCenter/accountSetting` | `src/views/user/AccountSetting.vue` | `/me/security` | `[-]` | 已有安全页，但真实提交和设备/安全链路未迁移。 |
-| `/userCenter/message` | `src/views/message/Message.vue` | `/me/messages` | `[x]` | 消息中心已迁移为双频道工作台。 |
-| `/userCenter/certificate` | `src/views/certificate/Certificate.vue` | `/me/certificates` | `[x]` | 分类、列表、预览/下载承接已完成。 |
-| `/userCenter/myCourse` | `src/views/user/MyCourse.vue` | `/courses` | `[x]` | 旧站“我的课程”已并入新站课程中心。 |
-| `/userCenter/myExam` | `src/views/user/MyExam.vue` | none | `[ ]` | 未迁移。 |
-| `/userCenter/myPurchaseGoods` | `src/views/user/MyPurchaseGoods.vue` | none | `[ ]` | 未迁移。 |
-| `/userCenter/practice/record` | `src/views/user/PracticeRecord.vue` | none | `[ ]` | 未迁移。 |
-| `/userCenter/course/studyRecord` | `src/views/user/CourseStudyRecord.vue` | none | `[ ]` | 未迁移。 |
-| `/userCenter/course/studyProcess` | `src/views/user/CourseStudyProcess.vue` | none | `[ ]` | 未迁移。 |
-| `/userCenter/myOrder` | `src/views/mall/ordercenter/MyOrder.vue` | none | `[ ]` | 未迁移。 |
+| Old Route | Source | Target | Status | Impeccable | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `/userCenter` | `src/views/user/Index.vue` | `/me` | `[x]` | `[x]` | 个人中心首页已重构为学习状态 + 账户管理混合空间。 |
+| `/userCenter/baseSetting` | `src/views/user/BaseSetting.vue` | `/me/profile` | `[-]` | `[x]` | 已有资料页，但编辑与提交仍是占位承接。 |
+| `/userCenter/accountSetting` | `src/views/user/AccountSetting.vue` | `/me/security` | `[-]` | `[x]` | 已有安全页，但真实提交和设备/安全链路未迁移。 |
+| `/userCenter/message` | `src/views/message/Message.vue` | `/me/messages` | `[x]` | `[-]` | 消息中心已迁移为双频道工作台。 |
+| `/userCenter/certificate` | `src/views/certificate/Certificate.vue` | `/me/certificates` | `[x]` | `[ ]` | 分类、列表、预览/下载承接已完成。 |
+| `/userCenter/myCourse` | `src/views/user/MyCourse.vue` | `/courses` | `[x]` | `[-]` | 旧站“我的课程”已并入新站课程中心。 |
+| `/userCenter/myExam` | `src/views/user/MyExam.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/myPurchaseGoods` | `src/views/user/MyPurchaseGoods.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/practice/record` | `src/views/user/PracticeRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/course/studyRecord` | `src/views/user/CourseStudyRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/course/studyProcess` | `src/views/user/CourseStudyProcess.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/myOrder` | `src/views/mall/ordercenter/MyOrder.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
 
 ### Mall / Payment
 
-| Old Route | Source | Target | Status | Notes |
-| --- | --- | --- | --- | --- |
-| `/mall/cart` | `src/views/mall/Cart.vue` | none | `[ ]` | 未迁移。 |
-| `/mall/pay` | `src/views/mall/Pay.vue` | none | `[ ]` | 未迁移。 |
-| `/mall/thirdPay/:orderSn` | `src/views/mall/ThirdPay.vue` | none | `[ ]` | 未迁移。 |
-| `/mall/qrPay/:orderSn` | `src/views/mall/QrPay.vue` | none | `[ ]` | 未迁移。 |
-| `/mall/payDone` | `src/views/mall/PayDone.vue` | none | `[ ]` | 未迁移。 |
-| `/mall/ordercenter/orderDetail/:orderSn` | `src/views/mall/ordercenter/OrderDetail.vue` | none | `[ ]` | 未迁移。 |
-| `/mall/ordercenter/refund/:orderSn` | `src/views/mall/ordercenter/Refund.vue` | none | `[ ]` | 未迁移。 |
-| `/mall/evaluation/addEval/:orderSn/:orderGoodsId` | `src/views/mall/evaluation/AddEval.vue` | none | `[ ]` | 未迁移。 |
+| Old Route | Source | Target | Status | Impeccable | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `/mall/cart` | `src/views/mall/Cart.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/mall/pay` | `src/views/mall/Pay.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/mall/thirdPay/:orderSn` | `src/views/mall/ThirdPay.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/mall/qrPay/:orderSn` | `src/views/mall/QrPay.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/mall/payDone` | `src/views/mall/PayDone.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/mall/ordercenter/orderDetail/:orderSn` | `src/views/mall/ordercenter/OrderDetail.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/mall/ordercenter/refund/:orderSn` | `src/views/mall/ordercenter/Refund.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/mall/evaluation/addEval/:orderSn/:orderGoodsId` | `src/views/mall/evaluation/AddEval.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
 
 ## Shared Capabilities
 
