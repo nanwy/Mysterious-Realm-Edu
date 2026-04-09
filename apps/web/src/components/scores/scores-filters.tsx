@@ -63,7 +63,7 @@ export function ScoresFilters({
         void form.handleSubmit();
       }}
     >
-      <FieldGroup className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_220px_auto] xl:items-end">
+      <FieldGroup className="grid gap-4 rounded-[24px] border border-border/60 bg-muted/20 p-4 xl:grid-cols-[minmax(0,1.6fr)_220px_auto] xl:items-end xl:p-5">
         <form.Field name="examTitle">
           {(field) => (
             <Field className="gap-2">
@@ -134,7 +134,7 @@ export function ScoresFilters({
           <Button
             size="lg"
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={() => {
               form.reset({
                 examTitle: "",

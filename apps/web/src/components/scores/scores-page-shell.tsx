@@ -5,7 +5,7 @@ import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, EmptyState, SurfaceCard } from "@workspace/ui";
 import { startTransition, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowUpRight, CircleAlert, ListFilter, Trophy } from "lucide-react";
+import { ArrowUpRight, CircleAlert, ListFilter, Search, Trophy } from "lucide-react";
 import { ResultsPagination } from "../common/results-pagination";
 import { toBooleanOrNull, toNumberOrNull, toText } from "@/lib/normalize";
 import { ScoresFilters } from "./scores-filters";
@@ -211,26 +211,9 @@ export function ScoresPageShell({ initialFilters }: { initialFilters: ScoreFilte
     initialFilters.examTitle ? `考试名称：${initialFilters.examTitle}` : null,
     initialFilters.passed ? `通过状态：${getPassedLabel(initialFilters.passed)}` : null,
   ].filter(Boolean) as string[];
-  const heroStats = [
-    {
-      label: "结果总数",
-      value: String(total),
-      detail: "按当前筛选条件回传的成绩记录。",
-      icon: Trophy,
-    },
-    {
-      label: "当前视图",
-      value: getPassedLabel(initialFilters.passed),
-      detail: initialFilters.examTitle ? `关键词：${initialFilters.examTitle}` : "未限定考试名称。",
-      icon: ListFilter,
-    },
-    {
-      label: "接口状态",
-      value: error ? "请求失败" : hasLoaded ? "已加载" : "准备中",
-      detail: error ?? "接口返回成功后会在下方渲染真实成绩记录。",
-      icon: CircleAlert,
-    },
-  ];
+  const passedCount = records.filter((record) => record.passed === true).length;
+  const retryCount = records.filter((record) => (record.tryCount ?? 0) > 1).length;
+  const unresolvedCount = records.filter((record) => record.passed === null).length;
 
   return (
     <MotionStagger className="flex flex-col gap-6" delayChildren={0.08}>
@@ -240,9 +223,9 @@ export function ScoresPageShell({ initialFilters }: { initialFilters: ScoreFilte
           title="考试成绩查询"
           description="把旧版成绩查询重整成更清晰的成绩工作台：先确认接口状态，再围绕考试名称、通过状态和结果规模判断下一步要不要进入明细复盘。"
         >
-          <div className="grid gap-6" data-testid="scores-filter-section">
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(18rem,0.95fr)]">
-              <div className="space-y-5">
+          <div className="grid gap-8" data-testid="scores-filter-section">
+            <div className="grid gap-8 border-b border-border/60 pb-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(18rem,0.9fr)]">
+              <div className="space-y-6">
                 <div className="flex flex-wrap items-center gap-3">
                   <Badge className="w-fit rounded-full">真实接口</Badge>
                   <span className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
@@ -250,69 +233,109 @@ export function ScoresPageShell({ initialFilters }: { initialFilters: ScoreFilte
                   </span>
                 </div>
 
-                <div className="space-y-3">
-                  <h2 className="max-w-3xl text-3xl font-semibold tracking-tight text-foreground sm:text-[2.15rem]">
-                    先确认哪场考试值得点进去，再进入单场成绩详情做复盘。
+                <div className="space-y-4">
+                  <h2 className="max-w-4xl text-3xl font-semibold tracking-tight text-foreground sm:text-[2.35rem]">
+                    先把需要复盘的考试圈出来，再决定要不要进入单场明细。
                   </h2>
-                  <p className="max-w-2xl text-base leading-8 text-muted-foreground">
-                    首屏不再只是机械地堆表格，而是把筛选策略、接口状态和结果规模收拢到一个工作台里，让学员能更快判断这次该看哪门考试、哪次尝试和哪段结果记录。
+                  <p className="max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
+                    这页优先帮助学员做筛选判断，而不是把所有成绩平权堆成表格。你可以先按考试名称和通过状态收窄范围，再根据分数、尝试次数和最近考试时间判断下一步。
                   </p>
                 </div>
 
-                <MotionStagger className="grid gap-3 sm:grid-cols-3" delayChildren={0.08}>
-                  {heroStats.map((item) => {
-                    const Icon = item.icon;
+                <MotionStagger
+                  className="grid gap-4 border-y border-border/60 py-4 sm:grid-cols-3"
+                  delayChildren={0.08}
+                >
+                  <MotionItem>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                        <Trophy className="size-4" />
+                        <span>结果总数</span>
+                      </div>
+                      <p className="text-2xl font-semibold tracking-tight text-foreground">{total}</p>
+                      <p className="text-sm leading-6 text-muted-foreground">
+                        当前条件下可继续进入详情的考试记录。
+                      </p>
+                    </div>
+                  </MotionItem>
 
-                    return (
-                      <MotionItem key={item.label}>
-                        <div className="rounded-[24px] border border-border/70 bg-background/75 px-4 py-4">
-                          <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
-                            <Icon className="size-4" />
-                            <span>{item.label}</span>
-                          </div>
-                          <p className="mt-3 text-lg font-semibold text-foreground">{item.value}</p>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.detail}</p>
-                        </div>
-                      </MotionItem>
-                    );
-                  })}
+                  <MotionItem>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                        <ListFilter className="size-4" />
+                        <span>本页通过</span>
+                      </div>
+                      <p className="text-2xl font-semibold tracking-tight text-foreground">{passedCount}</p>
+                      <p className="text-sm leading-6 text-muted-foreground">
+                        {hasLoaded && !error
+                          ? `其中 ${retryCount} 条属于多次尝试后的结果。`
+                          : "数据返回后会汇总当前页的通过和重考情况。"}
+                      </p>
+                    </div>
+                  </MotionItem>
+
+                  <MotionItem>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                        <CircleAlert className="size-4" />
+                        <span>接口状态</span>
+                      </div>
+                      <p className="text-2xl font-semibold tracking-tight text-foreground">
+                        {error ? "请求失败" : hasLoaded ? "已加载" : "准备中"}
+                      </p>
+                      <p className="text-sm leading-6 text-muted-foreground">
+                        {error
+                          ? error
+                          : unresolvedCount > 0
+                            ? `有 ${unresolvedCount} 条记录仍待同步通过状态。`
+                            : "当前结果区直接反映真实接口返回，不使用静态占位数据。"}
+                      </p>
+                    </div>
+                  </MotionItem>
                 </MotionStagger>
               </div>
 
-              <div className="rounded-[28px] border border-border/70 bg-background/75 p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
-                      当前查询策略
-                    </p>
-                    <p className="mt-2 text-lg font-semibold text-foreground">先缩小范围，再看考试详情</p>
-                  </div>
-                  <Badge variant="secondary" className="rounded-full">
-                    {activeFilters.length ? `${activeFilters.length} 个条件` : "无额外筛选"}
-                  </Badge>
-                </div>
-
-                <div className="mt-5 grid gap-3">
-                  {activeFilters.length ? (
-                    activeFilters.map((item) => (
-                      <div
-                        key={item}
-                        className="rounded-2xl border border-border/60 bg-card/80 px-4 py-3 text-sm text-foreground"
-                      >
-                        {item}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-border/70 bg-card/70 px-4 py-4 text-sm leading-7 text-muted-foreground">
-                      当前正在浏览全部成绩。建议先输入考试名称或切换通过状态，快速定位需要复盘的那一场考试。
+              <aside className="flex h-full flex-col justify-between gap-6 border-l border-border/60 pl-0 xl:pl-6">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                        当前查询策略
+                      </p>
+                      <p className="mt-2 text-xl font-semibold tracking-tight text-foreground">
+                        先缩小范围，再看考试详情
+                      </p>
                     </div>
-                  )}
+                    <Badge variant="secondary" className="rounded-full">
+                      {activeFilters.length ? `${activeFilters.length} 个条件` : "默认视图"}
+                    </Badge>
+                  </div>
+
+                  <div className="grid gap-3">
+                    {activeFilters.length ? (
+                      activeFilters.map((item) => (
+                        <div key={item} className="border-b border-border/60 pb-3 text-sm text-foreground">
+                          {item}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-border/70 bg-muted/25 px-4 py-4 text-sm leading-7 text-muted-foreground">
+                        当前正在浏览全部成绩。建议先输入考试名称或切换通过状态，再决定要不要逐条查看。
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="mt-5 rounded-[22px] border border-dashed border-border/70 bg-card/70 px-4 py-4 text-sm leading-7 text-muted-foreground">
-                  若登录态失效、环境未配置或接口异常，结果区会直接暴露真实错误，而不是显示“看起来正常”的静态假数据。
+                <div className="rounded-[22px] border border-border/60 bg-muted/25 px-4 py-4">
+                  <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                    <Search className="size-4" />
+                    <span>使用建议</span>
+                  </div>
+                  <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                    如果你只想找一场异常或低分考试，先用名称锁定考试，再切换到未通过视图，最后进入明细核对题型和提交结果。
+                  </p>
                 </div>
-              </div>
+              </aside>
             </div>
 
             <ScoresFilters
@@ -332,7 +355,7 @@ export function ScoresPageShell({ initialFilters }: { initialFilters: ScoreFilte
           description="结果区优先回答三个问题：这场考试是什么、我考了几次、现在值不值得点进详情页继续看。"
         >
           <div data-testid="scores-results-section">
-            <div className="mb-5 flex flex-col gap-3 border-b border-border/60 pb-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="mb-6 grid gap-4 border-b border-border/60 pb-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
               <div className="space-y-2">
                 <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
                   Results summary
@@ -346,11 +369,11 @@ export function ScoresPageShell({ initialFilters }: { initialFilters: ScoreFilte
                 </h3>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground lg:justify-end">
+                <span className="rounded-full border border-border/70 bg-muted/30 px-3 py-1.5">
                   每页 {initialFilters.pageSize} 条
                 </span>
-                <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5">
+                <span className="rounded-full border border-border/70 bg-muted/30 px-3 py-1.5">
                   第 {Math.min(initialFilters.pageNo, totalPages)} / {totalPages} 页
                 </span>
               </div>
