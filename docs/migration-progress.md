@@ -1,6 +1,6 @@
 # Migration Progress
 
-Last updated: 2026-04-08
+Last updated: 2026-04-09
 Source project: `/Users/nanfugongmeiying/Desktop/project/student-front-master`
 Source router: `/Users/nanfugongmeiying/Desktop/project/student-front-master/src/router/index.js`
 Source graph: `/Users/nanfugongmeiying/Desktop/project/student-front-master/graphify-out/graph.json`
@@ -147,7 +147,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 | `/news` | `src/views/news/Index.vue` | `/news` | `[x]` | `[-]` | 资讯主页已迁移。 |
 | `/news/detail/:id` | `src/views/news/NewsDetail.vue` | `/news/detail/[id]` | `[x]` | `[-]` | 资讯详情已迁移。 |
 | `/questionnaire` | `src/views/questionnaire/Index.vue` | `/questionnaire` | `[x]` | `[-]` | 问卷列表页已迁移。 |
-| `/userCenter/exam/examScore` | `src/views/user/ExamScore.vue` | `/scores` | `[x]` | `[ ]` | 成绩列表已迁移。 |
+| `/userCenter/exam/examScore` | `src/views/user/ExamScore.vue` | `/scores` | `[x]` | `[x]` | 成绩列表已重构为筛选优先的成绩复盘工作台。 |
 
 ### User Center
 
