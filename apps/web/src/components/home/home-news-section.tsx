@@ -60,11 +60,14 @@ export function HomeNewsSection({
               >
                 <div className="relative aspect-video w-full overflow-hidden bg-muted/20 border border-border/50">
                   {coverUrl ? (
-                    <img
-                      src={coverUrl}
-                      alt={toText(news.title, `资讯 ${index + 1}`)}
-                      className="object-cover w-full h-full transition-transform duration-[1000ms] ease-out group-hover:scale-105 grayscale-[0.2] group-hover:grayscale-0"
-                    />
+                    <>
+                      <img
+                        src={coverUrl}
+                        alt={toText(news.title, `资讯 ${index + 1}`)}
+                        className="object-cover w-full h-full transition-transform duration-[1000ms] ease-out group-hover:scale-105 grayscale-[0.2] group-hover:grayscale-0"
+                      />
+                      <div className="absolute inset-0 bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.06)_2px,rgba(0,0,0,0.06)_4px)] dark:bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(255,255,255,0.03)_2px,rgba(255,255,255,0.03)_4px)] pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
+                    </>
                   ) : (
                     <div className="flex flex-col bg-background/50 items-center justify-center h-full w-full text-muted-foreground/30">
                       <ImageIcon className="w-6 h-6 mb-2" />

@@ -9,6 +9,20 @@ import { HomeHotNewsSection } from "./home-hot-news-section";
 import { HomeQuestionnairesSection } from "./home-questionnaires-section";
 import type { HomePayload } from "./home-types";
 
+function Crosshair({ className }: { className?: string }) {
+  return (
+    <svg
+      className={`absolute text-border/80 size-[13px] pointer-events-none ${className}`}
+      fill="none"
+      viewBox="0 0 13 13"
+      stroke="currentColor"
+      strokeWidth={1}
+    >
+      <path d="M6.5 0v13M0 6.5h13" />
+    </svg>
+  );
+}
+
 export function HomePage({
   banners,
   announcements,
@@ -31,7 +45,12 @@ export function HomePage({
 
       <main className="relative mx-auto max-w-[1536px] px-4 py-8 lg:px-8 xl:px-12 xl:py-12">
         {/* 精密拼图架构：所有主要内容全部收入一个统一无缝共享边框的大长方形中 */}
-        <div className="flex flex-col border border-border/50 shadow-[0_4px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.2)] bg-background">
+        <div className="relative flex flex-col border border-border/50 shadow-[0_4px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.2)] bg-background">
+          <Crosshair className="-top-[7px] -left-[7px] z-20" />
+          <Crosshair className="-top-[7px] -right-[7px] z-20" />
+          <Crosshair className="-bottom-[7px] -left-[7px] z-20" />
+          <Crosshair className="-bottom-[7px] -right-[7px] z-20" />
+
           <HomeHero
             banner={banners[0]}
             bannerError={bannerError}
@@ -62,7 +81,7 @@ export function HomePage({
             </div>
 
             {/* 右半侧常驻控制台侧栏 */}
-            <aside className="flex flex-col divide-y divide-border/50 bg-background/50">
+            <aside className="flex flex-col divide-y divide-border/50 bg-muted/10">
               <HomeSidebar
                 announcements={announcements}
                 announcementError={announcementError}

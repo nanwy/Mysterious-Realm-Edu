@@ -2,514 +2,298 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { MotionReveal } from "@workspace/motion";
-import { Badge } from "@workspace/ui";
-import { MeNavigation } from "./me-navigation";
-import { ME_ENTRY_GROUPS } from "./me-data";
-import { MeSectionGrid } from "./me-section-grid";
 import {
-  ArrowRight,
-  BellDot,
-  BookOpen,
-  ClipboardList,
-  Play,
+  ArrowUpRight,
   ShieldCheck,
-  UserRound,
+  CreditCard,
+  Zap,
+  Bell,
+  Settings2,
+  Clock,
+  BookMarked,
 } from "lucide-react";
+import { ME_ENTRY_GROUPS, ME_OVERVIEW_STATS } from "./me-data";
+import { MeSectionGrid } from "./me-section-grid";
 
-function WorkspaceSignal({
-  label,
-  value,
-  note,
-}: {
-  label: string;
-  value: string;
-  note: string;
-}) {
+// === 增强的数据补全 Mock ===
+const MOCK_ONGOING_ITEMS = [
+  {
+    id: "1",
+    name: "高级网络安全攻防实战与 AWD 战术详解",
+    progress: 68,
+    type: "COURSE",
+    tag: "MOST_ACTIVE",
+    lastStudy: "12 分钟前",
+  },
+  {
+    id: "2",
+    name: "2026年春季 AWD 防御结业水平资格考试",
+    time: "今天 14:00 - 16:00",
+    type: "EXAM",
+    tag: "URGENT",
+    desc: "由于系统维护，请提前 15 分钟下载准考证。",
+  },
+  {
+    id: "3",
+    name: "企业级 Web 渗透测试全栈核心指南",
+    progress: 42,
+    type: "COURSE",
+    tag: "ON_HOLD",
+    lastStudy: "昨天 18:30",
+  },
+  {
+    id: "4",
+    name: "题库训练：SQL 注入深度分析与绕过技巧",
+    progress: 85,
+    type: "PRACTICE",
+    tag: "NEAR_COMPLETE",
+    lastStudy: "2 小时前",
+  },
+];
+
+export function MePageShell({ children }: { children?: ReactNode }) {
   return (
-    <div className="rounded-[1rem] border border-border/70 bg-background/80 px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-        {label}
-      </div>
-      <div className="mt-2 text-2xl font-black tracking-[-0.05em] text-foreground">
-        {value}
-      </div>
-      <div className="mt-1 text-xs font-medium text-muted-foreground">
-        {note}
-      </div>
-    </div>
-  );
-}
-
-export function MePageShell() {
-  const primaryGroups = ME_ENTRY_GROUPS.filter((group) =>
-    ["my-courses", "my-exams", "message-center"].includes(group.id)
-  );
-  const accountGroups = ME_ENTRY_GROUPS.filter((group) =>
-    ["basic-settings", "my-orders", "certificates"].includes(group.id)
-  );
-  const archiveGroups = ME_ENTRY_GROUPS;
-  const leadGroups = primaryGroups.map((group) => ({
-    ...group,
-    primaryItem: group.items[0],
-  }));
-
-  return (
-    <div className="grid gap-8">
-      <MotionReveal direction="up">
-        <section className="relative overflow-hidden rounded-[1.8rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(243,246,255,0.96))] shadow-[0_24px_80px_rgba(15,23,42,0.08)] dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(9,14,26,0.96))]">
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.08)_1px,transparent_1px)] bg-[size:26px_26px] [mask-image:linear-gradient(180deg,black,transparent_90%)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)]" />
-          <div className="relative grid gap-6 p-5 md:p-6 xl:grid-cols-[minmax(0,1.15fr)_340px] xl:p-8">
-            <div className="space-y-8">
-              <div className="flex flex-wrap items-center gap-3">
-                <Badge className="rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/10">
-                  Personal Workspace
-                </Badge>
-                <span className="text-[11px] font-medium text-muted-foreground">
-                  学习主线 / 考试安排 / 消息处理 / 账户入口
-                </span>
+    <div className="bg-background min-h-screen selection:bg-primary/10">
+      <main className="mx-auto max-w-[1536px]">
+        <div className="flex flex-col xl:flex-row min-h-screen">
+          {/* 左侧精密导航基座 - 开启独立滚动 */}
+          <aside className="w-full xl:w-[320px] xl:sticky xl:top-0 xl:h-screen border-r border-border/40 bg-muted/5 flex flex-col overflow-y-auto scrollbar-none">
+            <div className="p-8 lg:p-10 flex flex-col min-h-full">
+              <div className="flex items-center gap-3 mb-16 px-3">
+                <div className="w-1.5 h-6 bg-primary" />
+                <h1 className="text-xl font-bold tracking-tighter uppercase font-mono">
+                  Control_Hub
+                </h1>
               </div>
 
-              <div className="max-w-4xl">
-                <h2 className="font-heading text-[clamp(2.7rem,6vw,4.8rem)] font-black leading-[0.92] tracking-[-0.07em] text-foreground">
-                  先回到今天要做的事，
-                  <br />
-                  再展开完整个人空间。
-                </h2>
-                <p className="mt-4 max-w-2xl text-base font-medium leading-8 text-muted-foreground md:text-lg">
-                  个人页首屏只保留真正高频的动作入口。课程、考试、消息和账户管理会按处理优先级出现，剩余分组留在下方完整工作层里。
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-3" data-testid="me-lead-actions">
-                <Link
-                  href="/courses"
-                  className="inline-flex items-center gap-2 rounded-[0.95rem] bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                >
-                  <Play className="size-4" />
-                  继续课程
-                </Link>
-                <Link
-                  href="/exams"
-                  className="inline-flex items-center gap-2 rounded-[0.95rem] border border-border/70 bg-card/80 px-4 py-3 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-accent/40"
-                >
-                  <ClipboardList className="size-4" />
-                  查看考试
-                </Link>
-                <Link
-                  href="/me/messages"
-                  className="inline-flex items-center gap-2 rounded-[0.95rem] border border-border/70 bg-card/80 px-4 py-3 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-accent/40"
-                >
-                  <BellDot className="size-4" />
-                  处理消息
-                </Link>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-3">
-                {leadGroups.map((group, index) => {
-                  const Icon = group.icon;
-                  return (
-                    <MotionReveal
-                      key={group.id}
-                      direction="up"
-                      delay={index * 0.05}
-                    >
-                      <Link
-                        href={group.primaryItem.href}
-                        className="group flex h-full flex-col rounded-[1.2rem] border border-border/70 bg-card/88 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-primary/30 hover:bg-accent/35 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <span className="rounded-[0.95rem] border border-border/70 bg-background/70 p-2 text-primary transition group-hover:border-primary/30">
-                            <Icon className="size-5" />
-                          </span>
-                          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/80">
-                            {group.items.length} 个入口
-                          </span>
-                        </div>
-                        <div className="mt-4">
-                          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                            {group.title}
-                          </p>
-                          <p className="mt-3 text-[1.35rem] font-black tracking-[-0.04em] text-foreground">
-                            {group.primaryItem.title}
-                          </p>
-                          <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                            {group.primaryItem.description}
-                          </p>
-                        </div>
-                        <span className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-semibold text-foreground transition group-hover:text-primary">
-                          进入入口
-                          <ArrowRight className="size-4" />
-                        </span>
-                      </Link>
-                    </MotionReveal>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="grid gap-4">
-              <div className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,#0b1327_0%,#121d36_100%)] p-5 text-white shadow-[0_24px_64px_rgba(15,23,42,0.28)]">
-                <div className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-300/90">
-                  Today Focus
-                </div>
-                <h3 className="mt-2 text-2xl font-black tracking-[-0.04em] text-white">
-                  把主线入口放到最前
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-slate-300">
-                  课程、考试和消息都已经回到首屏动作层。导航退回辅助定位，完整分组留在下方继续浏览。
-                </p>
-
-                <div className="mt-5 grid gap-3">
-                  <LinkCard
-                    href="/courses"
-                    icon={<BookOpen className="size-4" />}
-                    title="继续课程"
-                    note="优先回到今天的学习主线"
-                    dark
-                  />
-                  <LinkCard
-                    href="/exams"
-                    icon={<ClipboardList className="size-4" />}
-                    title="查看考试"
-                    note="从首屏直接确认考试安排"
-                    dark
-                  />
-                  <LinkCard
-                    href="/me/messages"
-                    icon={<BellDot className="size-4" />}
-                    title="消息中心"
-                    note="处理通知、服务消息和课程提醒"
-                    dark
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-[1.3rem] border border-border/80 bg-card/88 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
-                <div className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">
-                  Account Actions
-                </div>
-                <h3 className="mt-2 text-xl font-black tracking-[-0.04em] text-foreground">
-                  账户入口集中在这里
-                </h3>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                  不再把账户说明做成大面积状态面板，只保留可执行入口。
-                </p>
-                <div className="mt-4 grid gap-3">
-                  {accountGroups.slice(0, 2).map((group) => {
-                    const Icon = group.icon;
-                    return (
-                      <LinkCard
-                        key={group.id}
-                        href={`#${group.id}`}
-                        icon={<Icon className="size-4" />}
-                        title={group.title}
-                        note={group.description}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </MotionReveal>
-
-      <div
-        className="grid gap-6 xl:grid-cols-[272px_minmax(0,1fr)]"
-        data-testid="me-layout"
-      >
-        <aside className="grid gap-6 xl:sticky xl:top-24 xl:self-start">
-          <section className="rounded-[1.45rem] border border-border/80 bg-card/88 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
-            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">
-              Navigation
-            </div>
-            <h3 className="mt-2 font-heading text-[1.7rem] font-black tracking-[-0.05em] text-foreground">
-              个人空间导航
-            </h3>
-            <p className="mt-2 text-sm leading-7 text-muted-foreground">
-              先完成上方主线动作，再按分组进入学习、消息、账户与资产管理。
-            </p>
-            <div className="mt-4 max-h-[calc(100vh-15rem)] overflow-y-auto pr-1">
-              <MeNavigation groups={ME_ENTRY_GROUPS} />
-            </div>
-          </section>
-
-          <section className="rounded-[1.45rem] border border-border/80 bg-card/88 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
-            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">
-              Workspace Signals
-            </div>
-            <div className="mt-4 grid gap-3">
-              <WorkspaceSignal
-                label="入口分组"
-                value={String(archiveGroups.length)}
-                note="所有个人入口已经按主题归档"
-              />
-              <WorkspaceSignal
-                label="学习主线"
-                value="课程优先"
-                note="首屏主动作直接回到学习路径"
-              />
-              <WorkspaceSignal
-                label="账户区域"
-                value="已收纳"
-                note="资料、安全和资产入口集中在辅助层"
-              />
-            </div>
-          </section>
-        </aside>
-
-        <div className="grid gap-6">
-          <section className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_340px]">
-            <div className="rounded-[1.45rem] border border-border/80 bg-card/88 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">
-                    Learning + Signals
-                  </div>
-                  <h3 className="mt-2 font-heading text-[2rem] font-black tracking-[-0.05em] text-foreground">
-                    继续今天的学习主线
-                  </h3>
-                </div>
-                <LinkCard
-                  href="/courses"
-                  icon={<ArrowRight className="size-4" />}
-                  title="进入课程"
-                  note="继续学习"
-                  compact
-                />
-              </div>
-
-              <div className="mt-5">
-                <div className="grid gap-4">
-                  <div className="overflow-hidden rounded-[1.25rem] border border-border/70 bg-[linear-gradient(135deg,rgba(79,70,255,0.08),rgba(79,70,255,0.02)_42%,rgba(255,255,255,0.96)_100%)]">
-                    <div className="p-5">
-                      <div className="mb-2">
-                        <div className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">
-                          Main Path
-                        </div>
-                        <div className="mt-3 max-w-2xl text-[clamp(1.8rem,3vw,3rem)] font-heading font-black leading-[0.95] tracking-[-0.06em] text-foreground">
-                          先回到课程主线，
-                          <br />
-                          再处理考试与消息。
-                        </div>
-                        <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground">
-                          这块只负责一件事：把你拉回今天最重要的学习路径。考试安排和未读消息在侧边辅助，不再和主线抢位置。
-                        </p>
-
-                        <div className="mt-5 flex flex-wrap gap-3">
-                          <Link
-                            href="/courses"
-                            className="inline-flex items-center gap-2 rounded-[0.95rem] bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                          >
-                            <Play className="size-4" />
-                            继续课程
-                          </Link>
-                          <Link
-                            href="/me/study-progress"
-                            className="inline-flex items-center gap-2 rounded-[0.95rem] border border-border/70 bg-card/80 px-4 py-3 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-accent/40"
-                          >
-                            查看进度
-                          </Link>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-3">
-                        <WorkspaceSignal
-                          label="学习主线"
-                          value="课程中"
-                          note="当前课程可以继续进入"
-                        />
-                        <WorkspaceSignal
-                          label="消息处理"
-                          value="消息中心"
-                          note="优先查看系统与课程提醒"
-                        />
-                        <WorkspaceSignal
-                          label="考试安排"
-                          value="本周安排"
-                          note="考试入口已放到主线旁边"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-2 grid gap-4 md:grid-cols-2">
-                    {primaryGroups.slice(0, 2).map((group) => {
+              <nav className="flex-1 flex flex-col gap-12">
+                {/* 第一顺位：功能导航 */}
+                <div className="space-y-4">
+                  <span className="px-3 text-[9px] font-mono font-black text-muted-foreground/30 uppercase tracking-[0.4em]">
+                    Directory_Root
+                  </span>
+                  <div className="flex flex-col gap-0.5">
+                    {ME_ENTRY_GROUPS.map((group) => {
                       const Icon = group.icon;
                       return (
-                        <div
+                        <Link
                           key={group.id}
-                          className="rounded-[1.15rem] border border-border/70 bg-background/75 p-4"
+                          href={`#${group.id}`}
+                          className="flex items-center gap-3 px-4 py-3 text-[13px] font-medium text-muted-foreground/80 hover:text-primary hover:bg-primary/5 border-l-2 border-transparent hover:border-primary transition-all group rounded-r-sm"
                         >
-                          <div className="flex items-center gap-3">
-                            <span className="rounded-[0.9rem] border border-border/70 bg-muted/70 p-2 text-primary">
-                              <Icon className="size-4" />
-                            </span>
-                            <div>
-                              <div className="text-sm font-black tracking-[-0.02em] text-foreground">
-                                {group.title}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {group.description}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-4 space-y-3">
-                            {group.items.map((item) => (
-                              <Link
-                                key={item.title}
-                                href={item.href}
-                                className="flex items-center justify-between rounded-[0.95rem] border border-border/70 bg-card px-3 py-3 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-accent/40"
-                              >
-                                <span>{item.title}</span>
-                                <ArrowRight className="size-4 text-muted-foreground" />
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
+                          <Icon className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
+                          {group.title}
+                          <ArrowUpRight className="w-3 h-3 ml-auto opacity-0 -translate-x-1 group-hover:opacity-30 group-hover:translate-x-0 transition-all" />
+                        </Link>
                       );
                     })}
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="rounded-[1.45rem] border border-border/80 bg-card/88 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
-              <div className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">
-                Identity + Security
-              </div>
-              <h3 className="mt-2 font-heading text-[1.9rem] font-black tracking-[-0.05em] text-foreground">
-                账户与安全
-              </h3>
-              <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                资料、密码、登录设备和账户状态不需要单独找页面，这里先集中给你一个清晰入口。
-              </p>
-
-              <div className="mt-5 rounded-[1.15rem] border border-border/70 bg-[linear-gradient(180deg,var(--muted),rgba(255,255,255,0.85))] p-4">
-                <div className="flex items-center gap-3">
-                  <span className="rounded-[0.9rem] bg-primary/10 p-2 text-primary">
-                    <UserRound className="size-4" />
+                {/* 第二顺位：统计信号 - 强化对比度与缩放量感 */}
+                <div className="space-y-6 pt-10 border-t border-border/15">
+                  <span className="px-3 text-[9px] font-mono font-black text-muted-foreground/30 uppercase tracking-[0.4em]">
+                    Live_Metrics
                   </span>
-                  <div>
-                    <div className="text-sm font-black text-foreground">
-                      个人资料
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      头像、姓名、联系方式
-                    </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-8 px-3">
+                    {ME_OVERVIEW_STATS.map((stat) => (
+                      <div key={stat.label} className="flex flex-col gap-1.5">
+                        <span className="text-[8px] text-muted-foreground/40 uppercase font-mono tracking-widest">
+                          {stat.label}
+                        </span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-2xl font-mono font-bold text-foreground leading-none">
+                            {stat.value}
+                          </span>
+                          <div className="w-1 h-1 rounded-full bg-primary/40 animate-pulse" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="mt-3 flex items-center gap-2 rounded-[0.9rem] border border-border/70 bg-card px-3 py-3 text-sm font-medium text-muted-foreground">
-                  <ShieldCheck className="size-4 text-primary" />
-                  当前账户状态正常，可继续前往安全设置
+              </nav>
+
+              <div className="mt-12 pt-8 border-t border-border/30 opacity-40 hover:opacity-100 transition-opacity px-3">
+                <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+                  <ShieldCheck className="w-3 h-3 text-primary" />
+                  Session: Secured
                 </div>
               </div>
-
-              <div className="mt-4 space-y-3">
-                {accountGroups.map((group) => {
-                  const Icon = group.icon;
-                  return (
-                    <LinkCard
-                      key={group.id}
-                      href={`#${group.id}`}
-                      icon={<Icon className="size-4" />}
-                      title={group.title}
-                      note={group.description}
-                    />
-                  );
-                })}
-              </div>
             </div>
-          </section>
+          </aside>
 
-          <section className="grid gap-6">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div className="max-w-2xl">
-                <div className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">
-                  Workspace Layers
+          {/* 右侧主作业区 */}
+          <section className="flex-1 flex flex-col min-w-0">
+            <header className="h-20 border-b border-border/40 px-8 lg:px-12 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-10">
+              <div className="flex items-center gap-4 ml-[-4px]">
+                <span className="text-[10px] font-mono text-muted-foreground/30 uppercase tracking-[0.2em] font-bold">
+                  Workspace // v2.0.4
+                </span>
+              </div>
+              <div className="flex items-center gap-6">
+                <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors group">
+                  <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full ring-4 ring-background animate-pulse" />
+                </button>
+                <div className="w-9 h-9 rounded-full bg-muted border border-border/50 flex items-center justify-center text-[10px] font-bold ring-2 ring-primary/5 shadow-inner">
+                  MR
                 </div>
-                <h3 className="mt-2 font-heading text-[2rem] font-black tracking-[-0.05em] text-foreground">
-                  学习记录、资产与历史轨迹
-                </h3>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                  把成绩、证书、练习记录、订单和已购内容压缩进更清晰的次级工作层，而不是一组平权菜单。
-                </p>
+              </div>
+            </header>
+
+            <div className="flex-1 p-8 lg:p-12 max-w-6xl">
+              <div className="flex flex-col gap-32">
+                {/* 01: 正在运行的任务 - 精雕版 */}
+                <section className="border border-border/40 overflow-hidden bg-background shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] dark:shadow-none">
+                  <div className="bg-muted/15 border-b border-border/40 p-8 lg:px-12 lg:py-10 flex items-center justify-between">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex items-center justify-center">
+                          <span className="w-2 h-2 rounded-full bg-primary animate-ping opacity-40" />
+                          <span className="absolute w-2 h-2 rounded-full bg-primary" />
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-primary tracking-[0.4em] uppercase">
+                          SYSTEM_FLOW: ACTIVE
+                        </span>
+                      </div>
+                      <h2 className="text-3xl font-medium tracking-tighter">
+                        进程任务总览
+                      </h2>
+                    </div>
+                    <div className="hidden md:flex flex-col items-end gap-1">
+                      <span className="text-[9px] font-mono text-muted-foreground/40 uppercase">
+                        Queue_Status
+                      </span>
+                      <span className="text-xs font-mono font-bold">
+                        04 ACTIVE IN PIPELINE
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-8 lg:p-12 grid gap-6">
+                    {MOCK_ONGOING_ITEMS.map((item) => (
+                      <div
+                        key={item.id}
+                        className="relative group p-6 border border-border/40 hover:border-primary/50 bg-muted/5 hover:bg-muted/10 transition-all duration-150"
+                      >
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/10 group-hover:w-1 group-hover:bg-primary transition-all" />
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                          <div className="space-y-4 flex-1">
+                            <div className="flex flex-wrap items-center gap-4">
+                              <span className="text-[9px] font-mono px-2 py-0.5 border border-primary/20 text-primary uppercase font-black bg-primary/5">
+                                {item.type}
+                              </span>
+                              <h3 className="text-lg font-medium tracking-tight group-hover:translate-x-1 transition-transform">
+                                {item.name}
+                              </h3>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-8 text-[10px] font-mono text-muted-foreground/60 uppercase tracking-widest">
+                              {item.progress !== undefined ? (
+                                <div className="flex items-center gap-4 w-48">
+                                  <div className="flex-1 h-[2px] bg-muted relative">
+                                    <div
+                                      className="absolute inset-0 bg-primary/40 group-hover:bg-primary transition-colors"
+                                      style={{ width: `${item.progress}%` }}
+                                    />
+                                  </div>
+                                  <span className="shrink-0">
+                                    {item.progress}%
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="flex items-center gap-1.5 text-destructive font-black animate-pulse">
+                                  <Clock className="w-3 h-3" /> EVENT_START:{" "}
+                                  {item.time}
+                                </span>
+                              )}
+                              {item.lastStudy && (
+                                <span className="flex items-center gap-1.5">
+                                  <BookMarked className="w-3 h-3" /> SYNC:{" "}
+                                  {item.lastStudy}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Link
+                            href="#"
+                            className="h-11 px-8 flex items-center justify-center gap-2 bg-foreground text-background text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition-all hover:translate-x-1"
+                          >
+                            进入控制台 <ArrowUpRight className="w-4 h-4" />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* 02: 功能集群 */}
+                <section className="space-y-12">
+                  <div className="flex flex-col gap-3 px-2">
+                    <div className="flex items-center gap-3">
+                      <span className="w-2 h-2 rounded-full bg-primary/30" />
+                      <span className="text-[10px] font-mono font-bold text-primary tracking-[0.4em] uppercase">
+                        REPOSITORY_INDEX
+                      </span>
+                    </div>
+                    <h2 className="text-3xl font-medium tracking-tighter">
+                      全系统架构节点
+                    </h2>
+                  </div>
+                  <div className="flex flex-col gap-12">
+                    {children || <MeSectionGrid groups={ME_ENTRY_GROUPS} />}
+                  </div>
+                </section>
+
+                <section className="grid lg:grid-cols-2 gap-12 pt-16 border-t border-border/40 pb-32">
+                  <div className="space-y-6">
+                    <h4 className="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-muted-foreground/40">
+                      Credential_Auth
+                    </h4>
+                    <div className="flex items-center gap-5 p-6 bg-primary/5 border border-primary/20 relative group overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
+                        <ShieldCheck className="w-16 h-16 -rotate-12" />
+                      </div>
+                      <Zap className="w-7 h-7 text-primary" />
+                      <div className="flex-1 relative z-10">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold tracking-tight">
+                            Pro_Scholar_Status
+                          </p>
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 bg-primary text-white rounded-[2px] font-black">
+                            ACTIVE
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1.5 opacity-60">
+                          Expires: 2027.04.01 // UID: 9283-X
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-6">
+                    <h4 className="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-muted-foreground/40">
+                      Quick_Links
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { label: "资料同步设置", icon: Settings2 },
+                        { label: "订单节点追踪", icon: CreditCard },
+                      ].map((btn) => (
+                        <button
+                          key={btn.label}
+                          className="flex items-center gap-3 p-4 border border-border/40 hover:border-primary/50 hover:bg-muted/10 transition-all text-[11px] font-bold text-left group"
+                        >
+                          <btn.icon className="w-3.5 h-3.5 text-primary/60 group-hover:text-primary transition-colors" />
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </section>
               </div>
             </div>
-
-            <MeSectionGrid groups={archiveGroups} />
           </section>
         </div>
-      </div>
+      </main>
     </div>
-  );
-}
-
-function LinkCard({
-  href,
-  icon,
-  title,
-  note,
-  dark = false,
-  compact = false,
-}: {
-  href: string;
-  icon: ReactNode;
-  title: string;
-  note: string;
-  dark?: boolean;
-  compact?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={
-        compact
-          ? "inline-flex items-center gap-2 rounded-[0.95rem] border border-border/70 bg-background/75 px-3 py-2 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-accent/40"
-          : dark
-            ? "group flex items-start gap-3 rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 transition hover:border-sky-300/20 hover:bg-white/8"
-            : "group flex items-start gap-3 rounded-[1rem] border border-border/70 bg-background/75 px-4 py-3 transition hover:border-primary/30 hover:bg-accent/40"
-      }
-    >
-      <span
-        className={
-          dark
-            ? "mt-0.5 rounded-[0.85rem] border border-white/10 bg-white/8 p-2 text-sky-300"
-            : "mt-0.5 rounded-[0.85rem] border border-border/70 bg-muted/70 p-2 text-primary"
-        }
-      >
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span
-          className={
-            dark
-              ? "block text-sm font-bold text-white"
-              : "block text-sm font-bold text-foreground"
-          }
-        >
-          {title}
-        </span>
-        <span
-          className={
-            dark
-              ? "mt-1 block text-xs leading-6 text-slate-400"
-              : "mt-1 block text-xs leading-6 text-muted-foreground"
-          }
-        >
-          {note}
-        </span>
-      </span>
-      {!compact ? (
-        <ArrowRight
-          className={
-            dark
-              ? "mt-1 size-4 text-slate-500 transition group-hover:text-sky-300"
-              : "mt-1 size-4 text-muted-foreground transition group-hover:text-primary"
-          }
-        />
-      ) : null}
-    </Link>
   );
 }
