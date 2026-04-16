@@ -19,18 +19,18 @@ export function SectionHeading({
       className={
         compact
           ? "flex flex-col gap-3 md:flex-row md:items-end md:justify-between"
-          : "flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
+          : "flex flex-col gap-5 md:flex-row md:items-end md:justify-between"
       }
     >
       <div className={compact ? "max-w-xl space-y-2" : "max-w-2xl space-y-3"}>
-        <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-sky-300">
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-primary dark:text-sky-300">
           {eyebrow}
         </p>
         <h2
           className={
             compact
-              ? "text-2xl font-extrabold tracking-tight text-foreground sm:text-[2rem]"
-              : "text-2xl font-extrabold tracking-tight text-foreground"
+              ? "font-heading text-[clamp(2rem,3vw,2.9rem)] font-black tracking-[-0.06em] text-foreground"
+              : "font-heading text-[clamp(2.3rem,3.8vw,3.8rem)] font-black tracking-[-0.07em] text-foreground"
           }
         >
           {title}
@@ -48,7 +48,7 @@ export function SectionHeading({
       {href ? (
         <Link
           href={href}
-          className="inline-flex items-center gap-1 self-start text-sm font-bold text-indigo-600 transition-colors hover:text-indigo-700 dark:text-sky-300"
+          className="inline-flex items-center gap-2 self-start rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-bold text-primary transition-colors hover:border-primary/20 hover:bg-muted dark:border-white/10 dark:bg-white/5 dark:text-sky-300"
         >
           查看全部
           <span aria-hidden="true" className="text-base leading-none">
@@ -92,8 +92,13 @@ export function HomeSection({
 export function ErrorLine({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-      接口暂未连通：{message}
+    <div className="rounded-[1rem] border border-primary/15 bg-[linear-gradient(180deg,rgba(79,70,255,0.06),rgba(79,70,255,0.02))] px-4 py-3 text-xs text-muted-foreground dark:border-sky-400/20 dark:bg-sky-400/5 dark:text-slate-300">
+      <div className="font-bold uppercase tracking-[0.16em] text-primary dark:text-sky-300">
+        内容同步中
+      </div>
+      <div className="mt-1 font-medium">
+        当前模块暂未拿到实时数据，已切换到占位展示。{message}
+      </div>
     </div>
   );
 }

@@ -20,8 +20,10 @@ const resultsSource = readFileSync(
 const dataSource = readFileSync(join(currentDir, "questionnaire-data.ts"), "utf8");
 
 test("questionnaire page shell composes search, results, and pagination modules", () => {
+  assert.match(shellSource, /data-testid="questionnaire-command-board"/);
   assert.match(shellSource, /data-testid="questionnaire-search-section"/);
   assert.match(shellSource, /data-testid="questionnaire-results-section"/);
+  assert.match(shellSource, /data-testid="questionnaire-results-header"/);
   assert.match(shellSource, /QuestionnaireSearchForm/);
   assert.match(shellSource, /QuestionnaireResults/);
   assert.match(shellSource, /ResultsPagination/);
@@ -37,7 +39,8 @@ test("questionnaire page shell preserves loading, empty, and error states", () =
 
 test("questionnaire search form keeps keyword query and reset affordances", () => {
   assert.match(searchSource, /关键词搜索/);
-  assert.match(searchSource, /输入问卷名称/);
+  assert.match(searchSource, /输入问卷名称、用途或调查主题/);
+  assert.match(searchSource, /支持按问卷标题模糊检索/);
   assert.match(searchSource, /查询/);
   assert.match(searchSource, /重置/);
 });

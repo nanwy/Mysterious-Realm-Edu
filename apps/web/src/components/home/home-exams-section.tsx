@@ -1,9 +1,8 @@
-import { MotionItem, MotionStagger } from "@workspace/motion";
-import { Badge } from "@workspace/ui";
+import { MotionReveal } from "@workspace/motion";
+import { ArrowUpRight } from "lucide-react";
 import { toText } from "@/lib/media";
 import type { HomeRecord } from "./home-types";
-import { ErrorLine, HomeSection } from "./home-section-heading";
-import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export function HomeExamsSection({
   exams,
@@ -14,74 +13,92 @@ export function HomeExamsSection({
 }) {
   const visibleExams = (exams.length ? exams : new Array(3).fill({})).slice(
     0,
-    3
+    4
   );
 
   const getExamStateLabel = (state?: number) => {
-    if (state === 3) return "已结束";
-    if (state === 2) return "未开始";
-    return "进行中";
+    if (state === 3) return "CLOSED";
+    if (state === 2) return "UPCOMING";
+    return "PENDING";
   };
 
   return (
-    <HomeSection
-      eyebrow="考试安排"
-      title="近期考试安排"
-      subtitle="保留旧考试列表表现，但首页展示改成更清晰的考试提醒卡。"
-      href="/exams"
-    >
-      <ErrorLine message={examError} />
-      <MotionStagger className="flex flex-col gap-4" delayChildren={0.1}>
-        {visibleExams.map((item, index) => (
-          <MotionItem key={index}>
-            <article className="group flex cursor-pointer flex-col justify-between gap-6 rounded-2xl border border-border bg-card p-5 shadow-sm transition-colors hover:border-indigo-300 hover:shadow-md dark:bg-slate-900/75 dark:hover:border-indigo-400 dark:hover:shadow-md">
-              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-center gap-6">
-                  <div className="flex size-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-border/60 bg-muted dark:border-white/10 dark:bg-slate-800">
-                    <div className="text-[10px] font-bold uppercase text-muted-foreground">
-                      考试
-                    </div>
-                    <div className="text-xl font-extrabold text-foreground">
-                      {String(index + 1).padStart(2, "0")}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="mb-2 flex items-center gap-3">
-                      <h3 className="text-lg font-extrabold text-foreground transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-600 dark:text-white">
-                        {toText(item.title, `考试 ${index + 1}`)}
-                      </h3>
-                      <Badge>{getExamStateLabel(item.state)}</Badge>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-6 text-sm font-medium text-muted-foreground">
-                      <span>
-                        考试时长{" "}
-                        <strong className="font-extrabold text-foreground">
-                          {String(item.totalTime ?? "--")} 分钟
-                        </strong>
-                      </span>
-                      <span>
-                        及格线{" "}
-                        <strong className="font-extrabold text-foreground">
-                          {String(item.qualifyScore ?? "--")} 分
-                        </strong>
-                      </span>
-                      <span>
-                        参考人数{" "}
-                        <strong className="font-extrabold text-foreground">
-                          {String(item.examNumber ?? 0)} 人
-                        </strong>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="hidden size-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-indigo-50 group-hover:text-indigo-400 md:flex dark:bg-slate-800">
-                  <ArrowRight className="size-4" />
+    <section className="flex flex-col bg-background">
+      <div className="flex items-end justify-between px-6 py-6 lg:px-10 lg:py-8 border-b border-border/50 bg-background/50">
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+            Exam Engine
+          </span>
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              考核引擎
+            </h2>
+            {examError && (
+              <span className="text-[10px] text-destructive font-mono uppercase bg-destructive/10 px-2 py-0.5">
+                {examError}
+              </span>
+            )}
+          </div>
+        </div>
+        <Link
+          href="/exams"
+          className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors flex items-center group mb-1"
+        >
+          列出全部{" "}
+          <ArrowUpRight className="w-3.5 h-3.5 ml-1 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+        </Link>
+      </div>
+
+      <MotionReveal direction="up">
+        <div className="flex flex-col divide-y divide-border/50">
+          {visibleExams.map((item, index) => (
+            <Link
+              key={index}
+              href="/exams"
+              className="flex flex-col sm:flex-row sm:items-center px-8 py-6 lg:px-12 lg:py-8 group hover:bg-muted/10 transition-colors duration-75 cursor-pointer"
+            >
+              <div className="w-25 text-xs font-mono text-muted-foreground/50 transition-all duration-100 group-hover:text-primary group-hover:translate-x-2 hidden sm:block">
+                SYS_0{index + 1}
+              </div>
+              <div className="flex-1 min-w-0 pr-6">
+                <h3 className="text-[1.15rem] font-medium tracking-tight text-foreground transition-colors group-hover:text-primary truncate">
+                  {toText(item.title, `周期性考核事务预备队列 ${index + 1}`)}
+                </h3>
+                <div className="mt-4 flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                  <span
+                    className={
+                      item.state === 2
+                        ? "text-primary flex items-center gap-1.5"
+                        : "flex items-center gap-1.5"
+                    }
+                  >
+                    {item.state === 2 && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    )}
+                    STATUS: {getExamStateLabel(item.state)}
+                  </span>
+                  <span>
+                    DURATION:{" "}
+                    <span className="font-mono text-foreground ml-1">
+                      {String(item.totalTime ?? "45")}m
+                    </span>
+                  </span>
+                  <span className="hidden md:inline">
+                    POOL:{" "}
+                    <span className="font-mono text-foreground ml-1">
+                      {String(item.examNumber ?? "--")}
+                    </span>
+                  </span>
                 </div>
               </div>
-            </article>
-          </MotionItem>
-        ))}
-      </MotionStagger>
-    </HomeSection>
+              <div className="flex items-center justify-center p-2 rounded border border-transparent group-hover:border-border/50 group-hover:bg-background transition-all hidden sm:flex">
+                <ArrowUpRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </MotionReveal>
+    </section>
   );
 }

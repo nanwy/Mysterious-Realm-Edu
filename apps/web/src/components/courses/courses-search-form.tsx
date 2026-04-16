@@ -58,8 +58,27 @@ export function CoursesSearchForm({
       data-testid="courses-filter-section"
       className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm"
     >
+      <div className="flex flex-col gap-3 border-b border-border/60 pb-5 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
+            Course filters
+          </p>
+          <h3 className="text-xl font-semibold tracking-tight text-foreground">
+            缩小范围后再进入课程
+          </h3>
+          <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
+            关键词适合找具体课程，分类适合快速浏览专题，排序适合在新课与热度之间切换。
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
+          {pending
+            ? "筛选条件更新中..."
+            : "修改任一条件后点击查询，结果会保持在当前页面内刷新。"}
+        </div>
+      </div>
+
       <form
-        className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_220px_220px_auto] xl:items-end"
+        className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_220px_220px_auto] xl:items-end"
         onSubmit={(event) => {
           event.preventDefault();
           void form.handleSubmit();
@@ -93,7 +112,10 @@ export function CoursesSearchForm({
                   value={field.state.value}
                   onValueChange={field.handleChange}
                 >
-                  <SelectTrigger id="courses-order-by">
+                  <SelectTrigger
+                    id="courses-order-by"
+                    className="bg-background"
+                  >
                     <SelectValue placeholder="综合排序" />
                   </SelectTrigger>
                   <SelectContent>
@@ -124,12 +146,15 @@ export function CoursesSearchForm({
                   value={field.state.value}
                   onValueChange={field.handleChange}
                 >
-                  <SelectTrigger id="courses-category">
+                  <SelectTrigger
+                    id="courses-category"
+                    className="bg-background"
+                  >
                     <SelectValue placeholder="全部分类" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>排序方式</SelectLabel>
+                      <SelectLabel>课程分类</SelectLabel>
                       {categoryOptions.map((option) => (
                         <SelectItem
                           key={option.value || "all"}
@@ -145,8 +170,13 @@ export function CoursesSearchForm({
             )}
           </form.Field>
 
-          <div className="flex flex-wrap gap-3">
-            <Button size="lg" type="submit" disabled={pending}>
+          <div className="flex flex-wrap gap-3 xl:justify-end">
+            <Button
+              size="lg"
+              type="submit"
+              disabled={pending}
+              className="min-w-24 rounded-2xl"
+            >
               查询
             </Button>
             <Button
@@ -154,6 +184,7 @@ export function CoursesSearchForm({
               type="button"
               variant="outline"
               disabled={pending}
+              className="min-w-24 rounded-2xl"
               onClick={() => {
                 form.reset({
                   page: 1,

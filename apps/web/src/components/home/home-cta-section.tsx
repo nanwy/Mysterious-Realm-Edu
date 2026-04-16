@@ -1,34 +1,34 @@
 import Link from "next/link";
-import { MotionReveal } from "@workspace/motion";
+import { ArrowRight } from "lucide-react";
 
 export function HomeCtaSection() {
   return (
-    <MotionReveal direction="up">
-      <section className="overflow-hidden rounded-[2.5rem] border border-indigo-500 bg-indigo-600 px-6 py-12 text-center text-white shadow-xl shadow-indigo-600/20 dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(8,17,33,0.96))] dark:shadow-[0_28px_70px_rgba(2,6,23,0.35)] sm:px-10 sm:py-16">
-        <p className="inline-block rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[11px] font-bold tracking-widest text-white/90 backdrop-blur-sm dark:text-sky-300">
-          继续学习
-        </p>
-        <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-white dark:text-white sm:text-4xl">
-          准备开始今天的学习任务了吗？
+    <section className="flex flex-col items-start gap-8 bg-muted/40 border border-border/40 rounded-3xl p-8 sm:p-12 lg:flex-row lg:items-center lg:justify-between lg:p-16">
+      <div className="max-w-2xl">
+        <h2 className="text-3xl lg:text-4xl font-heading font-black tracking-tight text-foreground">
+          主线已清晰，
+          <br className="hidden sm:block" />
+          立即开始推进当前任务。
         </h2>
-        <p className="mx-auto mt-6 max-w-2xl text-lg font-medium leading-relaxed text-indigo-100 dark:text-muted-foreground">
-          现在就进入课程中心继续学习，或直接查看近期考试安排，让首页真正承担起学习平台的统一入口。
+        <p className="mt-4 text-sm text-muted-foreground leading-relaxed md:text-base">
+          平台首页专注于为你聚合最高优先级的学习主线与内容推荐。现在，进入个人工作区或者直接开始今日课程。
         </p>
-        <div className="mt-10 flex flex-wrap justify-center gap-4">
-          <Link
-            href="/courses"
-            className="inline-flex items-center justify-center rounded-full bg-card px-8 py-4 text-sm font-extrabold text-indigo-600 shadow-lg transition-all hover:-translate-y-0.5 hover:bg-muted dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
-          >
-            进入课程中心
-          </Link>
-          <Link
-            href="/login"
-            className="inline-flex items-center justify-center rounded-full border border-indigo-500 bg-indigo-700 px-8 py-4 text-sm font-extrabold text-white transition-all hover:-translate-y-0.5 hover:bg-indigo-800 dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-sky-500 dark:hover:text-sky-300"
-          >
-            登录并继续
-          </Link>
-        </div>
-      </section>
-    </MotionReveal>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+        <Link
+          href="/courses"
+          className="flex h-14 w-full lg:w-auto items-center justify-between gap-6 rounded-xl bg-foreground px-8 text-sm font-bold text-background transition-transform hover:scale-[0.98]"
+        >
+          继续课程 <ArrowRight className="size-4 opacity-70" />
+        </Link>
+        <Link
+          href="/me"
+          className="flex h-14 w-full lg:w-auto items-center justify-between gap-6 rounded-xl border border-border/60 bg-transparent px-8 text-sm font-bold text-foreground transition-colors hover:bg-muted"
+        >
+          个人档案 <ArrowRight className="size-4 opacity-50" />
+        </Link>
+      </div>
+    </section>
   );
 }

@@ -1,9 +1,10 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
+
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -12,38 +13,38 @@
   --border: #d9def0;
   --accent: #f3f1ff;
   --accent-strong: #5b4bff;
-  --font-body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  --font-display: "Songti SC", "STSong", "Noto Serif CJK SC", serif;
-  --background: #f5f6fb;
-  --foreground: #111827;
+  --font-body: "PingFang SC", "Hiragino Sans GB", "SF Pro Display", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  --font-display: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  --background: #f4f6fb;
+  --foreground: #0f172a;
   --card: #ffffff;
-  --card-foreground: #111827;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #111827;
-  --primary: #5b4bff;
+  --popover-foreground: #0f172a;
+  --primary: #4f46ff;
   --primary-foreground: #ffffff;
-  --secondary: #eef1ff;
-  --secondary-foreground: #111827;
-  --muted: #f3f5fb;
-  --muted-foreground: #667085;
-  --accent-foreground: #111827;
+  --secondary: #eef2ff;
+  --secondary-foreground: #0f172a;
+  --muted: #eff3fa;
+  --muted-foreground: #61708a;
+  --accent-foreground: #0f172a;
   --destructive: #dc2626;
-  --input: #d9def0;
-  --ring: #7c70ff;
-  --chart-1: #5b4bff;
-  --chart-2: #6f63ff;
-  --chart-3: #8e7fff;
-  --chart-4: #4f8cff;
-  --chart-5: #c7d2fe;
+  --input: #dde3f1;
+  --ring: #6d61ff;
+  --chart-1: #4f46ff;
+  --chart-2: #7068ff;
+  --chart-3: #8d86ff;
+  --chart-4: #45a5ff;
+  --chart-5: #d9ddff;
   --radius: 0.625rem;
-  --sidebar: #f5f6fb;
-  --sidebar-foreground: #111827;
-  --sidebar-primary: #5b4bff;
+  --sidebar: #f4f6fb;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #4f46ff;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f3f1ff;
-  --sidebar-accent-foreground: #111827;
-  --sidebar-border: #d9def0;
-  --sidebar-ring: #7c70ff;
+  --sidebar-accent: #eef2ff;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #dde3f1;
+  --sidebar-ring: #6d61ff;
 }
 
 @theme inline {

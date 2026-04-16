@@ -3,11 +3,25 @@ import { HomeCoursesSection } from "./home-courses-section";
 import { HomeCtaSection } from "./home-cta-section";
 import { HomeExamsSection } from "./home-exams-section";
 import { HomeHero } from "./home-hero";
-import { HomeHotNewsSection } from "./home-hot-news-section";
-import { HomeNewsSection } from "./home-news-section";
-import { HomeQuestionnairesSection } from "./home-questionnaires-section";
 import { HomeSidebar } from "./home-sidebar";
+import { HomeNewsSection } from "./home-news-section";
+import { HomeHotNewsSection } from "./home-hot-news-section";
+import { HomeQuestionnairesSection } from "./home-questionnaires-section";
 import type { HomePayload } from "./home-types";
+
+function Crosshair({ className }: { className?: string }) {
+  return (
+    <svg
+      className={`absolute text-border/80 size-[13px] pointer-events-none ${className}`}
+      fill="none"
+      viewBox="0 0 13 13"
+      stroke="currentColor"
+      strokeWidth={1}
+    >
+      <path d="M6.5 0v13M0 6.5h13" />
+    </svg>
+  );
+}
 
 export function HomePage({
   banners,
@@ -26,46 +40,68 @@ export function HomePage({
   hotNewsError,
 }: HomePayload) {
   return (
-    <div className="min-h-screen bg-background text-foreground dark:bg-[linear-gradient(180deg,#020617_0%,#081121_26%,#0f172a_62%,#020617_100%)]">
+    <div className="min-h-screen bg-[#FDFDFC] dark:bg-[#0A0A0A] bg-[url('/noise.png')] bg-repeat selection:bg-foreground/10 text-foreground">
       <SiteHeader />
 
-      <main className="relative mx-auto flex max-w-7xl flex-col gap-12 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <HomeHero
-          banner={banners[0]}
-          bannerError={bannerError}
-          hotCourseCount={hotCourses.length}
-          examCount={latestExams.length}
-          newsCount={recommendedNews.length}
-          questionnaireCount={questionnaires.length}
-          announcementCount={announcements.length}
-        />
+      <main className="relative mx-auto max-w-[1536px] px-4 py-8 lg:px-8 xl:px-12 xl:py-12">
+        {/* 精密拼图架构：所有主要内容全部收入一个统一无缝共享边框的大长方形中 */}
+        <div className="relative flex flex-col border border-border/50 shadow-[0_4px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.2)] bg-background">
+          <Crosshair className="-top-[7px] -left-[7px] z-20" />
+          <Crosshair className="-top-[7px] -right-[7px] z-20" />
+          <Crosshair className="-bottom-[7px] -left-[7px] z-20" />
+          <Crosshair className="-bottom-[7px] -right-[7px] z-20" />
 
-        <HomeCoursesSection
-          courses={hotCourses}
-          courseError={courseError}
-          announcements={announcements}
-          announcementError={announcementError}
-          examCount={latestExams.length}
-        />
-
-        <HomeExamsSection exams={latestExams} examError={examError} />
-
-        <section className="grid gap-6">
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_minmax(320px,0.82fr)] xl:items-start">
-            <HomeNewsSection
-              recommendedNews={recommendedNews}
-              recommendedNewsError={recommendedNewsError}
-            />
-            <HomeHotNewsSection hotNews={hotNews} hotNewsError={hotNewsError} />
-          </div>
-
-          <HomeQuestionnairesSection
-            questionnaires={questionnaires}
-            questionnaireError={questionnaireError}
+          <HomeHero
+            banner={banners[0]}
+            bannerError={bannerError}
+            hotCourseCount={hotCourses.length}
+            examCount={latestExams.length}
+            newsCount={recommendedNews.length}
+            questionnaireCount={questionnaires.length}
+            announcementCount={announcements.length}
           />
-        </section>
 
-        <HomeCtaSection />
+          <div className="grid xl:grid-cols-[1fr_360px] divide-y xl:divide-y-0 xl:divide-x divide-border/50 border-t border-border/50">
+            {/* 左半侧主屏内容流 */}
+            <div className="flex flex-col divide-y divide-border/50">
+              <HomeCoursesSection
+                courses={hotCourses}
+                courseError={courseError}
+              />
+
+              <HomeExamsSection exams={latestExams} examError={examError} />
+
+              {/* 此处可放置推荐新闻流，采用相同结构并入 */}
+              <div className="p-6 lg:px-12 lg:py-10 bg-muted/5 hover:bg-muted/10 transition-colors">
+                <HomeNewsSection
+                  recommendedNews={recommendedNews}
+                  recommendedNewsError={recommendedNewsError}
+                />
+              </div>
+            </div>
+
+            {/* 右半侧常驻控制台侧栏 */}
+            <aside className="flex flex-col divide-y divide-border/50 bg-muted/10">
+              <HomeSidebar
+                announcements={announcements}
+                announcementError={announcementError}
+                examCount={latestExams.length}
+              />
+              <HomeQuestionnairesSection
+                questionnaires={questionnaires}
+                questionnaireError={questionnaireError}
+              />
+              <HomeHotNewsSection
+                hotNews={hotNews}
+                hotNewsError={hotNewsError}
+              />
+            </aside>
+          </div>
+        </div>
+
+        <div className="mt-12">
+          <HomeCtaSection />
+        </div>
       </main>
     </div>
   );
