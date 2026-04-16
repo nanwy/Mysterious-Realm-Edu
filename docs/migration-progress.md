@@ -1,6 +1,6 @@
 # Migration Progress
 
-Last updated: 2026-04-09
+Last updated: 2026-04-16
 Source project: `/Users/nanfugongmeiying/Desktop/project/student-front-master`
 Source router: `/Users/nanfugongmeiying/Desktop/project/student-front-master/src/router/index.js`
 Source graph: `/Users/nanfugongmeiying/Desktop/project/student-front-master/graphify-out/graph.json`
@@ -164,7 +164,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 | `/userCenter/practice/record` | `src/views/user/PracticeRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
 | `/userCenter/course/studyRecord` | `src/views/user/CourseStudyRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
 | `/userCenter/course/studyProcess` | `src/views/user/CourseStudyProcess.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
-| `/userCenter/myOrder` | `src/views/mall/ordercenter/MyOrder.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/myOrder` | `src/views/mall/ordercenter/MyOrder.vue` | `/me/orders` | `[x]` | `[-]` | 已迁移订单筛选、列表、分页与异常兜底；详情 / 支付 / 售后仍待后续子页承接。 |
 
 ### Mall / Payment
 
@@ -193,7 +193,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 ## Current Focus
 
-- `[-]` 个人中心剩余业务子页：`myExam / practiceRecord / studyRecord / studyProcess / myOrder / myPurchaseGoods`
+- `[-]` 个人中心剩余业务子页：`myExam / practiceRecord / studyRecord / studyProcess / myPurchaseGoods`
 - `[-]` 课程学习主链路：播放器、目录树、学习计时、防挂机
 - `[ ]` 在线考试与在线练习执行链路
 - `[ ]` 商城 / 支付 / 订单后链路
