@@ -2,17 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { MotionItem, MotionStagger } from "@workspace/motion";
-import {
-  Badge,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui";
-import { ArrowUpRight, CircleAlert, Trophy } from "lucide-react";
+import { ArrowUpRight, Clock, Zap, Target } from "lucide-react";
 
 interface ScoreRecord {
   id: string;
@@ -24,173 +14,138 @@ interface ScoreRecord {
   recentExamTime: string;
 }
 
-function renderPassedLabel(value: ScoreRecord["passed"]) {
-  if (value === true) {
+function renderStatusNode(passed: boolean | null) {
+  if (passed === true) {
     return (
-      <span className="inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-        通过
-      </span>
+      <div className="flex items-center gap-3">
+        <div className="w-2 h-2 rounded-full bg-primary" />
+        <span className="text-[11px] font-bold text-primary uppercase tracking-widest">
+          考试通过 // SUCCESS
+        </span>
+      </div>
     );
   }
-
-  if (value === false) {
+  if (passed === false) {
     return (
-      <span className="inline-flex rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
-        未通过
-      </span>
+      <div className="flex items-center gap-3">
+        <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+        <span className="text-[11px] font-bold text-destructive uppercase tracking-widest">
+          考试未通过 // FAILED
+        </span>
+      </div>
     );
   }
-
   return (
-    <span className="inline-flex rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-      未知
-    </span>
+    <div className="flex items-center gap-3 opacity-30">
+      <div className="w-2 h-2 rounded-full bg-muted-foreground" />
+      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+        查询中 // RELOADING
+      </span>
+    </div>
   );
-}
-
-function displayMetric(value: number | null, suffix = "") {
-  return value === null ? "--" : `${value}${suffix}`;
-}
-
-function displayTime(value: string) {
-  return value || "--";
-}
-
-function getAttemptLabel(value: number | null) {
-  if (value === null) {
-    return "次数待补";
-  }
-
-  if (value <= 1) {
-    return "首次完成";
-  }
-
-  return `已参加 ${value} 次`;
 }
 
 export function ScoresResults({ records }: { records: ScoreRecord[] }) {
   const router = useRouter();
 
   return (
-    <MotionStagger className="grid gap-4" delayChildren={0.06}>
-      <MotionItem className="hidden overflow-hidden rounded-[24px] border border-border/70 md:block">
-        <Table>
-          <TableHeader className="bg-muted/35">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="px-4">考试名称</TableHead>
-              <TableHead>考试次数</TableHead>
-              <TableHead>最高分</TableHead>
-              <TableHead>是否通过</TableHead>
-              <TableHead>最近考试</TableHead>
-              <TableHead className="px-4 text-right">操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {records.map((record) => (
-              <TableRow key={record.id} className="bg-background/80 transition-colors hover:bg-muted/20">
-                <TableCell className="px-4 py-4 whitespace-normal text-foreground">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-foreground">{record.examTitle}</p>
-                      {record.maxScore !== null && record.maxScore >= 90 ? (
-                        <Badge className="rounded-full" variant="secondary">
-                          高分段
-                        </Badge>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                      <span>{getAttemptLabel(record.tryCount)}</span>
-                      <span>最近考试：{displayTime(record.recentExamTime)}</span>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="py-4 text-muted-foreground">
-                  {displayMetric(record.tryCount)}
-                </TableCell>
-                <TableCell className="py-4 text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="size-4 text-primary" />
-                    <span>{displayMetric(record.maxScore, " 分")}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-4">{renderPassedLabel(record.passed)}</TableCell>
-                <TableCell className="py-4 text-muted-foreground">{displayTime(record.recentExamTime)}</TableCell>
-                <TableCell className="px-4 py-4 text-right">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    disabled={!record.examId}
-                    onClick={() => router.push(`/scores/${record.examId}`)}
-                    title={record.examId || "exam-id-missing"}
-                  >
-                    查看详情
-                    <ArrowUpRight className="size-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </MotionItem>
+    <div className="flex flex-col border-y border-border/40 bg-background relative z-10">
+      <MotionStagger className="divide-y divide-border/10" delayChildren={0.03}>
+        {records.map((record, index) => {
+          const scorePercent = Math.min(100, record.maxScore || 0);
+          const isHighAlpha = (record.maxScore ?? 0) >= 90;
 
-      <div className="grid gap-3 md:hidden">
-        {records.map((record) => (
-          <MotionItem
-            key={record.id}
-            className="rounded-[28px] border border-border/70 bg-background/90 p-5 shadow-[0_20px_48px_rgba(15,23,42,0.08)]"
-          >
-            <div className="flex items-start justify-between gap-3 border-b border-border/60 pb-4">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-lg font-semibold text-foreground">{record.examTitle}</p>
-                  {record.maxScore !== null && record.maxScore >= 90 ? (
-                    <Badge className="rounded-full" variant="secondary">
-                      高分段
-                    </Badge>
-                  ) : null}
-                </div>
-                <p className="text-sm text-muted-foreground">{getAttemptLabel(record.tryCount)}</p>
-                <p className="text-sm text-muted-foreground">最近考试：{displayTime(record.recentExamTime)}</p>
-              </div>
-              {renderPassedLabel(record.passed)}
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-[22px] border border-border/60 bg-muted/25 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  考试次数
-                </p>
-                <p className="mt-2 text-base font-semibold text-foreground">
-                  {displayMetric(record.tryCount)}
-                </p>
-              </div>
-              <div className="rounded-[22px] border border-border/60 bg-muted/25 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  最高分
-                </p>
-                <div className="mt-2 flex items-center gap-2 text-base font-semibold text-foreground">
-                  <Trophy className="size-4 text-primary" />
-                  <span>{displayMetric(record.maxScore, " 分")}</span>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center gap-2 rounded-[20px] border border-dashed border-border/70 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-              <CircleAlert className="size-4 shrink-0" />
-              <span>进入详情后继续看单场记录、状态和提交结果。</span>
-            </div>
-            <div className="mt-4">
-              <Button
-                variant="ghost"
-                disabled={!record.examId}
-                onClick={() => router.push(`/scores/${record.examId}`)}
-                title={record.examId || "exam-id-missing"}
+          return (
+            <MotionItem key={record.id}>
+              <div
+                onClick={() =>
+                  record.examId && router.push(`/scores/${record.examId}`)
+                }
+                className="group relative flex flex-col xl:flex-row xl:items-center justify-between gap-12 p-8 lg:p-14 cursor-pointer hover:bg-muted/[0.02] transition-all duration-300"
               >
-                查看详情
-                <ArrowUpRight className="size-4" />
-              </Button>
-            </div>
-          </MotionItem>
-        ))}
-      </div>
-    </MotionStagger>
+                {/* 侧面高光感应条 */}
+                <div
+                  className={`absolute left-0 top-1/4 bottom-1/4 w-0.5 transition-all group-hover:top-0 group-hover:bottom-0 ${record.passed ? "bg-primary" : record.passed === false ? "bg-destructive" : "bg-muted-foreground/20"}`}
+                />
+
+                {/* 01 // 索引 & 标题 */}
+                <div className="flex-1 space-y-6">
+                  <div className="flex items-center gap-6">
+                    <span className="px-2 py-0.5 bg-muted/20 text-[9px] font-mono font-black text-muted-foreground/40 uppercase tracking-widest">
+                      编号_{record.id.slice(-4).toUpperCase()}
+                    </span>
+                    {renderStatusNode(record.passed)}
+                  </div>
+
+                  <h3 className="text-2xl lg:text-4xl font-bold tracking-tighter leading-tight group-hover:text-primary transition-colors pr-12">
+                    {record.examTitle}
+                  </h3>
+
+                  <div className="flex flex-wrap items-center gap-10 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-muted-foreground/30">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5" />
+                      最近考期: {record.recentExamTime || "无记录"}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-3.5 h-3.5" />
+                      考试次数: {record.tryCount ?? 0}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 02 // 霸权数值区 (Dominant Score Display) */}
+                <div className="flex items-center gap-12 xl:gap-20 min-w-[320px] justify-between xl:justify-end border-t xl:border-t-0 border-border/10 pt-8 xl:pt-0">
+                  {/* 进度水位计 */}
+                  <div className="hidden sm:flex flex-col items-end gap-3 flex-1 max-w-[200px]">
+                    <div className="flex items-center justify-between w-full text-[9px] font-mono font-bold uppercase opacity-30 tracking-[0.3em]">
+                      <span>得分占比</span>
+                      <span>{record.maxScore ?? 0}%</span>
+                    </div>
+                    <div className="w-full h-[4px] bg-muted/10 relative">
+                      <div
+                        className={`absolute inset-y-0 left-0 transition-all duration-1000 ease-out z-10 ${record.passed ? "bg-primary" : "bg-destructive/40"}`}
+                        style={{ width: `${scorePercent}%` }}
+                      />
+                      {/* 标尺线 */}
+                      <div className="absolute inset-0 flex justify-between px-[1px] opacity-20">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className="w-[1px] h-full bg-foreground"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 核心分数值 */}
+                  <div className="flex items-baseline gap-2 min-w-[120px] text-right">
+                    <span
+                      className={`text-6xl lg:text-8xl font-mono font-black tracking-tighter leading-none ${record.passed === false ? "text-destructive" : isHighAlpha ? "text-primary" : "text-foreground"}`}
+                    >
+                      {record.maxScore ?? "--"}
+                    </span>
+                    <div className="flex flex-col items-start gap-1">
+                      <span className="text-[12px] font-mono font-black opacity-20 leading-none">
+                        分
+                      </span>
+                      {isHighAlpha && (
+                        <div className="px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-sm animate-bounce">
+                          优秀
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="hidden lg:flex w-16 h-16 border border-border/10 items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all">
+                    <ArrowUpRight className="w-6 h-6 group-hover:rotate-45 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </MotionItem>
+          );
+        })}
+      </MotionStagger>
+    </div>
   );
 }

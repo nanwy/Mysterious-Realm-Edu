@@ -31,11 +31,13 @@ export default async function ScoresPage({
   } as const;
 
   return (
-    <StudentShell
-      title="成绩中心"
-      description="迁移旧学员端成绩查询列表，支持考试名称与是否通过筛选，并保留真实接口调用、空态和错误兜底。"
-    >
-      <ScoresPageShell initialFilters={initialFilters} />
+    <StudentShell>
+      {/* 注入负边距以抵消外层壳的束缚感，实现全宽切面设计 */}
+      <div className="-mx-4 sm:-mx-6 lg:-mx-8 -my-10 bg-background relative overflow-hidden">
+         {/* 全站底噪纹理 */}
+         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
+         <ScoresPageShell initialFilters={initialFilters} />
+      </div>
     </StudentShell>
   );
 }
