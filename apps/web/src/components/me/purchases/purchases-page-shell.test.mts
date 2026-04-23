@@ -19,3 +19,16 @@ test("purchases page shell keeps type switch, list region, and action entry stru
   assert.match(shellSource, /selectPurchaseCourseList/);
   assert.match(shellSource, /selectPurchaseExamList/);
 });
+
+test("purchases route actions are generated only from real API ids", () => {
+  assert.match(shellSource, /const routeId = toText\(record\.id \?\? record\.courseId \?\? record\.goodsId\);/);
+  assert.match(shellSource, /href: routeId \? `\/courses\/\$\{routeId\}` : null/);
+  assert.match(shellSource, /unavailableHint: routeId \? null : "课程主链路缺少课程 ID/);
+  assert.match(shellSource, /const routeId = toText\(record\.id \?\? record\.examId \?\? record\.goodsId\);/);
+  assert.match(shellSource, /href: routeId \? `\/exams\/\$\{routeId\}\/preview` : null/);
+  assert.match(shellSource, /unavailableHint: routeId \? null : "考试缺少可用 ID/);
+  assert.doesNotMatch(shellSource, /toText\(record\.[^)]*, `course-\$\{index \+ 1\}`\)/);
+  assert.doesNotMatch(shellSource, /toText\(record\.[^)]*, `exam-\$\{index \+ 1\}`\)/);
+  assert.doesNotMatch(shellSource, /href: id \? `\/courses\/\$\{id\}` : null/);
+  assert.doesNotMatch(shellSource, /href: id \? `\/exams\/\$\{id\}\/preview` : null/);
+});
