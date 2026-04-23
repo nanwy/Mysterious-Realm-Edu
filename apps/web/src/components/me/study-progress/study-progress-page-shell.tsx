@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { ResultsPagination } from "@/components/common/results-pagination";
 import { toNumberOrFallback, toRecordOrEmpty, toText } from "@/lib/normalize";
+import { normalizeStudyProgressListPayload } from "./study-progress-payload";
 
 interface StudyProgressQuery {
   keyword: string;
@@ -45,11 +46,6 @@ interface StudyProgressRecord {
   recentStudyHint: string;
   pendingLabel: string;
   taskSummary: string | null;
-}
-
-interface StudyProgressPayload {
-  records?: unknown[];
-  total?: number;
 }
 
 const DEFAULT_QUERY: StudyProgressQuery = {
@@ -192,14 +188,12 @@ async function fetchStudyProgress(query: StudyProgressQuery) {
     name: query.keyword.trim(),
   });
   const payload = unwrapEnvelope(response);
-  const result = toRecordOrEmpty(payload) as StudyProgressPayload;
-  const records = Array.isArray(result.records)
-    ? result.records.map(normalizeStudyProgressRecord)
-    : [];
+  const result = normalizeStudyProgressListPayload(payload);
+  const records = result.records.map(normalizeStudyProgressRecord);
 
   return {
     records,
-    total: toNumberOrFallback(result.total, records.length),
+    total: result.total,
   };
 }
 
