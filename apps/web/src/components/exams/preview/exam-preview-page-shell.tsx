@@ -2,8 +2,10 @@
 
 import { Button, EmptyState, Skeleton, SurfaceCard } from "@workspace/ui";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { fetchExamPreview, normalizeExamPreviewError, type ExamPreviewPayload } from "./exam-preview-data";
+import { initializeExamSession } from "../session/exam-session-data";
 
 function ExamPreviewLoadingState() {
   return (
@@ -38,10 +40,12 @@ function ExamPreviewEmptyState() {
 }
 
 export function ExamPreviewPageShell({ examId }: { examId: string }) {
+  const router = useRouter();
   const [preview, setPreview] = useState<ExamPreviewPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isStarting, setIsStarting] = useState(false);
   const [reloadVersion, setReloadVersion] = useState(0);
 
   useEffect(() => {
@@ -80,8 +84,28 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
     };
   }, [examId, reloadVersion]);
 
-  function handleStartExam() {
-    setActionFeedback("在线作答页仍在迁移中，当前版本先承接预览信息与开始入口；请暂时通过旧版作答链路进入考试。");
+  async function handleStartExam() {
+    setIsStarting(true);
+    setActionFeedback(null);
+
+    try {
+      const session = await initializeExamSession(examId);
+      const feedback =
+        session.source === "resumed" && session.examId !== examId
+          ? `检测到你有另一场进行中的考试，系统将优先继续「${session.sourceExamTitle}」。`
+          : session.source === "resumed"
+            ? "已检测到进行中的考试，系统将继续原作答会话。"
+            : "已创建新的考试会话，正在进入作答页。";
+
+      setActionFeedback(feedback);
+      startTransition(() => {
+        router.push(`/exams/${session.examId}?userExamId=${session.userExamId}`);
+      });
+    } catch (requestError) {
+      setActionFeedback(normalizeExamPreviewError(requestError));
+    } finally {
+      setIsStarting(false);
+    }
   }
 
   if (isLoading) {
@@ -191,10 +215,10 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
                   <Button
                     data-testid="exam-preview-start-action"
                     type="button"
-                    disabled={preview.startDisabled}
+                    disabled={preview.startDisabled || isStarting}
                     onClick={handleStartExam}
                   >
-                    {preview.startLabel}
+                    {isStarting ? "正在进入…" : preview.startLabel}
                   </Button>
                 </div>
               </section>
