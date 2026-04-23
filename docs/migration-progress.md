@@ -16,7 +16,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 - `[x]` 平台首页、资讯、问卷、课程列表、考试列表、成绩查询已进入可用状态。
 - `[-]` 课程学习工作台、个人中心主链路、登录、全局壳层仍处于“可承接但未闭环”状态。
-- `[ ]` 注册、在线考试、在线练习结果、商城支付链路、个人中心大部分业务子页仍未迁移。
+- `[ ]` 注册、在线练习结果、商城支付链路、个人中心大部分业务子页仍未迁移。
 - `graphify` 对“旧站功能域盘点、页面覆盖检查、横切模块识别”有帮助；对“直接回答迁移实现方案”帮助有限，仍需回到源码核实。
 
 ## Graphify-Derived Source Map
@@ -137,7 +137,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 | --- | --- | --- | --- | --- | --- |
 | `/exam` | `src/views/exam/Index.vue` | `/exams` | `[x]` | `[-]` | 考试列表、筛选、分页已迁移。 |
 | `/exam/preview/:id` | `src/views/exam/ExamPreview.vue` | `/exams/[examId]/preview` | `[x]` | `[ ]` | 预览页已迁移。 |
-| `/exam/onlineExam/:id` | `src/views/exam/OnlineExam.vue` | none | `[ ]` | `[ ]` | 在线考试主链路未迁移。 |
+| `/exam/onlineExam/:id` | `src/views/exam/OnlineExam.vue` | `/exams/[examId]` | `[x]` | `[-]` | 已迁移作答主链路，承接考试头部、倒计时、答题卡、题目区、上一题/下一题、缓存恢复与提交流程；切屏检测、监考抓拍与结果闭环仍待后续补齐。 |
 | `/userCenter/exam/examScore/userExamResult/:id` | `src/views/user/UserExamResult.vue` | `/scores/[examId]` | `[x]` | `[ ]` | 成绩明细已落地。 |
 
 ### News / Questionnaire / Scores
@@ -188,22 +188,22 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 | 公共分页 / 列表结果模式 | `[-]` | 课程、考试、练习、资讯、问卷、成绩已各自成型，但还没完全收敛成统一抽象。 |
 | 表单体系向 `packages/ui` 收敛 | `[-]` | 已有 StudentShell 和部分 UI 包沉淀，但业务表单仍多处自行实现。 |
 | 主题 token / light-dark 语义体系 | `[-]` | 首页和核心页已明显推进，仍未覆盖所有历史页面。 |
-| API 承接 | `[-]` | 首页、课程、考试、资讯、问卷、成绩、消息、证书已接入或具备错误兜底；商城、在线考试、在线练习未接。 |
+| API 承接 | `[-]` | 首页、课程、考试、资讯、问卷、成绩、消息、证书与在线考试已接入或具备错误兜底；商城、在线练习未接。 |
 | 路由守卫 / leave-exam 行为等价迁移 | `[ ]` | 旧站 guard/store 横切能力尚未在新站补齐。 |
 
 ## Current Focus
 
 - `[-]` 个人中心剩余业务子页：`myExam / practiceRecord / studyRecord`
 - `[-]` 课程学习主链路：播放器、目录树、学习计时、防挂机
-- `[ ]` 在线考试与在线练习执行链路
+- `[ ]` 在线练习执行链路
 - `[ ]` 商城 / 支付 / 订单后链路
 - `[ ]` 旧站 guard/store 横切能力迁移
 
 ## Recommended Next Migration Order
 
-1. 在线考试主链路
-   - 旧站集中在 `src/views/exam/OnlineExam.vue`
-   - 原因：它依赖路由守卫、离开考试状态、计时、提交流程，是当前最大横切缺口
+1. 在线练习主链路
+   - 旧站集中在 `src/views/practice/OnlinePractice.vue`
+   - 原因：与在线考试相邻，仍缺作答、缓存、提交与结果承接链路
 2. 课程学习真实链路
    - 旧站集中在 `src/views/course/OnlineStudy.vue`
    - 原因：当前工作台已完成结构迁移，继续补播放器与计时收益最高
