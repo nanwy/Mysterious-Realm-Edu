@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { Button, EmptyState, Skeleton, SurfaceCard } from "@workspace/ui";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { fetchExamPreview, normalizeExamPreviewError, type ExamPreviewPayload } from "./exam-preview-data";
 
 function ExamPreviewLoadingState() {
@@ -38,9 +40,9 @@ function ExamPreviewEmptyState() {
 }
 
 export function ExamPreviewPageShell({ examId }: { examId: string }) {
+  const router = useRouter();
   const [preview, setPreview] = useState<ExamPreviewPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [reloadVersion, setReloadVersion] = useState(0);
 
@@ -49,7 +51,6 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
 
     setIsLoading(true);
     setError(null);
-    setActionFeedback(null);
 
     void fetchExamPreview(examId)
       .then((result) => {
@@ -81,7 +82,13 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
   }, [examId, reloadVersion]);
 
   function handleStartExam() {
-    setActionFeedback("在线作答页仍在迁移中，当前版本先承接预览信息与开始入口；请暂时通过旧版作答链路进入考试。");
+    if (!preview?.startHref || preview.startDisabled) {
+      return;
+    }
+
+    startTransition(() => {
+      router.push(preview.startHref);
+    });
   }
 
   if (isLoading) {
@@ -182,20 +189,21 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
                   <h3 className="text-xl font-semibold text-foreground">开始考试</h3>
                   <p className="text-sm leading-7 text-muted-foreground">{preview.startHint}</p>
                 </div>
-                {actionFeedback ? (
-                  <div className="rounded-[24px] border border-border bg-muted/30 p-4">
-                    <p className="text-sm leading-7 text-foreground">{actionFeedback}</p>
-                  </div>
-                ) : null}
                 <div>
-                  <Button
-                    data-testid="exam-preview-start-action"
-                    type="button"
-                    disabled={preview.startDisabled}
-                    onClick={handleStartExam}
-                  >
-                    {preview.startLabel}
-                  </Button>
+                  {preview.startDisabled || !preview.startHref ? (
+                    <Button data-testid="exam-preview-start-action" type="button" disabled>
+                      {preview.startLabel}
+                    </Button>
+                  ) : (
+                    <Button asChild data-testid="exam-preview-start-action" type="button">
+                      <Link href={preview.startHref} onClick={(event) => {
+                        event.preventDefault();
+                        handleStartExam();
+                      }}>
+                        {preview.startLabel}
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </section>
             </MotionReveal>

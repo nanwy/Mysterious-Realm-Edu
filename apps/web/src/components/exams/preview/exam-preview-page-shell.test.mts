@@ -16,6 +16,7 @@ test("exam preview page includes title, instructions, and start entry", () => {
   assert.match(shellSource, /data-testid="exam-preview-hero"/);
   assert.match(shellSource, /data-testid="exam-preview-instructions"/);
   assert.match(shellSource, /data-testid="exam-preview-start-action"/);
+  assert.match(shellSource, /router\.push\(preview\.startHref\)/);
 });
 
 test("exam preview page keeps loading, empty, and error states", () => {

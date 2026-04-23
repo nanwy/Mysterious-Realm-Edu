@@ -12,6 +12,7 @@ interface ExamPreviewPayload {
   startDisabled: boolean;
   startLabel: string;
   startHint: string;
+  startHref: string | null;
 }
 
 function formatDate(value: unknown) {
@@ -77,16 +78,18 @@ function buildInstructions(record: Record<string, unknown>) {
   return instructions;
 }
 
-function buildStartState(record: Record<string, unknown>, reachedLimit: boolean) {
+function buildStartState(record: Record<string, unknown>, options: { reachedLimit: boolean; hasRecord: boolean }) {
   const state = resolveState(record);
   const paper = toRecordOrEmpty(record.paper);
   const hasPaper = Object.keys(paper).length > 0;
+  const examId = toText(record.id ?? record.examId);
 
   if (!hasPaper) {
     return {
       startDisabled: true,
       startLabel: "暂不可开始",
       startHint: "当前考试缺少试卷信息，无法安全进入考试。",
+      startHref: null,
     };
   }
 
@@ -95,6 +98,7 @@ function buildStartState(record: Record<string, unknown>, reachedLimit: boolean)
       startDisabled: true,
       startLabel: "暂未开始",
       startHint: "考试尚未开放，请在开始时间后重新进入。",
+      startHref: null,
     };
   }
 
@@ -103,21 +107,26 @@ function buildStartState(record: Record<string, unknown>, reachedLimit: boolean)
       startDisabled: true,
       startLabel: "考试已结束",
       startHint: "本场考试已结束，不能再从预览页进入作答。",
+      startHref: null,
     };
   }
 
-  if (reachedLimit) {
+  if (options.reachedLimit) {
     return {
       startDisabled: true,
       startLabel: "已达限考次数",
       startHint: "你已达到本场考试的限考次数，当前不能继续开始。",
+      startHref: null,
     };
   }
 
   return {
     startDisabled: false,
-    startLabel: "开始考试",
-    startHint: "在线作答页尚在迁移中，当前版本先保留入口与说明，点击后会给出明确提示。",
+    startLabel: options.hasRecord ? "继续考试" : "开始考试",
+    startHint: options.hasRecord
+      ? "系统检测到你已有考试记录，进入后会优先恢复当前作答状态与缓存答案。"
+      : "点击后将进入新的在线考试作答页，并在初始化完成后生成或恢复 userExamId。",
+    startHref: examId ? `/exams/${examId}/session` : null,
   };
 }
 
@@ -135,7 +144,7 @@ function normalizeExamPreview(
   }
 
   const paper = toRecordOrEmpty(record.paper);
-  const startState = buildStartState(record, options.reachedLimit);
+  const startState = buildStartState(record, options);
   const description = toText(
     record.description ?? record.examDesc ?? record.remark ?? record.introduction,
     "请在考试开始前仔细阅读考试说明、时长要求与作答约束。"
