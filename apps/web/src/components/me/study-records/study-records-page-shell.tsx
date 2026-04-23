@@ -54,6 +54,27 @@ interface StudyRecordsPayload {
   total: number;
 }
 
+interface StudyRecordsResult {
+  records: StudyRecordItem[];
+  total: number;
+}
+
+interface StudyRecordsDataUtils {
+  hasActiveFilters(query: Pick<StudyRecordsQuery, "keyword" | "taskKeyword">): boolean;
+  filterRecords(
+    records: StudyRecordItem[],
+    query: Pick<StudyRecordsQuery, "keyword" | "taskKeyword">
+  ): StudyRecordItem[];
+  paginateRecords(records: StudyRecordItem[], pageNo: number, pageSize: number): StudyRecordsResult;
+  filterAndPaginate(records: StudyRecordItem[], query: StudyRecordsQuery): StudyRecordsResult;
+}
+
+type RequestStudyRecordsPage = (query: StudyRecordsQuery) => Promise<StudyRecordsResult>;
+type FetchHydratedStudyRecords = (
+  query: StudyRecordsQuery,
+  requestPage: RequestStudyRecordsPage
+) => Promise<StudyRecordsResult>;
+
 const DEFAULT_QUERY: StudyRecordsQuery = {
   keyword: "",
   taskKeyword: "",
@@ -198,6 +219,41 @@ function toStudyRecordsPayload(value: unknown): StudyRecordsPayload {
   };
 }
 
+// BEGIN_STUDY_RECORDS_DATA_UTILS
+const studyRecordsDataUtils: StudyRecordsDataUtils = {
+  hasActiveFilters(query) {
+    return Boolean(query.keyword.trim() || query.taskKeyword.trim());
+  },
+  filterRecords(records, query) {
+    const keyword = query.keyword.trim();
+    const taskKeyword = query.taskKeyword.trim();
+
+    return records.filter((record) => {
+      const matchesCourse = keyword ? record.courseName.includes(keyword) : true;
+      const matchesTask = taskKeyword ? record.taskName.includes(taskKeyword) : true;
+
+      return matchesCourse && matchesTask;
+    });
+  },
+  paginateRecords(records, pageNo, pageSize) {
+    const safePageSize = Math.max(pageSize, 1);
+    const total = records.length;
+    const pageCount = Math.max(1, Math.ceil(total / safePageSize));
+    const safePage = Math.min(Math.max(pageNo, 1), pageCount);
+    const startIndex = (safePage - 1) * safePageSize;
+
+    return {
+      records: records.slice(startIndex, startIndex + safePageSize),
+      total,
+    };
+  },
+  filterAndPaginate(records, query) {
+    const filteredRecords = this.filterRecords(records, query);
+    return this.paginateRecords(filteredRecords, query.pageNo, query.pageSize);
+  },
+};
+// END_STUDY_RECORDS_DATA_UTILS
+
 function createMockStudyRecords(query: StudyRecordsQuery) {
   const records: StudyRecordItem[] = [
     {
@@ -238,18 +294,10 @@ function createMockStudyRecords(query: StudyRecordsQuery) {
     },
   ];
 
-  const keyword = query.keyword.trim();
-  const taskKeyword = query.taskKeyword.trim();
-
-  return records.filter((record) => {
-    const matchesCourse = keyword ? record.courseName.includes(keyword) : true;
-    const matchesTask = taskKeyword ? record.taskName.includes(taskKeyword) : true;
-
-    return matchesCourse && matchesTask;
-  });
+  return studyRecordsDataUtils.filterRecords(records, query);
 }
 
-async function fetchStudyRecords(query: StudyRecordsQuery) {
+async function requestStudyRecordsPage(query: StudyRecordsQuery): Promise<StudyRecordsResult> {
   const response = await getStudyProcessList({
     pageNo: query.pageNo,
     pageSize: query.pageSize,
@@ -257,21 +305,47 @@ async function fetchStudyRecords(query: StudyRecordsQuery) {
     taskName: query.taskKeyword.trim(),
   });
   const result = toStudyRecordsPayload(unwrapEnvelope(response));
-  const records = result.records.map(normalizeStudyRecord);
-  const keyword = query.keyword.trim();
-  const taskKeyword = query.taskKeyword.trim();
-  const filteredRecords = records.filter((record) => {
-    const matchesCourse = keyword ? record.courseName.includes(keyword) : true;
-    const matchesTask = taskKeyword ? record.taskName.includes(taskKeyword) : true;
-
-    return matchesCourse && matchesTask;
-  });
-  const hasClientFiltered = filteredRecords.length < records.length;
 
   return {
-    records: filteredRecords,
-    total: hasClientFiltered ? filteredRecords.length : result.total,
+    records: result.records.map(normalizeStudyRecord),
+    total: result.total,
   };
+}
+
+// BEGIN_FETCH_HYDRATED_STUDY_RECORDS
+const fetchHydratedStudyRecords: FetchHydratedStudyRecords = async function (query, requestPage) {
+  const collectorPageSize = Math.max(query.pageSize, 20);
+  const firstPage = await requestPage({
+    ...query,
+    pageNo: 1,
+    pageSize: collectorPageSize,
+  });
+  const totalPages = Math.max(1, Math.ceil(firstPage.total / collectorPageSize));
+  const pageRequests = [];
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    pageRequests.push(
+      requestPage({
+        ...query,
+        pageNo: page,
+        pageSize: collectorPageSize,
+      })
+    );
+  }
+
+  const remainingPages = await Promise.all(pageRequests);
+  const hydratedRecords = [firstPage, ...remainingPages].flatMap((page) => page.records);
+
+  return studyRecordsDataUtils.filterAndPaginate(hydratedRecords, query);
+};
+// END_FETCH_HYDRATED_STUDY_RECORDS
+
+async function fetchStudyRecords(query: StudyRecordsQuery) {
+  if (!studyRecordsDataUtils.hasActiveFilters(query)) {
+    return requestStudyRecordsPage(query);
+  }
+
+  return fetchHydratedStudyRecords(query, requestStudyRecordsPage);
 }
 
 function StudyRecordsLoadingState() {
