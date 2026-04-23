@@ -48,8 +48,8 @@ interface StudyProgressRecord {
 }
 
 interface StudyProgressPayload {
-  records?: unknown[];
-  total?: number;
+  records: unknown[];
+  total: number;
 }
 
 const DEFAULT_QUERY: StudyProgressQuery = {
@@ -185,21 +185,48 @@ function normalizeStudyProgressRecord(item: unknown, index: number): StudyProgre
   };
 }
 
+function toStudyProgressPayload(value: unknown): StudyProgressPayload {
+  if (Array.isArray(value)) {
+    return {
+      records: value,
+      total: value.length,
+    };
+  }
+
+  const payload = toRecordOrEmpty(value);
+  const records = Array.isArray(payload.records)
+    ? payload.records
+    : Array.isArray(payload.list)
+      ? payload.list
+      : Array.isArray(payload.rows)
+        ? payload.rows
+        : Array.isArray(payload.data)
+          ? payload.data
+          : [];
+  const total =
+    toNumberOrFallback(
+      payload.total ?? payload.count ?? payload.totalCount ?? payload.recordTotal,
+      records.length
+    );
+
+  return {
+    records,
+    total,
+  };
+}
+
 async function fetchStudyProgress(query: StudyProgressQuery) {
   const response = await getStudyProcessList({
     pageNo: query.pageNo,
     pageSize: query.pageSize,
     name: query.keyword.trim(),
   });
-  const payload = unwrapEnvelope(response);
-  const result = toRecordOrEmpty(payload) as StudyProgressPayload;
-  const records = Array.isArray(result.records)
-    ? result.records.map(normalizeStudyProgressRecord)
-    : [];
+  const result = toStudyProgressPayload(unwrapEnvelope(response));
+  const records = result.records.map(normalizeStudyProgressRecord);
 
   return {
     records,
-    total: toNumberOrFallback(result.total, records.length),
+    total: result.total,
   };
 }
 

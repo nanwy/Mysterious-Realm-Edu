@@ -19,3 +19,16 @@ test("purchases page shell keeps type switch, list region, and action entry stru
   assert.match(shellSource, /selectPurchaseCourseList/);
   assert.match(shellSource, /selectPurchaseExamList/);
 });
+
+test("purchase actions only generate routes from real backend ids", () => {
+  assert.match(shellSource, /const routeId = toText\(record\.id \?\? record\.courseId \?\? record\.goodsId\);/);
+  assert.match(shellSource, /const routeId = toText\(record\.id \?\? record\.examId \?\? record\.goodsId\);/);
+  assert.match(shellSource, /id: routeId \|\| `course-\$\{index \+ 1\}`/);
+  assert.match(shellSource, /id: routeId \|\| `exam-\$\{index \+ 1\}`/);
+  assert.match(shellSource, /href: routeId \? `\/courses\/\$\{routeId\}` : null/);
+  assert.match(shellSource, /href: routeId \? `\/exams\/\$\{routeId\}\/preview` : null/);
+  assert.doesNotMatch(shellSource, /toText\(record\.id \?\? record\.courseId \?\? record\.goodsId, `course-/);
+  assert.doesNotMatch(shellSource, /toText\(record\.id \?\? record\.examId \?\? record\.goodsId, `exam-/);
+  assert.doesNotMatch(shellSource, /href: id \? `\/courses/);
+  assert.doesNotMatch(shellSource, /href: id \? `\/exams/);
+});

@@ -148,7 +148,7 @@ function resolveValidityLabel(record: Record<string, unknown>) {
 
 function normalizeCourseRecord(item: unknown, index: number): PurchaseRecord {
   const record = toRecordOrEmpty(item);
-  const id = toText(record.id ?? record.courseId ?? record.goodsId, `course-${index + 1}`);
+  const routeId = toText(record.id ?? record.courseId ?? record.goodsId);
   const title =
     toText(record.name) ||
     toText(record.courseName) ||
@@ -158,7 +158,7 @@ function normalizeCourseRecord(item: unknown, index: number): PurchaseRecord {
   const learnerCount = toText(record.learnerNumber ?? record.studyCount ?? record.learnCount);
 
   return {
-    id,
+    id: routeId || `course-${index + 1}`,
     tab: "course",
     title,
     purchaseTime: resolvePurchaseTime(record),
@@ -174,20 +174,20 @@ function normalizeCourseRecord(item: unknown, index: number): PurchaseRecord {
         : toText(record.price) || "金额待同步",
     supportingMeta: learnerCount ? `${learnerCount} 人学习` : "人数待同步",
     actionLabel: "进入课程",
-    href: id ? `/courses/${id}` : null,
-    unavailableHint: id ? null : "课程主链路缺少课程 ID，暂时无法生成继续学习入口。",
+    href: routeId ? `/courses/${routeId}` : null,
+    unavailableHint: routeId ? null : "课程主链路缺少课程 ID，暂时无法生成继续学习入口。",
   };
 }
 
 function normalizeExamRecord(item: unknown, index: number): PurchaseRecord {
   const record = toRecordOrEmpty(item);
-  const id = toText(record.id ?? record.examId ?? record.goodsId, `exam-${index + 1}`);
+  const routeId = toText(record.id ?? record.examId ?? record.goodsId);
   const totalTime = toText(record.totalTime ?? record.examDuration);
   const qualifyScore = toText(record.qualifyScore ?? record.passScore);
   const examCount = toText(record.examNumber ?? record.joinCount ?? record.userCount);
 
   return {
-    id,
+    id: routeId || `exam-${index + 1}`,
     tab: "exam",
     title:
       toText(record.title) ||
@@ -212,8 +212,8 @@ function normalizeExamRecord(item: unknown, index: number): PurchaseRecord {
         ? `${examCount} 人参加`
         : "考试信息待同步",
     actionLabel: "查看考试",
-    href: id ? `/exams/${id}/preview` : null,
-    unavailableHint: id ? null : "考试缺少可用 ID，当前只能展示已购记录，不能制造不可达入口。",
+    href: routeId ? `/exams/${routeId}/preview` : null,
+    unavailableHint: routeId ? null : "考试缺少可用 ID，当前只能展示已购记录，不能制造不可达入口。",
   };
 }
 
