@@ -159,7 +159,7 @@ function normalizeCourseRecord(item: unknown, index: number): PurchaseRecord {
   const learnerCount = toText(record.learnerNumber ?? record.studyCount ?? record.learnCount);
 
   return {
-    id,
+    id: routeId || `course-${index + 1}`,
     tab: "course",
     title,
     purchaseTime: resolvePurchaseTime(record),
@@ -189,7 +189,7 @@ function normalizeExamRecord(item: unknown, index: number): PurchaseRecord {
   const examCount = toText(record.examNumber ?? record.joinCount ?? record.userCount);
 
   return {
-    id,
+    id: routeId || `exam-${index + 1}`,
     tab: "exam",
     title:
       toText(record.title) ||
