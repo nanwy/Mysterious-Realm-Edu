@@ -149,6 +149,7 @@ function resolveValidityLabel(record: Record<string, unknown>) {
 function normalizeCourseRecord(item: unknown, index: number): PurchaseRecord {
   const record = toRecordOrEmpty(item);
   const routeId = toText(record.id ?? record.courseId ?? record.goodsId);
+  const id = routeId || `course-${index + 1}`;
   const title =
     toText(record.name) ||
     toText(record.courseName) ||
@@ -182,6 +183,7 @@ function normalizeCourseRecord(item: unknown, index: number): PurchaseRecord {
 function normalizeExamRecord(item: unknown, index: number): PurchaseRecord {
   const record = toRecordOrEmpty(item);
   const routeId = toText(record.id ?? record.examId ?? record.goodsId);
+  const id = routeId || `exam-${index + 1}`;
   const totalTime = toText(record.totalTime ?? record.examDuration);
   const qualifyScore = toText(record.qualifyScore ?? record.passScore);
   const examCount = toText(record.examNumber ?? record.joinCount ?? record.userCount);
