@@ -159,7 +159,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 | `/userCenter/message` | `src/views/message/Message.vue` | `/me/messages` | `[x]` | `[-]` | 消息中心已迁移为双频道工作台。 |
 | `/userCenter/certificate` | `src/views/certificate/Certificate.vue` | `/me/certificates` | `[x]` | `[ ]` | 分类、列表、预览/下载承接已完成。 |
 | `/userCenter/myCourse` | `src/views/user/MyCourse.vue` | `/courses` | `[x]` | `[-]` | 旧站“我的课程”已并入新站课程中心。 |
-| `/userCenter/myExam` | `src/views/user/MyExam.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/myExam` | `src/views/user/MyExam.vue` | `/me/exams` | `[x]` | `[-]` | 已迁移我的考试页，承接状态筛选、分页与“进入考试 / 查看详情”入口说明。 |
 | `/userCenter/myPurchaseGoods` | `src/views/user/MyPurchaseGoods.vue` | `/me/purchases` | `[x]` | `[-]` | 已迁移到已购内容工作台，承接课程/考试切换、分页、时间信息与可达入口说明。 |
 | `/userCenter/practice/record` | `src/views/user/PracticeRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
 | `/userCenter/course/studyRecord` | `src/views/user/CourseStudyRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |

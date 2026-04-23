@@ -73,8 +73,8 @@ export const ME_ENTRY_GROUPS: MeEntryGroup[] = [
       {
         title: "我的考试",
         description: "查看考试安排、当前状态和进入考试。",
-        href: "/exams",
-        routeLabel: "/exams",
+        href: "/me/exams",
+        routeLabel: "/me/exams",
       },
     ],
   },
