@@ -160,7 +160,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 | `/userCenter/certificate` | `src/views/certificate/Certificate.vue` | `/me/certificates` | `[x]` | `[ ]` | 分类、列表、预览/下载承接已完成。 |
 | `/userCenter/myCourse` | `src/views/user/MyCourse.vue` | `/courses` | `[x]` | `[-]` | 旧站“我的课程”已并入新站课程中心。 |
 | `/userCenter/myExam` | `src/views/user/MyExam.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
-| `/userCenter/myPurchaseGoods` | `src/views/user/MyPurchaseGoods.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/myPurchaseGoods` | `src/views/user/MyPurchaseGoods.vue` | `/me/purchases` | `[x]` | `[-]` | 已迁移到已购内容工作台，承接课程/考试切换、分页、时间信息与可达入口说明。 |
 | `/userCenter/practice/record` | `src/views/user/PracticeRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
 | `/userCenter/course/studyRecord` | `src/views/user/CourseStudyRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
 | `/userCenter/course/studyProcess` | `src/views/user/CourseStudyProcess.vue` | `/me/study-progress` | `[x]` | `[x]` | 已迁移课程维度学习进度列表，承接筛选、分页、最近学习与错误/空态。 |
@@ -193,7 +193,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 ## Current Focus
 
-- `[-]` 个人中心剩余业务子页：`myExam / practiceRecord / studyRecord / myOrder / myPurchaseGoods`
+- `[-]` 个人中心剩余业务子页：`myExam / practiceRecord / studyRecord / myOrder`
 - `[-]` 课程学习主链路：播放器、目录树、学习计时、防挂机
 - `[ ]` 在线考试与在线练习执行链路
 - `[ ]` 商城 / 支付 / 订单后链路
