@@ -1,6 +1,6 @@
 # Migration Progress
 
-Last updated: 2026-04-16
+Last updated: 2026-04-23
 Source project: `/Users/nanfugongmeiying/Desktop/project/student-front-master`
 Source router: `/Users/nanfugongmeiying/Desktop/project/student-front-master/src/router/index.js`
 Source graph: `/Users/nanfugongmeiying/Desktop/project/student-front-master/graphify-out/graph.json`
@@ -162,7 +162,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 | `/userCenter/myExam` | `src/views/user/MyExam.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
 | `/userCenter/myPurchaseGoods` | `src/views/user/MyPurchaseGoods.vue` | `/me/purchases` | `[x]` | `[-]` | 已迁移到已购内容工作台，承接课程/考试切换、分页、时间信息与可达入口说明。 |
 | `/userCenter/practice/record` | `src/views/user/PracticeRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
-| `/userCenter/course/studyRecord` | `src/views/user/CourseStudyRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/course/studyRecord` | `src/views/user/CourseStudyRecord.vue` | `/me/study-records` | `[x]` | `[x]` | 已迁移学习记录页，承接课程/任务筛选、分页、学习时长/进度/最近学习字段，并提供 loading/empty/error 与接口异常兜底内容。 |
 | `/userCenter/course/studyProcess` | `src/views/user/CourseStudyProcess.vue` | `/me/study-progress` | `[x]` | `[x]` | 已迁移课程维度学习进度列表，承接筛选、分页、最近学习与错误/空态。 |
 | `/userCenter/myOrder` | `src/views/mall/ordercenter/MyOrder.vue` | `/me/orders` | `[x]` | `[-]` | 已迁移订单筛选、列表、分页与异常兜底；详情 / 支付 / 售后仍待后续子页承接。 |
 
