@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { ArrowUpRight, Hash } from "lucide-react";
-import { MotionReveal, MotionStagger, MotionItem } from "@workspace/motion";
+import Link from "next/link";
 import type { MeEntryGroup } from "./me-data";
 
 export function MeSectionGrid({ groups }: { groups: MeEntryGroup[] }) {

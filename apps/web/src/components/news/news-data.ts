@@ -7,8 +7,8 @@ import {
   searchNewsList,
   unwrapEnvelope,
 } from "@workspace/api";
-import { toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 import { NEWS_DETAIL_PLACEHOLDER_PATH, NEWS_PAGE_SIZE, type NewsListItem, type NewsPageData, type NewsQueryState, type NewsSectionCard, type NewsSuggestionItem } from "./news-types";
+import { toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 
 interface NewsListPayload {
   records?: unknown[];

@@ -32,12 +32,12 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ResultsPagination } from "@/components/common/results-pagination";
-import { toNumberOrFallback, toRecordOrEmpty } from "@/lib/normalize";
 import {
   resolveCertificateDownloadUrl,
   resolveCertificatePreviewUrl,
   toText,
 } from "@/lib/media";
+import { toNumberOrFallback, toRecordOrEmpty } from "@/lib/normalize";
 
 type CertificateTab = "all" | "study" | "exam";
 type CertificateType = "" | "1" | "2";

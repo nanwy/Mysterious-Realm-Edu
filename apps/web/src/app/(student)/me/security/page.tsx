@@ -1,5 +1,5 @@
-import { Suspense } from "react";
 import { StudentShell } from "@workspace/ui";
+import { Suspense } from "react";
 import { SecurityPageContent } from "@/components/me/security/security-page-content";
 import { SecurityPageShell } from "@/components/me/security/security-page-shell";
 

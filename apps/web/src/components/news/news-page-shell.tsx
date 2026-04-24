@@ -1,11 +1,10 @@
 "use client";
 
-import { startTransition, useDeferredValue, useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { ArrowRight, Flame, ScanSearch, Sparkles } from "lucide-react";
-import { ResultsPagination } from "../common/results-pagination";
+import { usePathname, useRouter } from "next/navigation";
+import { startTransition, useDeferredValue, useEffect, useState } from "react";
 import { fetchNewsPageData, fetchNewsSuggestions, normalizeNewsError } from "./news-data";
 import { NewsHotSidebar } from "./news-hot-sidebar";
 import { NewsRecommendedSection } from "./news-recommended-section";
@@ -18,6 +17,7 @@ import {
   type NewsSectionCard,
   type NewsSuggestionItem,
 } from "./news-types";
+import { ResultsPagination } from "../common/results-pagination";
 
 function createQueryString(query: NewsQueryState) {
   const params = new URLSearchParams();

@@ -3,7 +3,6 @@ import {
   getRepositoryById,
   unwrapEnvelope,
 } from "@workspace/api";
-import { toNumberOrFallback, toText } from "@/lib/normalize";
 import type {
   PracticeModeAction,
   PracticeModeOverview,
@@ -11,6 +10,7 @@ import type {
   PracticeQuestionType,
   PracticeRecentRecord,
 } from "./practice-mode-types";
+import { toNumberOrFallback, toText } from "@/lib/normalize";
 
 const DEFAULT_FREE_PRACTICE_ACTIONS: PracticeModeAction[] = [
   {

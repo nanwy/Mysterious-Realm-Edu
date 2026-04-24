@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { ThemeProvider } from "@workspace/ui";
+import type { Metadata } from "next";
 import "./globals.css";
 import "@workspace/ui/globals.css";
 import { AIChatbot } from "@/components/common/ai/ai-chat-widget";

@@ -19,7 +19,7 @@ import {
 import { AlertCircle, BellRing, BriefcaseBusiness, RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ResultsPagination } from "@/components/common/results-pagination";
-import { stripHtmlTags, toNumber, toRecord, toRecordOrEmpty, toText } from "@/lib/normalize";
+import { stripHtmlTags, toNumber, toRecordOrEmpty, toText } from "@/lib/normalize";
 
 type MessageTab = "system" | "business";
 

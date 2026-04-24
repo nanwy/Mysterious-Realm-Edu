@@ -5,24 +5,18 @@ import {
   getUserExamResultList,
   unwrapEnvelope,
 } from "@workspace/api";
-import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
-import { startTransition, useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import {
-  ArrowUpRight,
   CircleAlert,
-  Search,
-  Settings2,
-  Clock,
-  ShieldCheck,
-  Trophy,
-  Filter,
   Monitor,
+  Settings2,
+  ShieldCheck,
 } from "lucide-react";
-import { ResultsPagination } from "../common/results-pagination";
-import { toBooleanOrNull, toNumberOrNull, toText } from "@/lib/normalize";
+import { usePathname, useRouter } from "next/navigation";
+import { startTransition, useEffect, useState } from "react";
 import { ScoresFilters } from "./scores-filters";
 import { ScoresResults } from "./scores-results";
+import { ResultsPagination } from "../common/results-pagination";
+import { toBooleanOrNull, toNumberOrNull, toText } from "@/lib/normalize";
 
 type PassedFilter = "" | "1" | "0";
 

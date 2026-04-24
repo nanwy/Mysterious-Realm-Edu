@@ -1,17 +1,17 @@
 "use client";
 
-import type { ReactNode } from "react";
-import Link from "next/link";
 import {
   ArrowUpRight,
-  ShieldCheck,
-  CreditCard,
-  Zap,
   Bell,
-  Settings2,
-  Clock,
   BookMarked,
+  Clock,
+  CreditCard,
+  Settings2,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
+import Link from "next/link";
+import type { ReactNode } from "react";
 import { ME_ENTRY_GROUPS, ME_OVERVIEW_STATS } from "./me-data";
 import { MeSectionGrid } from "./me-section-grid";
 

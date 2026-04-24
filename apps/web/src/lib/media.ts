@@ -1,4 +1,3 @@
-import { toText } from "@/lib/normalize";
 export { toText } from "@/lib/normalize";
 
 export function resolveMediaUrl(path?: string | null) {

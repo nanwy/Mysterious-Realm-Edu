@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { MotionItem, MotionStagger } from "@workspace/motion";
-import { ArrowUpRight, Clock, Zap, Target } from "lucide-react";
+import { ArrowUpRight, Clock, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface ScoreRecord {
   id: string;

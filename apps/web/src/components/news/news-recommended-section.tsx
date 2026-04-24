@@ -1,6 +1,6 @@
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
-import { resolveMediaUrl } from "@/lib/media";
 import type { NewsSectionCard } from "./news-types";
+import { resolveMediaUrl } from "@/lib/media";
 
 function NewsCover({
   title,

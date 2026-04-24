@@ -1,15 +1,15 @@
-import { cache } from "react";
-import type { HomePayload } from "./home-types";
 import {
   getAnnouncementList,
   getBannerList,
+  getQuestionnaireList,
   listHotCourse,
   listHotNews,
   listLatestExam,
-  getQuestionnaireList,
   listRecommendedNews,
   unwrapEnvelope,
 } from "@workspace/api";
+import { cache } from "react";
+import type { HomePayload } from "./home-types";
 
 type ApiEnvelope = {
   code: number;

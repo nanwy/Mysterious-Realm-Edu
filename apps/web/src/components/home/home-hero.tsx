@@ -1,9 +1,8 @@
-import type { ReactNode } from "react";
-import Link from "next/link";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { ArrowUpRight, Play, TerminalSquare } from "lucide-react";
-import { resolveMediaUrl, toText } from "@/lib/media";
+import Link from "next/link";
 import type { HomeRecord } from "./home-types";
+import { resolveMediaUrl, toText } from "@/lib/media";
 
 export function HomeHero({
   banner,
@@ -182,7 +181,7 @@ export function HomeHero({
                 </h3>
                 <div className="flex items-center text-sm font-medium text-white/50 group-hover:text-white transition-colors duration-300">
                   即刻探索{" "}
-                  <ArrowUpRight className="w-4 h-4 ml-1.5 opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:-translate-y-0 transition-all duration-300" />
+                  <ArrowUpRight className="w-4 h-4 ml-1.5 opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
                 </div>
               </div>
             </Link>

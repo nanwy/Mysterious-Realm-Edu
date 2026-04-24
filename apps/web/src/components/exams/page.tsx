@@ -1,25 +1,25 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard, Tabs, TabsList, TabsTrigger } from "@workspace/ui";
-import { ResultsPagination } from "../common/results-pagination";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import { ExamsFilters } from "./filters";
 import { ExamsResults } from "./results";
+import { ResultsPagination } from "../common/results-pagination";
 import {
-  EXAMS_PAGE_SIZE,
   EXAM_STATUS,
   EXAM_STATUS_OPTIONS,
   EXAM_TYPE,
   EXAM_TYPE_OPTIONS,
-  examQueryOptions,
-  useExamStore,
   type ExamFiltersState,
   type ExamListItem,
+  examQueryOptions,
+  EXAMS_PAGE_SIZE,
   type ExamStatusFilter,
   type ExamTypeFilter,
+  useExamStore,
 } from "@/core/exams";
 
 const createQueryString = (filters: ExamFiltersState) => {
@@ -130,7 +130,14 @@ export const ExamsPage = ({
         scroll: false,
       });
     });
-  }, [initialFilters, isLoading, pathname, router, startTransition, totalPages]);
+  }, [
+    initialFilters,
+    isLoading,
+    pathname,
+    router,
+    startTransition,
+    totalPages,
+  ]);
 
   const overviewItems = [
     {
@@ -198,7 +205,9 @@ export const ExamsPage = ({
                 className="grid gap-4 rounded-[32px] border border-border bg-card/80 p-5 shadow-sm"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">筛选条件</p>
+                  <p className="text-sm font-medium text-foreground">
+                    筛选条件
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     先切换考试范围，再缩小到目标状态。
                   </p>
@@ -216,7 +225,10 @@ export const ExamsPage = ({
                       >
                         <TabsList aria-label="考试类型">
                           {EXAM_TYPE_OPTIONS.map((option) => (
-                            <TabsTrigger key={option.value} value={option.value}>
+                            <TabsTrigger
+                              key={option.value}
+                              value={option.value}
+                            >
                               {option.label}
                             </TabsTrigger>
                           ))}

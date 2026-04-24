@@ -1,7 +1,6 @@
 "use client";
 
 import { createApiClient, unwrapEnvelope } from "@workspace/api";
-import { toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 import {
   COURSE_PAGE_SIZE,
   type CourseCategoryOption,
@@ -9,6 +8,7 @@ import {
   type CourseListResult,
   type CourseQueryState,
 } from "./courses-types";
+import { toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 
 interface CourseListPayload {
   records?: unknown[];

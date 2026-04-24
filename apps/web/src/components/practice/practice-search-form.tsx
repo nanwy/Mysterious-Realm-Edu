@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Input } from "@workspace/ui";
-import { Search, RotateCcw } from "lucide-react";
+import { RotateCcw, Search } from "lucide-react";
 import type { FormEvent } from "react";
 
 export function PracticeSearchForm({

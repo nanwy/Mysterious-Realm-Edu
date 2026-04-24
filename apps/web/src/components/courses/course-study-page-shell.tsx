@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { BookOpenText, CircleAlert, Clock3, ListTodo, PlayCircle, Sparkles } from "lucide-react";
 import { Badge, Button, EmptyState, SurfaceCard } from "@workspace/ui";
+import { BookOpenText, CircleAlert, Clock3, ListTodo, PlayCircle, Sparkles } from "lucide-react";
+import Link from "next/link";
 import type { CourseStudyResult } from "@/lib/course-study";
 import { toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 

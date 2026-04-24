@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 import type { HomeRecord } from "./home-types";
 import { toText } from "@/lib/media";
 
@@ -16,8 +16,12 @@ export function HomeHotNewsSection({
     <section className="flex flex-col bg-background/50">
       <div className="px-8 py-6 border-b border-border/50 bg-background flex items-center justify-between">
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary">Broadcast</span>
-          <h3 className="text-xl font-semibold tracking-tight text-foreground">全站简讯快报</h3>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary">
+            Broadcast
+          </span>
+          <h3 className="text-xl font-semibold tracking-tight text-foreground">
+            全站简讯快报
+          </h3>
         </div>
         {hotNewsError && (
           <span className="text-[10px] font-mono text-destructive uppercase bg-destructive/10 px-2 py-0.5">

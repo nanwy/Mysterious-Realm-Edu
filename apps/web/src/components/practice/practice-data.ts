@@ -1,6 +1,6 @@
 import { getRepositoryList, unwrapEnvelope } from "@workspace/api";
-import { toText } from "@/lib/normalize";
 import { PRACTICE_PAGE_SIZE, type PracticeQueryState, type PracticeRepositoryItem, type PracticeRepositoryResult } from "./practice-types";
+import { toText } from "@/lib/normalize";
 
 function toListPayload(value: unknown) {
   if (Array.isArray(value)) {

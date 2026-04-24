@@ -1,6 +1,6 @@
-import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import test from "node:test";
 
 const newsDetailShellSource = readFileSync(
   new URL("./news-detail-page-shell.tsx", import.meta.url),

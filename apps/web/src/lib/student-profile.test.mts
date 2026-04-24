@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  STUDENT_PROFILE_CONFIG_ERROR,
   getStudentProfile,
+  STUDENT_PROFILE_CONFIG_ERROR,
 } from "./student-profile.ts";
 
 const ORIGINAL_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;

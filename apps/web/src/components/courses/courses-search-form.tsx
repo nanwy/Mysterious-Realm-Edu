@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import {
   Button,
@@ -16,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui";
+import { useEffect } from "react";
 import type { CourseCategoryOption, CourseQueryState } from "./courses-types";
 
 const ORDER_BY_OPTIONS = [

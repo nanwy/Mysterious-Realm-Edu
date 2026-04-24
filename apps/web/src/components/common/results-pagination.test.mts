@@ -1,6 +1,6 @@
-import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import test from "node:test";
 
 const paginationSource = readFileSync(new URL("./results-pagination.tsx", import.meta.url), "utf8");
 

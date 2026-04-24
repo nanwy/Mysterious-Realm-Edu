@@ -1,12 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import {
   Button,
-  Field,
-  FieldGroup,
-  FieldLabel,
   Input,
   Select,
   SelectContent,
@@ -16,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui";
-import { Search, RotateCcw, Database } from "lucide-react";
+import { RotateCcw, Search } from "lucide-react";
+import { useEffect } from "react";
 
 type PassedFilter = "" | "1" | "0";
 

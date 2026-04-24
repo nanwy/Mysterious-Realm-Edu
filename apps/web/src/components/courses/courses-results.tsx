@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, Button, Skeleton } from "@workspace/ui";
 import { BookOpenText, CircleAlert, CircleSlash, RefreshCcw } from "lucide-react";
+import Link from "next/link";
 import type { CourseListItem } from "./courses-types";
 
 function getProgressValue(progressLabel: string) {

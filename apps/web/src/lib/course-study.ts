@@ -1,9 +1,9 @@
-import { toRecord } from "@/lib/normalize";
 import {
   getCourseStudyDetail,
-  getLatestStudyTask,
   getCourseStudyProcess,
+  getLatestStudyTask,
 } from "@workspace/api";
+import { toRecord } from "@/lib/normalize";
 
 export const COURSE_STUDY_CONFIG_ERROR =
   "未配置 NEXT_PUBLIC_API_BASE_URL，当前属于环境问题，不是课程学习页面本身的问题。";

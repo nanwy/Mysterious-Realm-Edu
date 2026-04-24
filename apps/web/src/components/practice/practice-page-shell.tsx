@@ -2,9 +2,8 @@
 
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
-import { startTransition, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ResultsPagination } from "../common/results-pagination";
+import { startTransition, useEffect, useState } from "react";
 import {
   fetchPracticeRepositories,
   normalizePracticeError,
@@ -15,6 +14,7 @@ import {
   PRACTICE_PAGE_SIZE,
   type PracticeRepositoryItem,
 } from "./practice-types";
+import { ResultsPagination } from "../common/results-pagination";
 
 function createQueryString(page: number, keyword: string) {
   const query = new URLSearchParams();

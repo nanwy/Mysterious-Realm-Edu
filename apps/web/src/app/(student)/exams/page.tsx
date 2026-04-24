@@ -1,9 +1,9 @@
 import { StudentShell } from "@workspace/ui";
 import { ExamsPage } from "@/components/exams/page";
 import {
-  EXAMS_PAGE_SIZE,
   EXAM_STATUS,
   EXAM_TYPE,
+  EXAMS_PAGE_SIZE,
   type ExamStatusFilter,
   type ExamTypeFilter,
 } from "@/core/exams";

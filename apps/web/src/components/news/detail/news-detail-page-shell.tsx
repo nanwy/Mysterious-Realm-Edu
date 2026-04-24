@@ -8,10 +8,6 @@ import {
   AvatarImage,
   EmptyState,
 } from "@workspace/ui";
-import { resolveMediaUrl } from "@/lib/media";
-import { toRecordOrEmpty, toText } from "@/lib/normalize";
-import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
   ArrowLeft,
   Clock3,
@@ -20,6 +16,10 @@ import {
   Newspaper,
   ScanText,
 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { resolveMediaUrl } from "@/lib/media";
+import { toRecordOrEmpty, toText } from "@/lib/normalize";
 
 interface NewsDetailState {
   article: NewsDetailRecord | null;

@@ -1,8 +1,8 @@
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Button, EmptyState, Skeleton } from "@workspace/ui";
 import { CircleAlert, RefreshCcw } from "lucide-react";
-import { resolveMediaUrl } from "@/lib/media";
 import type { NewsListItem } from "./news-types";
+import { resolveMediaUrl } from "@/lib/media";
 
 function NewsLoadingState() {
   return (

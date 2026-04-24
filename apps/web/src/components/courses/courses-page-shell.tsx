@@ -1,10 +1,9 @@
 "use client";
 
-import { startTransition, useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard } from "@workspace/ui";
-import { ResultsPagination } from "../common/results-pagination";
+import { usePathname, useRouter } from "next/navigation";
+import { startTransition, useEffect, useState } from "react";
 import { fetchCourses, normalizeCourseError } from "./courses-data";
 import { CoursesResults } from "./courses-results";
 import { CoursesSearchForm } from "./courses-search-form";
@@ -14,6 +13,7 @@ import {
   type CourseListItem,
   type CourseQueryState,
 } from "./courses-types";
+import { ResultsPagination } from "../common/results-pagination";
 
 function createQueryString(query: CourseQueryState) {
   const params = new URLSearchParams();

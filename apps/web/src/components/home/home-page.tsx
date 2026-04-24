@@ -3,10 +3,10 @@ import { HomeCoursesSection } from "./home-courses-section";
 import { HomeCtaSection } from "./home-cta-section";
 import { HomeExamsSection } from "./home-exams-section";
 import { HomeHero } from "./home-hero";
-import { HomeSidebar } from "./home-sidebar";
-import { HomeNewsSection } from "./home-news-section";
 import { HomeHotNewsSection } from "./home-hot-news-section";
+import { HomeNewsSection } from "./home-news-section";
 import { HomeQuestionnairesSection } from "./home-questionnaires-section";
+import { HomeSidebar } from "./home-sidebar";
 import type { HomePayload } from "./home-types";
 
 function Crosshair({ className }: { className?: string }) {

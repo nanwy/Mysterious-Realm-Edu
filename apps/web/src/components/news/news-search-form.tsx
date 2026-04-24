@@ -1,7 +1,7 @@
-import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
-import { Button, Field, FieldGroup, FieldLabel, Input } from "@workspace/ui";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
+import { Button, Field, FieldGroup, FieldLabel, Input } from "@workspace/ui";
+import { useEffect } from "react";
 import type { NewsSuggestionItem } from "./news-types";
 
 export function NewsSearchForm({

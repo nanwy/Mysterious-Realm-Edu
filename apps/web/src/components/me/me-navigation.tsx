@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { MotionItem, MotionStagger } from "@workspace/motion";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import type { MeEntryGroup } from "./me-data";
 
 export function MeNavigation({ groups }: { groups: MeEntryGroup[] }) {

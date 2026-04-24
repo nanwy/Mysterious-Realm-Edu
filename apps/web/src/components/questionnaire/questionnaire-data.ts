@@ -1,11 +1,11 @@
 import { getQuestionnaireList, unwrapEnvelope } from "@workspace/api";
-import { toText } from "@/lib/normalize";
 import {
   QUESTIONNAIRE_PAGE_SIZE,
   type QuestionnaireItem,
   type QuestionnaireQueryState,
   type QuestionnaireResult,
 } from "./questionnaire-types";
+import { toText } from "@/lib/normalize";
 
 function toListPayload(value: unknown) {
   if (Array.isArray(value)) {

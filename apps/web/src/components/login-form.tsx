@@ -23,8 +23,8 @@ import { LoaderCircleIcon } from "lucide-react";
 import {
   extractToken,
   getSuccessMessage,
-  normalizeLoginValues,
   type LoginValues,
+  normalizeLoginValues,
 } from "./login-form.logic";
 
 type LoginField = keyof LoginValues;
