@@ -2,24 +2,24 @@
 
 import { Button, Input } from "@workspace/ui";
 import { RotateCcw, Search } from "lucide-react";
-import type { FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 
-export function PracticeSearchForm({
-  value,
+export const PracticeFilters = ({
+  defaultKeyword,
   pending,
-  onValueChange,
   onSubmit,
   onReset,
 }: {
-  value: string;
+  defaultKeyword: string;
   pending: boolean;
-  onValueChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (keyword: string) => void;
   onReset: () => void;
-}) {
+}) => {
+  const [keyword, setKeyword] = useState(defaultKeyword);
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit();
+    onSubmit(keyword.trim());
   };
 
   return (
@@ -30,8 +30,8 @@ export function PracticeSearchForm({
       <label className="grid gap-2">
         <span className="text-sm font-medium text-foreground">搜索题库</span>
         <Input
-          value={value}
-          onChange={(event) => onValueChange(event.target.value)}
+          value={keyword}
+          onChange={(event) => setKeyword(event.target.value)}
           placeholder="输入题库名称或关键字"
           className="h-11 rounded-2xl border-border bg-background px-4"
         />
@@ -58,4 +58,4 @@ export function PracticeSearchForm({
       </Button>
     </form>
   );
-}
+};

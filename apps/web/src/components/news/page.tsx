@@ -5,11 +5,11 @@ import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { ArrowRight, Flame, ScanSearch, Sparkles } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useTransition } from "react";
+import { NewsFilters } from "./filters";
 import { HotSidebar } from "./hot-sidebar";
 import { RecommendedSection } from "./recommended-section";
 import { Results } from "./results";
-import { SearchForm } from "./search-form";
 import { ResultsPagination } from "../common/results-pagination";
 import {
   NEWS_HOT_LIMIT,
@@ -47,32 +47,11 @@ const getStatusCopy = (error: string | null, loading: boolean, total: number) =>
   return `${total} 条资讯`;
 };
 
-const useDebouncedValue = <Value,>(value: Value, delayMs: number) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setDebouncedValue(value);
-    }, delayMs);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [delayMs, value]);
-
-  return debouncedValue;
-};
-
 export const NewsPage = ({ initialQuery }: { initialQuery: NewsQueryState }) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
-  const [keywordInput, setKeywordInput] = useState(initialQuery.keyword);
-  const debouncedKeyword = useDebouncedValue(keywordInput, 300);
   const pageQuery = useQuery(newsQueryOptions.list(initialQuery));
-  const suggestionsQuery = useQuery(
-    newsQueryOptions.suggestions(debouncedKeyword)
-  );
   const data = pageQuery.data;
   const recommendedItems = data?.recommended ?? [];
   const hotItems = data?.hot ?? [];
@@ -80,10 +59,6 @@ export const NewsPage = ({ initialQuery }: { initialQuery: NewsQueryState }) => 
   const total = data?.total ?? 0;
   const error = pageQuery.error ? normalizeNewsError(pageQuery.error) : null;
   const isLoading = pageQuery.isLoading || isPending;
-
-  useEffect(() => {
-    setKeywordInput(initialQuery.keyword);
-  }, [initialQuery.keyword]);
 
   const navigate = (nextQuery: NewsQueryState) => {
     startTransition(() => {
@@ -255,15 +230,10 @@ export const NewsPage = ({ initialQuery }: { initialQuery: NewsQueryState }) => 
         <HotSidebar items={hotItems} error={data?.hotError ?? null} />
       </section>
 
-      <SearchForm
+      <NewsFilters
+        key={initialQuery.keyword}
         defaultKeyword={initialQuery.keyword}
         pending={isPending}
-        suggestions={suggestionsQuery.data ?? []}
-        suggestionsLoading={suggestionsQuery.isFetching}
-        suggestionsError={
-          suggestionsQuery.error ? normalizeNewsError(suggestionsQuery.error) : null
-        }
-        onKeywordChange={setKeywordInput}
         onSubmit={(keyword) =>
           navigate({
             page: 1,

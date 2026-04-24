@@ -1,26 +1,12 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, Skeleton } from "@workspace/ui";
 import { AlertCircle, Clock3, RefreshCcw, ShieldAlert } from "lucide-react";
-import { useEffect, useState } from "react";
-import { fetchPracticeModeData } from "./practice-mode-data";
-import type { PracticeModeResult } from "./practice-mode-types";
+import { practiceQueryOptions } from "@/core/practice";
 
-const INITIAL_STATE: PracticeModeResult = {
-  overview: {
-    title: "题库",
-    description: "正在读取题库详情。",
-    freePracticeActions: [],
-    questionTypes: [],
-  },
-  recentRecords: [],
-  overviewError: null,
-  recentError: null,
-  isOverviewEmpty: false,
-};
-
-function SectionHeading({
+const SectionHeading = ({
   eyebrow,
   title,
   description,
@@ -28,61 +14,57 @@ function SectionHeading({
   eyebrow: string;
   title: string;
   description: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-        {eyebrow}
-      </p>
-      <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-        <p className="text-sm leading-7 text-muted-foreground">{description}</p>
-      </div>
+}) => (
+  <div className="space-y-2">
+    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+      {eyebrow}
+    </p>
+    <div className="space-y-1">
+      <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+      <p className="text-sm leading-7 text-muted-foreground">{description}</p>
     </div>
-  );
-}
+  </div>
+);
 
-function PracticeModeLoadingState() {
-  return (
-    <div data-state="loading" className="grid gap-6">
-      <section className="rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="mt-4 h-9 w-1/2" />
-        <Skeleton className="mt-3 h-20 w-full" />
-      </section>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="grid gap-6">
-          <section className="rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
-            <Skeleton className="h-4 w-28" />
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              {Array.from({ length: 2 }, (_, index) => (
-                <Skeleton key={index} className="h-40 rounded-[28px]" />
-              ))}
-            </div>
-          </section>
-          <section className="rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
-            <Skeleton className="h-4 w-28" />
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              {Array.from({ length: 4 }, (_, index) => (
-                <Skeleton key={index} className="h-36 rounded-[28px]" />
-              ))}
-            </div>
-          </section>
-        </div>
+const LoadingState = () => (
+  <div data-state="loading" className="grid gap-6">
+    <section className="rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="mt-4 h-9 w-1/2" />
+      <Skeleton className="mt-3 h-20 w-full" />
+    </section>
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-6">
         <section className="rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
-          <Skeleton className="h-4 w-24" />
-          <div className="mt-5 grid gap-3">
-            {Array.from({ length: 3 }, (_, index) => (
-              <Skeleton key={index} className="h-20 rounded-[24px]" />
+          <Skeleton className="h-4 w-28" />
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {Array.from({ length: 2 }, (_, index) => (
+              <Skeleton key={index} className="h-40 rounded-[28px]" />
+            ))}
+          </div>
+        </section>
+        <section className="rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
+          <Skeleton className="h-4 w-28" />
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {Array.from({ length: 4 }, (_, index) => (
+              <Skeleton key={index} className="h-36 rounded-[28px]" />
             ))}
           </div>
         </section>
       </div>
+      <section className="rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
+        <Skeleton className="h-4 w-24" />
+        <div className="mt-5 grid gap-3">
+          {Array.from({ length: 3 }, (_, index) => (
+            <Skeleton key={index} className="h-20 rounded-[24px]" />
+          ))}
+        </div>
+      </section>
     </div>
-  );
-}
+  </div>
+);
 
-function PracticeModeInfoBanner({
+const InfoBanner = ({
   title,
   message,
   state,
@@ -90,78 +72,45 @@ function PracticeModeInfoBanner({
   title: string;
   message: string;
   state: "error" | "empty";
-}) {
-  return (
-    <MotionReveal
-      data-state={state}
-      className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm"
-    >
-      <div className="flex items-start gap-4">
-        <div
-          className={
-            state === "error"
-              ? "flex size-11 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive"
-              : "flex size-11 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
-          }
-        >
-          {state === "error" ? (
-            <AlertCircle className="size-5" />
-          ) : (
-            <ShieldAlert className="size-5" />
-          )}
-        </div>
-        <div className="space-y-2">
-          <p className="text-base font-semibold text-foreground">{title}</p>
-          <p className="text-sm leading-7 text-muted-foreground">{message}</p>
-        </div>
+}) => (
+  <MotionReveal
+    data-state={state}
+    className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm"
+  >
+    <div className="flex items-start gap-4">
+      <div
+        className={
+          state === "error"
+            ? "flex size-11 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive"
+            : "flex size-11 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
+        }
+      >
+        {state === "error" ? (
+          <AlertCircle className="size-5" />
+        ) : (
+          <ShieldAlert className="size-5" />
+        )}
       </div>
-    </MotionReveal>
-  );
-}
+      <div className="space-y-2">
+        <p className="text-base font-semibold text-foreground">{title}</p>
+        <p className="text-sm leading-7 text-muted-foreground">{message}</p>
+      </div>
+    </div>
+  </MotionReveal>
+);
 
-export function PracticeModePageShell({
-  repositoryId,
-}: {
-  repositoryId: string;
-}) {
-  const [data, setData] = useState<PracticeModeResult>(INITIAL_STATE);
-  const [isLoading, setIsLoading] = useState(true);
-  const [reloadVersion, setReloadVersion] = useState(0);
+export const PracticeModePage = ({ repositoryId }: { repositoryId: string }) => {
+  const modeQuery = useQuery(practiceQueryOptions.mode(repositoryId));
+  const data = modeQuery.data;
 
-  useEffect(() => {
-    let cancelled = false;
-
-    setIsLoading(true);
-
-    void fetchPracticeModeData(repositoryId)
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
-
-        setData(result);
-      })
-      .finally(() => {
-        if (cancelled) {
-          return;
-        }
-
-        setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [repositoryId, reloadVersion]);
-
-  if (isLoading) {
-    return <PracticeModeLoadingState />;
+  if (modeQuery.isLoading || !data) {
+    return <LoadingState />;
   }
 
   return (
-    <div className="grid gap-6" data-testid="practice-mode-page-shell">
+    <div className="grid gap-6" data-testid="practice-mode-page">
       {data.overviewError ? (
-        <PracticeModeInfoBanner
+        <InfoBanner
           title="题库详情存在兜底内容"
           message={data.overviewError}
           state="error"
@@ -169,7 +118,7 @@ export function PracticeModePageShell({
       ) : null}
 
       {data.isOverviewEmpty ? (
-        <PracticeModeInfoBanner
+        <InfoBanner
           title="题库详情暂为空"
           message="当前接口没有返回完整题库元信息，页面已退回到安全默认值，并继续展示模式结构。"
           state="empty"
@@ -271,9 +220,7 @@ export function PracticeModePageShell({
           </MotionReveal>
 
           <MotionReveal direction="up" delay={0.08}>
-            <section
-              className="rounded-[32px] border border-border bg-card/90 p-6 shadow-sm"
-            >
+            <section className="rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
               <SectionHeading
                 eyebrow="Question Types"
                 title="题型练习区"
@@ -374,7 +321,9 @@ export function PracticeModePageShell({
               </p>
               <button
                 type="button"
-                onClick={() => setReloadVersion((value) => value + 1)}
+                onClick={() => {
+                  void modeQuery.refetch();
+                }}
                 className="mt-3 inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <RefreshCcw className="size-4" />
@@ -386,4 +335,5 @@ export function PracticeModePageShell({
       </div>
     </div>
   );
-}
+};
+

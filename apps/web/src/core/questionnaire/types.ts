@@ -1,5 +1,3 @@
-export const QUESTIONNAIRE_PAGE_SIZE = 9;
-
 export interface QuestionnaireItem {
   id: string;
   title: string;
@@ -20,3 +18,4 @@ export interface QuestionnaireQueryState {
   page: number;
   keyword: string;
 }
+

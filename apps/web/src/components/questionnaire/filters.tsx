@@ -9,10 +9,9 @@ import {
   FieldLabel,
   Input,
 } from "@workspace/ui";
-import { useEffect } from "react";
-import type { QuestionnaireQueryState } from "./questionnaire-types";
+import type { QuestionnaireQueryState } from "@/core/questionnaire";
 
-export function QuestionnaireSearchForm({
+export const QuestionnaireFilters = ({
   defaultValues,
   pending,
   onSubmit,
@@ -22,7 +21,7 @@ export function QuestionnaireSearchForm({
   pending: boolean;
   onSubmit: (values: QuestionnaireQueryState) => void;
   onReset: () => void;
-}) {
+}) => {
   const form = useForm({
     defaultValues,
     onSubmit: ({ value }) => {
@@ -33,10 +32,6 @@ export function QuestionnaireSearchForm({
       });
     },
   });
-
-  useEffect(() => {
-    form.reset(defaultValues);
-  }, [defaultValues, form]);
 
   return (
     <form
@@ -76,17 +71,12 @@ export function QuestionnaireSearchForm({
           type="button"
           variant="outline"
           disabled={pending}
-          onClick={() => {
-            form.reset({
-              page: 1,
-              keyword: "",
-            });
-            onReset();
-          }}
+          onClick={onReset}
         >
           重置
         </Button>
       </div>
     </form>
   );
-}
+};
+

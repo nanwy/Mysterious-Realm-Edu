@@ -1,93 +1,94 @@
+"use client";
+
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, Button, Skeleton } from "@workspace/ui";
-import { CircleAlert, CircleSlash, ClipboardList, RefreshCcw } from "lucide-react";
-import type { QuestionnaireItem } from "./questionnaire-types";
+import {
+  CircleAlert,
+  CircleSlash,
+  ClipboardList,
+  RefreshCcw,
+} from "lucide-react";
+import type { QuestionnaireItem } from "@/core/questionnaire";
 
-function QuestionnaireLoadingState() {
-  return (
-    <div
-      data-state="loading"
-      className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(0,0.85fr)]"
-    >
-      {Array.from({ length: 6 }, (_, index) => (
-        <div
-          key={index}
-          className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="grid flex-1 gap-3">
-              <Skeleton className="h-4 w-20 rounded-full" />
-              <Skeleton className="h-7 w-3/4 rounded-full" />
-            </div>
-            <Skeleton className="size-12 rounded-2xl" />
+const LoadingState = () => (
+  <div
+    data-state="loading"
+    className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(0,0.85fr)]"
+  >
+    {Array.from({ length: 6 }, (_, index) => (
+      <div
+        key={index}
+        className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="grid flex-1 gap-3">
+            <Skeleton className="h-4 w-20 rounded-full" />
+            <Skeleton className="h-7 w-3/4 rounded-full" />
           </div>
-          <Skeleton className="mt-4 h-16 w-full rounded-2xl" />
-          <div className="mt-5 grid gap-2 sm:grid-cols-2">
-            <Skeleton className="h-16 rounded-2xl" />
-            <Skeleton className="h-16 rounded-2xl" />
-          </div>
-          <Skeleton className="mt-5 h-14 w-full rounded-2xl" />
+          <Skeleton className="size-12 rounded-2xl" />
         </div>
-      ))}
-    </div>
-  );
-}
-
-function QuestionnaireEmptyState({ keyword }: { keyword: string }) {
-  return (
-    <MotionReveal
-      data-state="empty"
-      className="rounded-[32px] border border-dashed border-border bg-card/85 px-6 py-12 text-center"
-    >
-      <div className="mx-auto flex max-w-xl flex-col items-center gap-4">
-        <div className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <CircleSlash className="size-6" />
+        <Skeleton className="mt-4 h-16 w-full rounded-2xl" />
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          <Skeleton className="h-16 rounded-2xl" />
+          <Skeleton className="h-16 rounded-2xl" />
         </div>
-        <div className="space-y-2">
-          <p className="text-lg font-semibold text-foreground">当前没有可展示的问卷</p>
-          <p className="text-sm leading-7 text-muted-foreground">
-            {keyword
-              ? `没有找到包含“${keyword}”的问卷，可以换一个关键词再试。`
-              : "接口返回了空结果，后续接入新问卷后会自动展示在这里。"}
-          </p>
-        </div>
+        <Skeleton className="mt-5 h-14 w-full rounded-2xl" />
       </div>
-    </MotionReveal>
-  );
-}
+    ))}
+  </div>
+);
 
-function QuestionnaireErrorState({
+const EmptyStateView = ({ keyword }: { keyword: string }) => (
+  <MotionReveal
+    data-state="empty"
+    className="rounded-[32px] border border-dashed border-border bg-card/85 px-6 py-12 text-center"
+  >
+    <div className="mx-auto flex max-w-xl flex-col items-center gap-4">
+      <div className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <CircleSlash className="size-6" />
+      </div>
+      <div className="space-y-2">
+        <p className="text-lg font-semibold text-foreground">当前没有可展示的问卷</p>
+        <p className="text-sm leading-7 text-muted-foreground">
+          {keyword
+            ? `没有找到包含“${keyword}”的问卷，可以换一个关键词再试。`
+            : "接口返回了空结果，后续接入新问卷后会自动展示在这里。"}
+        </p>
+      </div>
+    </div>
+  </MotionReveal>
+);
+
+const ErrorState = ({
   error,
   onRetry,
 }: {
   error: string;
   onRetry: () => void;
-}) {
-  return (
-    <MotionReveal
-      data-state="error"
-      className="rounded-[32px] border border-border bg-card/90 px-6 py-10 shadow-sm"
-    >
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-            <CircleAlert className="size-5" />
-          </div>
-          <div className="space-y-2">
-            <p className="text-lg font-semibold text-foreground">问卷列表暂时无法加载</p>
-            <p className="text-sm leading-7 text-muted-foreground">{error}</p>
-          </div>
+}) => (
+  <MotionReveal
+    data-state="error"
+    className="rounded-[32px] border border-border bg-card/90 px-6 py-10 shadow-sm"
+  >
+    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div className="flex items-start gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <CircleAlert className="size-5" />
         </div>
-        <Button type="button" variant="outline" onClick={onRetry}>
-          <RefreshCcw className="size-4" />
-          重新加载
-        </Button>
+        <div className="space-y-2">
+          <p className="text-lg font-semibold text-foreground">问卷列表暂时无法加载</p>
+          <p className="text-sm leading-7 text-muted-foreground">{error}</p>
+        </div>
       </div>
-    </MotionReveal>
-  );
-}
+      <Button type="button" variant="outline" onClick={onRetry}>
+        <RefreshCcw className="size-4" />
+        重新加载
+      </Button>
+    </div>
+  </MotionReveal>
+);
 
-export function QuestionnaireResults({
+export const Results = ({
   items,
   loading,
   error,
@@ -99,17 +100,17 @@ export function QuestionnaireResults({
   error: string | null;
   keyword: string;
   onRetry: () => void;
-}) {
+}) => {
   if (loading) {
-    return <QuestionnaireLoadingState />;
+    return <LoadingState />;
   }
 
   if (error) {
-    return <QuestionnaireErrorState error={error} onRetry={onRetry} />;
+    return <ErrorState error={error} onRetry={onRetry} />;
   }
 
   if (!items.length) {
-    return <QuestionnaireEmptyState keyword={keyword} />;
+    return <EmptyStateView keyword={keyword} />;
   }
 
   return (
@@ -174,4 +175,5 @@ export function QuestionnaireResults({
       ))}
     </MotionStagger>
   );
-}
+};
+

@@ -1,106 +1,61 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { usePathname, useRouter } from "next/navigation";
-import { startTransition, useEffect, useState } from "react";
-import {
-  fetchPracticeRepositories,
-  normalizePracticeError,
-} from "./practice-data";
-import { PracticeRepositoryList } from "./practice-repository-list";
-import { PracticeSearchForm } from "./practice-search-form";
-import {
-  PRACTICE_PAGE_SIZE,
-  type PracticeRepositoryItem,
-} from "./practice-types";
+import { useTransition } from "react";
+import { PracticeFilters } from "./filters";
+import { RepositoryList } from "./repository-list";
 import { ResultsPagination } from "../common/results-pagination";
+import {
+  normalizePracticeError,
+  PRACTICE_PAGE_SIZE,
+  practiceQueryOptions,
+} from "@/core/practice";
+import type { PracticeQueryState } from "@/core/practice";
 
-function createQueryString(page: number, keyword: string) {
-  const query = new URLSearchParams();
-  if (page > 1) {
-    query.set("page", String(page));
-  }
-  if (keyword.trim()) {
-    query.set("keyword", keyword.trim());
+const createQueryString = (query: PracticeQueryState) => {
+  const params = new URLSearchParams();
+
+  if (query.page > 1) {
+    params.set("page", String(query.page));
   }
 
-  const result = query.toString();
+  if (query.keyword.trim()) {
+    params.set("keyword", query.keyword.trim());
+  }
+
+  const result = params.toString();
   return result ? `?${result}` : "";
-}
+};
 
-export function PracticePageShell({
-  initialPage,
-  initialKeyword,
+export const PracticePage = ({
+  initialQuery,
 }: {
-  initialPage: number;
-  initialKeyword: string;
-}) {
+  initialQuery: PracticeQueryState;
+}) => {
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
-  const [keyword, setKeyword] = useState(initialKeyword);
-  const [items, setItems] = useState<PracticeRepositoryItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPending, setIsPending] = useState(false);
-  const [reloadVersion, setReloadVersion] = useState(0);
+  const practiceQuery = useQuery(practiceQueryOptions.list(initialQuery));
+  const items = practiceQuery.data?.items ?? [];
+  const total = practiceQuery.data?.total ?? 0;
+  const error = practiceQuery.error
+    ? normalizePracticeError(practiceQuery.error)
+    : null;
+  const isBusy = practiceQuery.isLoading || isPending;
 
-  useEffect(() => {
-    setKeyword(initialKeyword);
-  }, [initialKeyword]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    setIsLoading(true);
-    setError(null);
-
-    void fetchPracticeRepositories({
-      page: initialPage,
-      keyword: initialKeyword,
-    })
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
-
-        setItems(result.items);
-        setTotal(result.total);
-      })
-      .catch((nextError) => {
-        if (cancelled) {
-          return;
-        }
-
-        setItems([]);
-        setTotal(0);
-        setError(normalizePracticeError(nextError));
-      })
-      .finally(() => {
-        if (cancelled) {
-          return;
-        }
-
-        setIsLoading(false);
-        setIsPending(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialKeyword, initialPage, reloadVersion]);
-
-  const navigate = (page: number, nextKeyword: string) => {
-    setIsPending(true);
+  const navigate = (query: PracticeQueryState) => {
     startTransition(() => {
-      router.push(`${pathname}${createQueryString(page, nextKeyword)}`, {
+      router.push(`${pathname}${createQueryString(query)}`, {
         scroll: false,
       });
     });
   };
 
   const totalPages = Math.max(1, Math.ceil(total / PRACTICE_PAGE_SIZE));
+  const currentPage = Math.min(initialQuery.page, totalPages);
 
   return (
     <div className="grid gap-6">
@@ -128,12 +83,12 @@ export function PracticePageShell({
             >
               {[
                 { label: "分页规模", value: `${PRACTICE_PAGE_SIZE} 条/页` },
-                { label: "当前关键字", value: initialKeyword || "全部题库" },
+                { label: "当前关键字", value: initialQuery.keyword || "全部题库" },
                 {
                   label: "结果状态",
                   value: error
                     ? "接口异常"
-                    : isLoading
+                    : practiceQuery.isLoading
                       ? "加载中"
                       : `${total} 条`,
                 },
@@ -154,36 +109,34 @@ export function PracticePageShell({
         </section>
       </MotionReveal>
 
-      <PracticeSearchForm
-        value={keyword}
+      <PracticeFilters
+        key={initialQuery.keyword}
+        defaultKeyword={initialQuery.keyword}
         pending={isPending}
-        onValueChange={setKeyword}
-        onSubmit={() => navigate(1, keyword)}
+        onSubmit={(keyword) => navigate({ page: 1, keyword })}
         onReset={() => {
-          setKeyword("");
-          navigate(1, "");
+          navigate({ page: 1, keyword: "" });
         }}
       />
 
-      <PracticeRepositoryList
+      <RepositoryList
         items={items}
-        loading={isLoading}
+        loading={isBusy}
         error={error}
-        keyword={initialKeyword}
+        keyword={initialQuery.keyword}
         onRetry={() => {
-          setIsPending(false);
-          setReloadVersion((value) => value + 1);
+          void practiceQuery.refetch();
         }}
       />
 
       <ResultsPagination
-        page={Math.min(initialPage, totalPages)}
+        page={currentPage}
         pageCount={totalPages}
         total={total}
         pending={isPending}
         itemLabel="条结果"
-        onPageChange={(page: number) => navigate(page, initialKeyword)}
+        onPageChange={(page) => navigate({ page, keyword: initialQuery.keyword })}
       />
     </div>
   );
-}
+};

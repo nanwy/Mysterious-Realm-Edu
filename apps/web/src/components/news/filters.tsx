@@ -1,30 +1,48 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Button, Field, FieldGroup, FieldLabel, Input } from "@workspace/ui";
-import { useEffect } from "react";
-import type { NewsSuggestionItem } from "@/core/news";
+import { useEffect, useState } from "react";
+import { newsQueryOptions, normalizeNewsError } from "@/core/news";
 
-export const SearchForm = ({
+const useDebouncedValue = <Value,>(value: Value, delayMs: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedValue(value);
+    }, delayMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [delayMs, value]);
+
+  return debouncedValue;
+};
+
+export const NewsFilters = ({
   defaultKeyword,
   pending,
-  suggestions,
-  suggestionsLoading,
-  suggestionsError,
-  onKeywordChange,
   onSubmit,
   onReset,
 }: {
   defaultKeyword: string;
   pending: boolean;
-  suggestions: NewsSuggestionItem[];
-  suggestionsLoading: boolean;
-  suggestionsError: string | null;
-  onKeywordChange: (value: string) => void;
   onSubmit: (keyword: string) => void;
   onReset: () => void;
 }) => {
+  const [keywordInput, setKeywordInput] = useState(defaultKeyword);
+  const debouncedKeyword = useDebouncedValue(keywordInput, 300);
+  const suggestionsQuery = useQuery(
+    newsQueryOptions.suggestions(debouncedKeyword)
+  );
+  const suggestions = suggestionsQuery.data ?? [];
+  const suggestionsError = suggestionsQuery.error
+    ? normalizeNewsError(suggestionsQuery.error)
+    : null;
   const form = useForm({
     defaultValues: {
       keyword: defaultKeyword,
@@ -33,12 +51,6 @@ export const SearchForm = ({
       onSubmit(value.keyword.trim());
     },
   });
-
-  useEffect(() => {
-    form.reset({
-      keyword: defaultKeyword,
-    });
-  }, [defaultKeyword, form]);
 
   return (
     <section
@@ -75,7 +87,7 @@ export const SearchForm = ({
                     onBlur={field.handleBlur}
                     onChange={(event) => {
                       field.handleChange(event.target.value);
-                      onKeywordChange(event.target.value);
+                      setKeywordInput(event.target.value);
                     }}
                     placeholder="输入资讯标题、关键词"
                   />
@@ -95,13 +107,7 @@ export const SearchForm = ({
                 variant="outline"
                 size="lg"
                 disabled={pending}
-                onClick={() => {
-                  form.reset({
-                    keyword: "",
-                  });
-                  onKeywordChange("");
-                  onReset();
-                }}
+                onClick={onReset}
               >
                 重置
               </Button>
@@ -118,7 +124,7 @@ export const SearchForm = ({
               </p>
             </div>
             <p className="text-xs text-muted-foreground">
-              {suggestionsLoading ? "搜索建议加载中" : `${suggestions.length} 条建议`}
+              {suggestionsQuery.isFetching ? "搜索建议加载中" : `${suggestions.length} 条建议`}
             </p>
           </div>
 

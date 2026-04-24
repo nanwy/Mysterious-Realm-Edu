@@ -1,36 +1,39 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { usePathname, useRouter } from "next/navigation";
-import { startTransition, useEffect, useState } from "react";
-import {
-  fetchQuestionnaires,
-  normalizeQuestionnaireError,
-} from "./questionnaire-data";
-import { QuestionnaireResults } from "./questionnaire-results";
-import { QuestionnaireSearchForm } from "./questionnaire-search-form";
-import {
-  QUESTIONNAIRE_PAGE_SIZE,
-  type QuestionnaireItem,
-  type QuestionnaireQueryState,
-} from "./questionnaire-types";
+import { useTransition } from "react";
+import { QuestionnaireFilters } from "./filters";
+import { Results } from "./results";
 import { ResultsPagination } from "../common/results-pagination";
+import {
+  normalizeQuestionnaireError,
+  QUESTIONNAIRE_PAGE_SIZE,
+  questionnaireQueryOptions,
+} from "@/core/questionnaire";
+import type {
+  QuestionnaireItem,
+  QuestionnaireQueryState,
+} from "@/core/questionnaire";
 
-function createQueryString(page: number, keyword: string) {
-  const query = new URLSearchParams();
-  if (page > 1) {
-    query.set("page", String(page));
-  }
-  if (keyword.trim()) {
-    query.set("keyword", keyword.trim());
+const createQueryString = (query: QuestionnaireQueryState) => {
+  const params = new URLSearchParams();
+
+  if (query.page > 1) {
+    params.set("page", String(query.page));
   }
 
-  const result = query.toString();
+  if (query.keyword.trim()) {
+    params.set("keyword", query.keyword.trim());
+  }
+
+  const result = params.toString();
   return result ? `?${result}` : "";
-}
+};
 
-function getLoadedRange(page: number, total: number) {
+const getLoadedRange = (page: number, total: number) => {
   if (!total) {
     return "0-0";
   }
@@ -38,88 +41,51 @@ function getLoadedRange(page: number, total: number) {
   const start = (page - 1) * QUESTIONNAIRE_PAGE_SIZE + 1;
   const end = Math.min(page * QUESTIONNAIRE_PAGE_SIZE, total);
   return `${start}-${end}`;
-}
+};
 
-function summarizeQuestionnaires(items: QuestionnaireItem[]) {
+const summarizeQuestionnaires = (items: QuestionnaireItem[]) => {
   const categories = new Set(
     items.map((item) => item.category).filter((value) => value.trim())
   );
-  const activeCount = items.filter((item) => !item.status || item.status === "可参与").length;
+  const activeCount = items.filter(
+    (item) => !item.status || item.status === "可参与"
+  ).length;
 
   return {
     categoryCount: categories.size,
     activeCount,
   };
-}
+};
 
-export function QuestionnairePageShell({
-  initialPage,
-  initialKeyword,
+export const QuestionnairePage = ({
+  initialQuery,
 }: {
-  initialPage: number;
-  initialKeyword: string;
-}) {
+  initialQuery: QuestionnaireQueryState;
+}) => {
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
-  const [items, setItems] = useState<QuestionnaireItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPending, setIsPending] = useState(false);
-  const [reloadVersion, setReloadVersion] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    setIsLoading(true);
-    setError(null);
-
-    void fetchQuestionnaires({
-      page: initialPage,
-      keyword: initialKeyword,
-    })
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
-
-        setItems(result.items);
-        setTotal(result.total);
-      })
-      .catch((nextError) => {
-        if (cancelled) {
-          return;
-        }
-
-        setItems([]);
-        setTotal(0);
-        setError(normalizeQuestionnaireError(nextError));
-      })
-      .finally(() => {
-        if (cancelled) {
-          return;
-        }
-
-        setIsLoading(false);
-        setIsPending(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialKeyword, initialPage, reloadVersion]);
+  const questionnaireQuery = useQuery(
+    questionnaireQueryOptions.list(initialQuery)
+  );
+  const items = questionnaireQuery.data?.items ?? [];
+  const total = questionnaireQuery.data?.total ?? 0;
+  const error = questionnaireQuery.error
+    ? normalizeQuestionnaireError(questionnaireQuery.error)
+    : null;
+  const isBusy = questionnaireQuery.isLoading || isPending;
 
   const navigate = (query: QuestionnaireQueryState) => {
-    setIsPending(true);
     startTransition(() => {
-      router.push(`${pathname}${createQueryString(query.page, query.keyword)}`, {
+      router.push(`${pathname}${createQueryString(query)}`, {
         scroll: false,
       });
     });
   };
 
   const totalPages = Math.max(1, Math.ceil(total / QUESTIONNAIRE_PAGE_SIZE));
-  const rangeLabel = getLoadedRange(initialPage, total);
+  const currentPage = Math.min(initialQuery.page, totalPages);
+  const rangeLabel = getLoadedRange(initialQuery.page, total);
   const summary = summarizeQuestionnaires(items);
 
   return (
@@ -150,10 +116,14 @@ export function QuestionnairePageShell({
               <MotionStagger className="grid gap-3 sm:grid-cols-3" delayChildren={0.08}>
                 {[
                   { label: "分页规模", value: `${QUESTIONNAIRE_PAGE_SIZE} 条/页` },
-                  { label: "当前关键字", value: initialKeyword || "全部问卷" },
+                  { label: "当前关键字", value: initialQuery.keyword || "全部问卷" },
                   {
                     label: "结果状态",
-                    value: error ? "接口异常" : isLoading ? "加载中" : `${total} 条`,
+                    value: error
+                      ? "接口异常"
+                      : questionnaireQuery.isLoading
+                        ? "加载中"
+                        : `${total} 条`,
                   },
                 ].map((item) => (
                   <MotionItem key={item.label}>
@@ -184,8 +154,7 @@ export function QuestionnairePageShell({
                     结果范围 {rangeLabel}
                   </h3>
                   <p className="text-sm leading-7 text-muted-foreground">
-                    当前第 {Math.min(initialPage, totalPages)} 页，首屏同步展示可参与数量、
-                    分类覆盖和查询语境，减少空翻页与反复试错。
+                    当前第 {currentPage} 页，首屏同步展示可参与数量、分类覆盖和查询语境，减少空翻页与反复试错。
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
@@ -239,18 +208,16 @@ export function QuestionnairePageShell({
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <span className="rounded-full border border-border/70 bg-background/80 px-3 py-1.5">
-                关键词：{initialKeyword || "未筛选"}
+                关键词：{initialQuery.keyword || "未筛选"}
               </span>
               <span className="rounded-full border border-border/70 bg-background/80 px-3 py-1.5">
-                页码：{Math.min(initialPage, totalPages)}
+                页码：{currentPage}
               </span>
             </div>
           </div>
-          <QuestionnaireSearchForm
-            defaultValues={{
-              page: initialPage,
-              keyword: initialKeyword,
-            }}
+          <QuestionnaireFilters
+            key={`${initialQuery.keyword}:${initialQuery.page}`}
+            defaultValues={initialQuery}
             pending={isPending}
             onSubmit={(values) => navigate(values)}
             onReset={() =>
@@ -275,31 +242,30 @@ export function QuestionnairePageShell({
             <h3 className="text-xl font-semibold text-foreground">
               {error
                 ? "当前结果暂不可用"
-                : isLoading
+                : questionnaireQuery.isLoading
                   ? "正在整理问卷列表"
                   : `已展示 ${Math.min(items.length, QUESTIONNAIRE_PAGE_SIZE)} 份问卷`}
             </h3>
           </div>
           <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
-            {initialKeyword
-              ? `当前按“${initialKeyword}”筛选；如果结果偏少，可以直接清空关键词查看全部问卷。`
+            {initialQuery.keyword
+              ? `当前按“${initialQuery.keyword}”筛选；如果结果偏少，可以直接清空关键词查看全部问卷。`
               : "未输入关键词时默认展示全部问卷，并保留真实接口的分页与错误兜底状态。"}
           </p>
         </div>
-        <QuestionnaireResults
+        <Results
           items={items}
-          loading={isLoading}
+          loading={isBusy}
           error={error}
-          keyword={initialKeyword}
+          keyword={initialQuery.keyword}
           onRetry={() => {
-            setIsPending(false);
-            setReloadVersion((value) => value + 1);
+            void questionnaireQuery.refetch();
           }}
         />
       </section>
 
       <ResultsPagination
-        page={Math.min(initialPage, totalPages)}
+        page={currentPage}
         pageCount={totalPages}
         total={total}
         pending={isPending}
@@ -307,10 +273,10 @@ export function QuestionnairePageShell({
         onPageChange={(page) =>
           navigate({
             page,
-            keyword: initialKeyword,
+            keyword: initialQuery.keyword,
           })
         }
       />
     </div>
   );
-}
+};

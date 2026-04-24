@@ -1,3 +1,21 @@
+export interface PracticeRepositoryItem {
+  id: string;
+  title: string;
+  description: string;
+  questionCount?: string;
+  updatedAt?: string;
+}
+
+export interface PracticeRepositoryResult {
+  items: PracticeRepositoryItem[];
+  total: number;
+}
+
+export interface PracticeQueryState {
+  page: number;
+  keyword: string;
+}
+
 export interface PracticeModeAction {
   id: string;
   title: string;
@@ -34,3 +52,4 @@ export interface PracticeModeResult {
   recentError: string | null;
   isOverviewEmpty: boolean;
 }
+
