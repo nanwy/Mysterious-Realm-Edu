@@ -101,6 +101,7 @@ Do:
 - Include filters and pagination in query keys.
 - Keep Zustand stores limited to drafts, filters, selections, and view state.
 - Move reusable API, types, and helpers to packages when another app needs them.
+- Use semantic domain constants or enums for UI state and filters. If backend numeric/string codes must be the actual values, wrap them in named enums such as `EXAM_STATUS.IN_PROGRESS = "0"`; do not spread magic values such as `"0"`, `"1"`, or `"2"` through components.
 
 Do not:
 

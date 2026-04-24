@@ -135,7 +135,9 @@ The core layer should own data and domain contracts:
     - `fetchExamPreview` returns `null` on failure.
 
 - `core/exams/config.ts`
-  - Export `EXAMS_PAGE_SIZE`, exam type options, and exam status options.
+  - Export `EXAMS_PAGE_SIZE`, semantic exam type/status constants, exam type options, and exam status options.
+  - Prefer named enums when backend numeric status/type codes are the actual values, for example `EXAM_TYPE.PUBLIC = "1"` and `EXAM_STATUS.IN_PROGRESS = "0"`.
+  - Components, routes, query keys, stores, and frontend types should reference enum members such as `EXAM_TYPE.PUBLIC` and `EXAM_STATUS.IN_PROGRESS`, not raw backend codes such as `"0"`, `"1"`, `"2"`, or `"3"`.
   - May export small label helpers or module-level maps if that keeps component code cleaner.
 
 - `core/exams/queries.ts`

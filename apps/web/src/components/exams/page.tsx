@@ -1,24 +1,28 @@
 "use client";
 
-import { startTransition, useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard, Tabs, TabsList, TabsTrigger } from "@workspace/ui";
 import { ResultsPagination } from "../common/results-pagination";
-import { fetchExamList, normalizeExamError } from "./exams-data";
-import { ExamsFilters } from "./exams-filters";
-import { ExamsResults } from "./exams-results";
+import { ExamsFilters } from "./filters";
+import { ExamsResults } from "./results";
 import {
   EXAMS_PAGE_SIZE,
+  EXAM_STATUS,
   EXAM_STATUS_OPTIONS,
+  EXAM_TYPE,
   EXAM_TYPE_OPTIONS,
+  examQueryOptions,
+  useExamStore,
   type ExamFiltersState,
   type ExamListItem,
   type ExamStatusFilter,
   type ExamTypeFilter,
-} from "./exams-types";
+} from "@/core/exams";
 
-function createQueryString(filters: ExamFiltersState) {
+const createQueryString = (filters: ExamFiltersState) => {
   const params = new URLSearchParams();
 
   if (filters.pageNo > 1) {
@@ -29,128 +33,105 @@ function createQueryString(filters: ExamFiltersState) {
     params.set("keyword", filters.examTitle.trim());
   }
 
-  if (filters.examType !== "1") {
+  if (filters.examType !== EXAM_TYPE.PUBLIC) {
     params.set("type", filters.examType);
   }
 
-  if (filters.state) {
+  if (filters.state !== EXAM_STATUS.ALL) {
     params.set("status", filters.state);
   }
 
   const query = params.toString();
   return query ? `?${query}` : "";
-}
+};
 
-function getStatusSummary(status: ExamStatusFilter) {
-  return (
-    EXAM_STATUS_OPTIONS.find((item) => item.value === status)?.label ?? "全部"
-  );
-}
+const getStatusSummary = (status: ExamStatusFilter) =>
+  EXAM_STATUS_OPTIONS.find((item) => item.value === status)?.label ?? "全部";
 
-function getTypeSummary(type: ExamTypeFilter) {
-  return (
-    EXAM_TYPE_OPTIONS.find((item) => item.value === type)?.label ?? "公开考试"
-  );
-}
+const getTypeSummary = (type: ExamTypeFilter) =>
+  EXAM_TYPE_OPTIONS.find((item) => item.value === type)?.label ?? "公开考试";
 
-export function ExamsPageShell({
+export const ExamsPage = ({
   initialFilters,
 }: {
   initialFilters: ExamFiltersState;
-}) {
+}) => {
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
   const [draftFilters, setDraftFilters] = useState(initialFilters);
-  const [items, setItems] = useState<ExamListItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPending, setIsPending] = useState(false);
-  const [reloadVersion, setReloadVersion] = useState(0);
+  const setActiveExam = useExamStore((state) => state.setActiveExam);
+  const examsQuery = useQuery(examQueryOptions.list(initialFilters));
+  const items: ExamListItem[] = examsQuery.data?.items ?? [];
+  const total = examsQuery.data?.total ?? 0;
+  const isLoading = examsQuery.isLoading;
 
   useEffect(() => {
     setDraftFilters(initialFilters);
   }, [initialFilters]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    setIsLoading(true);
-    setError(null);
-
-    void fetchExamList(initialFilters)
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
-
-        setItems(result.items);
-        setTotal(result.total);
-      })
-      .catch((requestError) => {
-        if (cancelled) {
-          return;
-        }
-
-        setItems([]);
-        setTotal(0);
-        setError(normalizeExamError(requestError));
-      })
-      .finally(() => {
-        if (cancelled) {
-          return;
-        }
-
-        setIsLoading(false);
-        setIsPending(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialFilters, reloadVersion]);
-
-  function navigate(nextFilters: ExamFiltersState) {
-    setIsPending(true);
+  const navigate = (nextFilters: ExamFiltersState) => {
     setDraftFilters(nextFilters);
     startTransition(() => {
       router.push(`${pathname}${createQueryString(nextFilters)}`, {
         scroll: false,
       });
     });
-  }
+  };
 
-  function updateType(nextType: string) {
-    const examType = nextType === "2" ? "2" : "1";
+  const updateType = (nextType: string) => {
+    const examType =
+      nextType === EXAM_TYPE.MINE ? EXAM_TYPE.MINE : EXAM_TYPE.PUBLIC;
     navigate({
       ...draftFilters,
       examType,
       pageNo: 1,
     });
-  }
+  };
 
-  function updateStatus(nextStatus: string) {
-    const state =
-      nextStatus === "0" || nextStatus === "2" || nextStatus === "3"
-        ? nextStatus
-        : "";
+  const updateStatus = (nextStatus: string) => {
+    const state = EXAM_STATUS_OPTIONS.some(
+      (option) => option.value === nextStatus
+    )
+      ? (nextStatus as ExamStatusFilter)
+      : EXAM_STATUS.ALL;
     navigate({
       ...draftFilters,
       state,
       pageNo: 1,
     });
-  }
+  };
 
-  function handleOpenExam(item: ExamListItem) {
+  const handleOpenExam = (item: ExamListItem) => {
     if (!item.examId) {
       return;
     }
 
+    setActiveExam(item.examId);
     router.push(`/exams/${item.examId}/preview`);
-  }
+  };
 
   const totalPages = Math.max(1, Math.ceil(total / EXAMS_PAGE_SIZE));
   const currentPage = Math.min(draftFilters.pageNo, totalPages);
+
+  useEffect(() => {
+    if (isLoading || initialFilters.pageNo <= totalPages) {
+      return;
+    }
+
+    const normalizedFilters = {
+      ...initialFilters,
+      pageNo: totalPages,
+    };
+
+    setDraftFilters(normalizedFilters);
+    startTransition(() => {
+      router.push(`${pathname}${createQueryString(normalizedFilters)}`, {
+        scroll: false,
+      });
+    });
+  }, [initialFilters, isLoading, pathname, router, startTransition, totalPages]);
+
   const overviewItems = [
     {
       label: "当前类型",
@@ -162,7 +143,7 @@ export function ExamsPageShell({
     },
     {
       label: "结果总数",
-      value: error ? "接口异常" : isLoading ? "加载中" : `${total} 条`,
+      value: isLoading ? "加载中" : `${total} 条`,
     },
   ];
 
@@ -172,7 +153,7 @@ export function ExamsPageShell({
         <SurfaceCard
           eyebrow="Exam"
           title="考试列表"
-          description="迁移旧 Vue 考试中心的双层筛选、搜索、结果列表与分页结构，继续使用 packages/api 的考试列表接口，并保留接口失败时的错误兜底。"
+          description="迁移旧 Vue 考试中心的双层筛选、搜索、结果列表与分页结构，继续使用 packages/api 的考试列表接口，并在接口不可用时展示安全空态。"
         >
           <div className="grid gap-8 xl:grid-cols-[minmax(19rem,0.9fr)_minmax(0,1.5fr)] xl:items-start">
             <div className="grid gap-5 xl:sticky xl:top-6">
@@ -256,7 +237,7 @@ export function ExamsPageShell({
                         <TabsList aria-label="考试状态">
                           {EXAM_STATUS_OPTIONS.map((option) => (
                             <TabsTrigger
-                              key={option.value || "all"}
+                              key={option.value}
                               value={option.value}
                             >
                               {option.label}
@@ -313,11 +294,6 @@ export function ExamsPageShell({
               <ExamsResults
                 items={items}
                 loading={isLoading}
-                error={error}
-                onRetry={() => {
-                  setIsPending(false);
-                  setReloadVersion((value) => value + 1);
-                }}
                 onOpen={handleOpenExam}
               />
 
@@ -348,4 +324,4 @@ export function ExamsPageShell({
       </MotionItem>
     </MotionStagger>
   );
-}
+};

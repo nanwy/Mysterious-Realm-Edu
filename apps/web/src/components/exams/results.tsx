@@ -3,18 +3,18 @@
 import { Badge, Button, EmptyState, Skeleton } from "@workspace/ui";
 import { cn } from "@workspace/ui/lib/utils";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
-import type { ExamListItem } from "./exams-types";
+import { EXAM_STATUS, type ExamListItem } from "@/core/exams";
 
-function getStatusPresentation(status: ExamListItem["status"]) {
+const getStatusPresentation = (status: ExamListItem["status"]) => {
   switch (status) {
-    case "0":
+    case EXAM_STATUS.IN_PROGRESS:
       return {
         railClassName: "bg-primary/70",
         statusClassName: "border border-primary/20 bg-primary/10 text-primary",
         metaClassName: "border-primary/15 bg-primary/[0.07]",
         label: "当前可进入",
       };
-    case "2":
+    case EXAM_STATUS.NOT_STARTED:
       return {
         railClassName: "bg-secondary-foreground/40",
         statusClassName:
@@ -22,7 +22,7 @@ function getStatusPresentation(status: ExamListItem["status"]) {
         metaClassName: "border-border/80 bg-secondary/55",
         label: "等待开考",
       };
-    case "3":
+    case EXAM_STATUS.ENDED:
     default:
       return {
         railClassName: "bg-border",
@@ -31,9 +31,9 @@ function getStatusPresentation(status: ExamListItem["status"]) {
         label: "结果留档",
       };
   }
-}
+};
 
-function ExamsLoadingState() {
+const ExamsLoadingState = () => {
   return (
     <MotionStagger
       className="grid gap-3"
@@ -71,53 +71,19 @@ function ExamsLoadingState() {
       ))}
     </MotionStagger>
   );
-}
+};
 
-export function ExamsResults({
+export const ExamsResults = ({
   items,
   loading,
-  error,
-  onRetry,
   onOpen,
 }: {
   items: ExamListItem[];
   loading: boolean;
-  error: string | null;
-  onRetry: () => void;
   onOpen: (item: ExamListItem) => void;
-}) {
+}) => {
   if (loading) {
     return <ExamsLoadingState />;
-  }
-
-  if (error) {
-    return (
-      <MotionReveal
-        data-state="error"
-        className="rounded-[32px] border border-destructive/25 bg-card/90 px-6 py-10 shadow-sm"
-      >
-        <div className="grid gap-5">
-          <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.28em] text-destructive/80">
-              Exam signal interrupted
-            </p>
-            <div className="space-y-2">
-              <h3 className="text-[1.375rem] font-semibold tracking-[-0.02em] text-foreground">
-                考试列表暂时不可用
-              </h3>
-              <p className="max-w-[62ch] text-base leading-7 text-muted-foreground">
-                {error}
-              </p>
-            </div>
-          </div>
-          <div>
-            <Button type="button" variant="outline" onClick={onRetry}>
-              重新加载
-            </Button>
-          </div>
-        </div>
-      </MotionReveal>
-    );
   }
 
   if (!items.length) {
@@ -138,7 +104,7 @@ export function ExamsResults({
     <MotionStagger
       className="grid gap-3"
       delayChildren={0.08}
-      data-testid="exams-results-section"
+      data-testid="exam-results-section"
     >
       {items.map((item) => {
         const presentation = getStatusPresentation(item.status);
@@ -232,9 +198,9 @@ export function ExamsResults({
 
                     <div className="rounded-[24px] border border-border/80 bg-card/75 p-4">
                       <p className="text-sm leading-6 text-muted-foreground">
-                        {item.status === "0"
+                        {item.status === EXAM_STATUS.IN_PROGRESS
                           ? "考试正在进行，优先进入以免错过当前作答窗口。"
-                          : item.status === "2"
+                          : item.status === EXAM_STATUS.NOT_STARTED
                             ? "考试尚未开始，可先确认时间安排与参与范围。"
                             : "考试已结束，可进入查看详情或后续结果。"}
                       </p>
@@ -244,7 +210,11 @@ export function ExamsResults({
                   <div className="grid gap-3">
                     <Button
                       type="button"
-                      variant={item.status === "3" ? "outline" : "default"}
+                      variant={
+                        item.status === EXAM_STATUS.ENDED
+                          ? "outline"
+                          : "default"
+                      }
                       className="min-h-11 w-full justify-center rounded-[1.1rem] text-sm font-semibold"
                       disabled={!item.examId}
                       onClick={() => onOpen(item)}
@@ -260,4 +230,4 @@ export function ExamsResults({
       })}
     </MotionStagger>
   );
-}
+};

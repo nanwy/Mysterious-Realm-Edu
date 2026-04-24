@@ -1,13 +1,18 @@
 "use client";
 
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button, EmptyState, Skeleton, SurfaceCard } from "@workspace/ui";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
-import { useEffect, useState } from "react";
-import { fetchExamPreview, normalizeExamPreviewError, type ExamPreviewPayload } from "./exam-preview-data";
+import { examQueryOptions } from "@/core/exams";
 
-function ExamPreviewLoadingState() {
+const ExamPreviewLoadingState = () => {
   return (
-    <MotionStagger className="grid gap-6" delayChildren={0.08} data-testid="exam-preview-loading">
+    <MotionStagger
+      className="grid gap-6"
+      delayChildren={0.08}
+      data-testid="exam-preview-loading"
+    >
       <MotionItem>
         <div className="rounded-[28px] border border-border bg-card/90 p-6 shadow-sm">
           <Skeleton className="h-5 w-24 rounded-full" />
@@ -24,86 +29,41 @@ function ExamPreviewLoadingState() {
       </MotionItem>
     </MotionStagger>
   );
-}
+};
 
-function ExamPreviewEmptyState() {
+const ExamPreviewEmptyState = () => {
   return (
-    <MotionReveal data-testid="exam-preview-empty" className="rounded-[32px] border border-dashed border-border bg-card/80 px-6 py-14 shadow-sm">
+    <MotionReveal
+      data-testid="exam-preview-empty"
+      className="rounded-[32px] border border-dashed border-border bg-card/80 px-6 py-14 shadow-sm"
+    >
       <EmptyState
         title="未找到考试信息"
-        description="当前考试可能已下线，或接口未返回预览页所需的基础字段。"
+        description="当前考试可能已下线，或暂时无法展示预览页所需信息。"
       />
     </MotionReveal>
   );
-}
+};
 
-export function ExamPreviewPageShell({ examId }: { examId: string }) {
-  const [preview, setPreview] = useState<ExamPreviewPayload | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [reloadVersion, setReloadVersion] = useState(0);
+export const ExamPreviewPage = ({ examId }: { examId: string }) => {
+  const [actionFeedback, setActionFeedback] = useState<{
+    examId: string;
+    message: string;
+  } | null>(null);
+  const previewQuery = useQuery(examQueryOptions.preview(examId));
+  const preview = previewQuery.data;
+  const isLoading = previewQuery.isLoading;
 
-  useEffect(() => {
-    let cancelled = false;
-
-    setIsLoading(true);
-    setError(null);
-    setActionFeedback(null);
-
-    void fetchExamPreview(examId)
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
-
-        setPreview(result);
-      })
-      .catch((requestError) => {
-        if (cancelled) {
-          return;
-        }
-
-        setPreview(null);
-        setError(normalizeExamPreviewError(requestError));
-      })
-      .finally(() => {
-        if (cancelled) {
-          return;
-        }
-
-        setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [examId, reloadVersion]);
-
-  function handleStartExam() {
-    setActionFeedback("在线作答页仍在迁移中，当前版本先承接预览信息与开始入口；请暂时通过旧版作答链路进入考试。");
-  }
+  const handleStartExam = () => {
+    setActionFeedback({
+      examId,
+      message:
+        "在线作答页仍在迁移中，当前版本先承接预览信息与开始入口；请暂时通过旧版作答链路进入考试。",
+    });
+  };
 
   if (isLoading) {
     return <ExamPreviewLoadingState />;
-  }
-
-  if (error) {
-    return (
-      <MotionReveal data-testid="exam-preview-error" className="rounded-[32px] border border-destructive/30 bg-card/90 px-6 py-10 shadow-sm">
-        <div className="grid gap-4">
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">考试预览暂时不可用</h2>
-            <p className="text-sm leading-7 text-muted-foreground">{error}</p>
-          </div>
-          <div>
-            <Button type="button" variant="outline" onClick={() => setReloadVersion((value) => value + 1)}>
-              重新加载
-            </Button>
-          </div>
-        </div>
-      </MotionReveal>
-    );
   }
 
   if (!preview) {
@@ -116,7 +76,7 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
         <SurfaceCard
           eyebrow="Exam Preview"
           title={preview.title}
-          description="承接旧学员端考试预览页，保留考试基础信息、考生须知、开始考试入口，以及接口失败时的兜底说明。"
+          description="承接旧学员端考试预览页，保留考试基础信息、考生须知、开始考试入口，以及接口不可用时的安全不可用状态。"
         >
           <div className="grid gap-6">
             <MotionReveal direction="up">
@@ -128,16 +88,25 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
                   <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                     {preview.summary}
                   </p>
-                  <h2 className="text-3xl font-semibold text-foreground">{preview.title}</h2>
+                  <h2 className="text-3xl font-semibold text-foreground">
+                    {preview.title}
+                  </h2>
                   <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
                     {preview.description}
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
                   {preview.schedule.map((item) => (
-                    <div key={item.label} className="rounded-[24px] border border-border bg-background/80 p-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{item.label}</p>
-                      <p className="mt-2 text-base font-semibold text-foreground">{item.value}</p>
+                    <div
+                      key={item.label}
+                      className="rounded-[24px] border border-border bg-background/80 p-4"
+                    >
+                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                        {item.label}
+                      </p>
+                      <p className="mt-2 text-base font-semibold text-foreground">
+                        {item.value}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -147,9 +116,14 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
             <MotionReveal direction="up" delay={0.04}>
               <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {preview.stats.map((item) => (
-                  <div key={item.label} className="rounded-[24px] border border-border bg-card/90 p-5 shadow-sm">
+                  <div
+                    key={item.label}
+                    className="rounded-[24px] border border-border bg-card/90 p-5 shadow-sm"
+                  >
                     <p className="text-sm text-muted-foreground">{item.label}</p>
-                    <p className="mt-3 text-xl font-semibold text-foreground">{item.value}</p>
+                    <p className="mt-3 text-xl font-semibold text-foreground">
+                      {item.value}
+                    </p>
                   </div>
                 ))}
               </section>
@@ -161,14 +135,19 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
                 className="grid gap-4 rounded-[28px] border border-border bg-card/90 p-5 shadow-sm"
               >
                 <div className="space-y-2">
-                  <h3 className="text-xl font-semibold text-foreground">考生须知</h3>
+                  <h3 className="text-xl font-semibold text-foreground">
+                    考生须知
+                  </h3>
                   <p className="text-sm leading-7 text-muted-foreground">
                     以下说明来自真实考试详情字段与旧预览页结构的只读承接，便于开始作答前快速确认考试要求。
                   </p>
                 </div>
                 <div className="grid gap-3">
                   {preview.instructions.map((item, index) => (
-                    <div key={`${index}-${item}`} className="rounded-[24px] border border-border bg-muted/30 p-4">
+                    <div
+                      key={`${index}-${item}`}
+                      className="rounded-[24px] border border-border bg-muted/30 p-4"
+                    >
                       <p className="text-sm leading-7 text-foreground">{item}</p>
                     </div>
                   ))}
@@ -179,12 +158,18 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
             <MotionReveal direction="up" delay={0.12}>
               <section className="grid gap-4 rounded-[28px] border border-border bg-card/90 p-5 shadow-sm">
                 <div className="space-y-2">
-                  <h3 className="text-xl font-semibold text-foreground">开始考试</h3>
-                  <p className="text-sm leading-7 text-muted-foreground">{preview.startHint}</p>
+                  <h3 className="text-xl font-semibold text-foreground">
+                    开始考试
+                  </h3>
+                  <p className="text-sm leading-7 text-muted-foreground">
+                    {preview.startHint}
+                  </p>
                 </div>
-                {actionFeedback ? (
+                {actionFeedback?.examId === examId ? (
                   <div className="rounded-[24px] border border-border bg-muted/30 p-4">
-                    <p className="text-sm leading-7 text-foreground">{actionFeedback}</p>
+                    <p className="text-sm leading-7 text-foreground">
+                      {actionFeedback.message}
+                    </p>
                   </div>
                 ) : null}
                 <div>
@@ -204,4 +189,4 @@ export function ExamPreviewPageShell({ examId }: { examId: string }) {
       </MotionItem>
     </MotionStagger>
   );
-}
+};

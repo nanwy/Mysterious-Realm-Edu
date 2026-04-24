@@ -1,5 +1,5 @@
 import { HomePage } from "@/components/home/home-page";
-import { getHomePageData } from "@/lib/data";
+import { getHomePageData } from "@/components/home/home-data";
 
 export default async function WebHomePage() {
   const data = await getHomePageData();

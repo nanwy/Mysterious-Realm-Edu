@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import { Button, Field, FieldGroup, FieldLabel, Input } from "@workspace/ui";
-import type { ExamFiltersState } from "./exams-types";
+import type { ExamFiltersState } from "@/core/exams";
 
-export function ExamsFilters({
+export const ExamsFilters = ({
   defaultValues,
   pending,
   onSubmit,
@@ -15,21 +14,19 @@ export function ExamsFilters({
   pending: boolean;
   onSubmit: (values: ExamFiltersState) => void;
   onReset: () => void;
-}) {
+}) => {
   const form = useForm({
-    defaultValues,
+    defaultValues: {
+      examTitle: defaultValues.examTitle,
+    },
     onSubmit: ({ value }) => {
       onSubmit({
-        ...value,
+        ...defaultValues,
         pageNo: 1,
         examTitle: value.examTitle.trim(),
       });
     },
   });
-
-  useEffect(() => {
-    form.reset(defaultValues);
-  }, [defaultValues, form]);
 
   return (
     <section
@@ -71,9 +68,7 @@ export function ExamsFilters({
               disabled={pending}
               onClick={() => {
                 form.reset({
-                  ...defaultValues,
                   examTitle: "",
-                  pageNo: 1,
                 });
                 onReset();
               }}
@@ -85,4 +80,4 @@ export function ExamsFilters({
       </form>
     </section>
   );
-}
+};
