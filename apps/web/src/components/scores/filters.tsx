@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "@workspace/ui";
 import { RotateCcw, Search } from "lucide-react";
-import { useEffect } from "react";
 import {
   SCORE_PASS_OPTIONS,
   SCORE_PASS_STATE,
@@ -24,13 +23,11 @@ import {
 export const ScoresFilters = ({
   filters,
   isLoading,
-  onChange,
   onQuery,
   onReset,
 }: {
   filters: ScoreFiltersState;
   isLoading: boolean;
-  onChange: (filters: ScoreFiltersState) => void;
   onQuery: (filters: ScoreFiltersState) => void;
   onReset: () => void;
 }) => {
@@ -42,14 +39,9 @@ export const ScoresFilters = ({
         examTitle: value.examTitle.trim(),
         pageNo: 1,
       };
-      onChange(nextFilters);
       onQuery(nextFilters);
     },
   });
-
-  useEffect(() => {
-    form.reset(filters);
-  }, [filters, form]);
 
   return (
     <form
@@ -77,10 +69,6 @@ export const ScoresFilters = ({
                   onBlur={field.handleBlur}
                   onChange={(event) => {
                     field.handleChange(event.target.value);
-                    onChange({
-                      ...form.state.values,
-                      examTitle: event.target.value,
-                    });
                   }}
                 />
                 <div className="absolute bottom-0 left-0 right-12 h-[2px] origin-left scale-x-0 bg-primary transition-transform group-focus-within:scale-x-100" />
@@ -103,10 +91,6 @@ export const ScoresFilters = ({
                 onValueChange={(value) => {
                   const passed = value as ScorePassFilter;
                   field.handleChange(passed);
-                  onChange({
-                    ...form.state.values,
-                    passed,
-                  });
                 }}
               >
                 <SelectTrigger className="h-16 w-full rounded-none border-0 bg-transparent px-0 focus:ring-0 focus:ring-offset-0">
@@ -165,4 +149,3 @@ export const ScoresFilters = ({
     </form>
   );
 };
-

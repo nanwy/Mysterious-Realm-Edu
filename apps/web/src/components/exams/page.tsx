@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard, Tabs, TabsList, TabsTrigger } from "@workspace/ui";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { ExamsFilters } from "./filters";
 import { ExamsResults } from "./results";
 import { ResultsPagination } from "../common/results-pagination";
@@ -59,19 +59,13 @@ export const ExamsPage = ({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
-  const [draftFilters, setDraftFilters] = useState(initialFilters);
   const setActiveExam = useExamStore((state) => state.setActiveExam);
   const examsQuery = useQuery(examQueryOptions.list(initialFilters));
   const items: ExamListItem[] = examsQuery.data?.items ?? [];
   const total = examsQuery.data?.total ?? 0;
   const isLoading = examsQuery.isLoading;
 
-  useEffect(() => {
-    setDraftFilters(initialFilters);
-  }, [initialFilters]);
-
   const navigate = (nextFilters: ExamFiltersState) => {
-    setDraftFilters(nextFilters);
     startTransition(() => {
       router.push(`${pathname}${createQueryString(nextFilters)}`, {
         scroll: false,
@@ -83,7 +77,7 @@ export const ExamsPage = ({
     const examType =
       nextType === EXAM_TYPE.MINE ? EXAM_TYPE.MINE : EXAM_TYPE.PUBLIC;
     navigate({
-      ...draftFilters,
+      ...initialFilters,
       examType,
       pageNo: 1,
     });
@@ -96,7 +90,7 @@ export const ExamsPage = ({
       ? (nextStatus as ExamStatusFilter)
       : EXAM_STATUS.ALL;
     navigate({
-      ...draftFilters,
+      ...initialFilters,
       state,
       pageNo: 1,
     });
@@ -112,7 +106,7 @@ export const ExamsPage = ({
   };
 
   const totalPages = Math.max(1, Math.ceil(total / EXAMS_PAGE_SIZE));
-  const currentPage = Math.min(draftFilters.pageNo, totalPages);
+  const currentPage = Math.min(initialFilters.pageNo, totalPages);
 
   useEffect(() => {
     if (isLoading || initialFilters.pageNo <= totalPages) {
@@ -124,7 +118,6 @@ export const ExamsPage = ({
       pageNo: totalPages,
     };
 
-    setDraftFilters(normalizedFilters);
     startTransition(() => {
       router.push(`${pathname}${createQueryString(normalizedFilters)}`, {
         scroll: false,
@@ -142,11 +135,11 @@ export const ExamsPage = ({
   const overviewItems = [
     {
       label: "当前类型",
-      value: getTypeSummary(draftFilters.examType),
+      value: getTypeSummary(initialFilters.examType),
     },
     {
       label: "筛选状态",
-      value: getStatusSummary(draftFilters.state),
+      value: getStatusSummary(initialFilters.state),
     },
     {
       label: "结果总数",
@@ -220,7 +213,7 @@ export const ExamsPage = ({
                     </p>
                     <div className="overflow-x-auto">
                       <Tabs
-                        value={draftFilters.examType}
+                        value={initialFilters.examType}
                         onValueChange={updateType}
                       >
                         <TabsList aria-label="考试类型">
@@ -243,7 +236,7 @@ export const ExamsPage = ({
                     </p>
                     <div className="overflow-x-auto">
                       <Tabs
-                        value={draftFilters.state}
+                        value={initialFilters.state}
                         onValueChange={updateStatus}
                       >
                         <TabsList aria-label="考试状态">
@@ -263,12 +256,13 @@ export const ExamsPage = ({
               </section>
 
               <ExamsFilters
-                defaultValues={draftFilters}
+                key={`${initialFilters.examTitle}:${initialFilters.examType}:${initialFilters.state}`}
+                defaultValues={initialFilters}
                 pending={isPending}
                 onSubmit={navigate}
                 onReset={() =>
                   navigate({
-                    ...draftFilters,
+                    ...initialFilters,
                     examTitle: "",
                     pageNo: 1,
                   })
@@ -324,7 +318,7 @@ export const ExamsPage = ({
                   itemLabel="场考试"
                   onPageChange={(page) =>
                     navigate({
-                      ...draftFilters,
+                      ...initialFilters,
                       pageNo: page,
                     })
                   }

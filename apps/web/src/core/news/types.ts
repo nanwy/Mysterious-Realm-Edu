@@ -1,6 +1,3 @@
-export const NEWS_PAGE_SIZE = 6;
-export const NEWS_DETAIL_PLACEHOLDER_PATH = "/news/detail";
-
 export interface NewsQueryState {
   page: number;
   keyword: string;
@@ -35,3 +32,27 @@ export interface NewsPageData {
   items: NewsListItem[];
   total: number;
 }
+
+export interface NewsDetailRecord {
+  id: string;
+  title: string;
+  content: string;
+  summary: string;
+  authorName: string;
+  authorAvatar: string | null;
+  publishTime: string;
+  viewCountText: string;
+  source: string;
+}
+
+export interface NewsHotRecord {
+  id: string;
+  title: string;
+  viewCountText: string;
+}
+
+export interface NewsDetailData {
+  article: NewsDetailRecord | null;
+  hotNews: NewsHotRecord[];
+}
+

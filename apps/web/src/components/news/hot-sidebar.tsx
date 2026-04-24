@@ -1,13 +1,15 @@
-import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
-import type { NewsListItem } from "./news-types";
+"use client";
 
-export function NewsHotSidebar({
+import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
+import type { NewsListItem } from "@/core/news";
+
+export const HotSidebar = ({
   items,
   error,
 }: {
   items: NewsListItem[];
   error: string | null;
-}) {
+}) => {
   const visibleItems = items.length
     ? items
     : Array.from({ length: 5 }, (_, index) => ({
@@ -69,4 +71,5 @@ export function NewsHotSidebar({
       </aside>
     </MotionReveal>
   );
-}
+};
+

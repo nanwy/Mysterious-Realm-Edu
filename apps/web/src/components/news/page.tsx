@@ -1,25 +1,26 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { ArrowRight, Flame, ScanSearch, Sparkles } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { startTransition, useDeferredValue, useEffect, useState } from "react";
-import { fetchNewsPageData, fetchNewsSuggestions, normalizeNewsError } from "./news-data";
-import { NewsHotSidebar } from "./news-hot-sidebar";
-import { NewsRecommendedSection } from "./news-recommended-section";
-import { NewsResults } from "./news-results";
-import { NewsSearchForm } from "./news-search-form";
-import {
-  NEWS_PAGE_SIZE,
-  type NewsListItem,
-  type NewsQueryState,
-  type NewsSectionCard,
-  type NewsSuggestionItem,
-} from "./news-types";
+import { useEffect, useState, useTransition } from "react";
+import { HotSidebar } from "./hot-sidebar";
+import { RecommendedSection } from "./recommended-section";
+import { Results } from "./results";
+import { SearchForm } from "./search-form";
 import { ResultsPagination } from "../common/results-pagination";
+import {
+  NEWS_HOT_LIMIT,
+  NEWS_PAGE_SIZE,
+  NEWS_RECOMMENDED_LIMIT,
+  newsQueryOptions,
+  normalizeNewsError,
+} from "@/core/news";
+import type { NewsQueryState } from "@/core/news";
 
-function createQueryString(query: NewsQueryState) {
+const createQueryString = (query: NewsQueryState) => {
   const params = new URLSearchParams();
 
   if (query.page > 1) {
@@ -32,9 +33,9 @@ function createQueryString(query: NewsQueryState) {
 
   const result = params.toString();
   return result ? `?${result}` : "";
-}
+};
 
-function getStatusCopy(error: string | null, loading: boolean, total: number) {
+const getStatusCopy = (error: string | null, loading: boolean, total: number) => {
   if (error) {
     return "接口异常";
   }
@@ -44,124 +45,47 @@ function getStatusCopy(error: string | null, loading: boolean, total: number) {
   }
 
   return `${total} 条资讯`;
-}
+};
 
-export function NewsPageShell({ initialQuery }: { initialQuery: NewsQueryState }) {
+const useDebouncedValue = <Value,>(value: Value, delayMs: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedValue(value);
+    }, delayMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [delayMs, value]);
+
+  return debouncedValue;
+};
+
+export const NewsPage = ({ initialQuery }: { initialQuery: NewsQueryState }) => {
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
-  const [recommendedItems, setRecommendedItems] = useState<NewsSectionCard[]>([]);
-  const [hotItems, setHotItems] = useState<NewsListItem[]>([]);
-  const [items, setItems] = useState<NewsListItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [recommendedError, setRecommendedError] = useState<string | null>(null);
-  const [hotError, setHotError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPending, setIsPending] = useState(false);
-  const [reloadVersion, setReloadVersion] = useState(0);
   const [keywordInput, setKeywordInput] = useState(initialQuery.keyword);
-  const [suggestions, setSuggestions] = useState<NewsSuggestionItem[]>([]);
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
-  const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
-  const deferredKeyword = useDeferredValue(keywordInput);
+  const debouncedKeyword = useDebouncedValue(keywordInput, 300);
+  const pageQuery = useQuery(newsQueryOptions.list(initialQuery));
+  const suggestionsQuery = useQuery(
+    newsQueryOptions.suggestions(debouncedKeyword)
+  );
+  const data = pageQuery.data;
+  const recommendedItems = data?.recommended ?? [];
+  const hotItems = data?.hot ?? [];
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const error = pageQuery.error ? normalizeNewsError(pageQuery.error) : null;
+  const isLoading = pageQuery.isLoading || isPending;
 
   useEffect(() => {
     setKeywordInput(initialQuery.keyword);
   }, [initialQuery.keyword]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    setIsLoading(true);
-    setError(null);
-    setRecommendedError(null);
-    setHotError(null);
-
-    void fetchNewsPageData(initialQuery)
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
-
-        setRecommendedItems(result.recommended);
-        setHotItems(result.hot);
-        setItems(result.items);
-        setTotal(result.total);
-        setRecommendedError(result.recommendedError);
-        setHotError(result.hotError);
-      })
-      .catch((requestError) => {
-        if (cancelled) {
-          return;
-        }
-
-        setRecommendedItems([]);
-        setHotItems([]);
-        setItems([]);
-        setTotal(0);
-        const message = normalizeNewsError(requestError);
-        setError(message);
-        setRecommendedError(message);
-        setHotError(message);
-      })
-      .finally(() => {
-        if (cancelled) {
-          return;
-        }
-
-        setIsLoading(false);
-        setIsPending(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialQuery, reloadVersion]);
-
-  useEffect(() => {
-    const trimmed = deferredKeyword.trim();
-    if (!trimmed) {
-      setSuggestions([]);
-      setSuggestionsError(null);
-      setSuggestionsLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setSuggestionsLoading(true);
-    setSuggestionsError(null);
-
-    void fetchNewsSuggestions(trimmed)
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
-
-        setSuggestions(result);
-      })
-      .catch((requestError) => {
-        if (cancelled) {
-          return;
-        }
-
-        setSuggestions([]);
-        setSuggestionsError(normalizeNewsError(requestError));
-      })
-      .finally(() => {
-        if (cancelled) {
-          return;
-        }
-
-        setSuggestionsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [deferredKeyword]);
-
   const navigate = (nextQuery: NewsQueryState) => {
-    setIsPending(true);
     startTransition(() => {
       router.push(`${pathname}${createQueryString(nextQuery)}`, {
         scroll: false,
@@ -235,9 +159,15 @@ export function NewsPageShell({ initialQuery }: { initialQuery: NewsQueryState }
                 {summaryItems.map((item) => (
                   <MotionItem key={item.label}>
                     <div className="rounded-[24px] border border-border/70 bg-background/75 px-4 py-4">
-                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{item.label}</p>
-                      <p className="mt-2 text-base font-semibold text-foreground">{item.value}</p>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.detail}</p>
+                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                        {item.label}
+                      </p>
+                      <p className="mt-2 text-base font-semibold text-foreground">
+                        {item.value}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        {item.detail}
+                      </p>
                     </div>
                   </MotionItem>
                 ))}
@@ -253,8 +183,12 @@ export function NewsPageShell({ initialQuery }: { initialQuery: NewsQueryState }
                         <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                           <Icon className="size-4" />
                         </div>
-                        <h3 className="mt-4 text-base font-semibold text-foreground">{item.title}</h3>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+                        <h3 className="mt-4 text-base font-semibold text-foreground">
+                          {item.title}
+                        </h3>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                          {item.description}
+                        </p>
                       </article>
                     </MotionItem>
                   );
@@ -283,17 +217,23 @@ export function NewsPageShell({ initialQuery }: { initialQuery: NewsQueryState }
 
                 <div className="grid gap-3 rounded-[28px] border border-border/70 bg-background/80 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-foreground">本轮阅读焦点</p>
+                    <p className="text-sm font-medium text-foreground">
+                      本轮阅读焦点
+                    </p>
                     <ArrowRight className="size-4 text-muted-foreground" />
                   </div>
                   <div className="grid gap-3 text-sm text-muted-foreground">
                     <div className="flex items-start justify-between gap-4 rounded-[20px] border border-border/60 bg-card/80 px-4 py-3">
                       <span>推荐区优先展示平台信号</span>
-                      <span className="text-foreground">{recommendedItems.length || 4} 条</span>
+                      <span className="text-foreground">
+                        {recommendedItems.length || NEWS_RECOMMENDED_LIMIT} 条
+                      </span>
                     </div>
                     <div className="flex items-start justify-between gap-4 rounded-[20px] border border-border/60 bg-card/80 px-4 py-3">
                       <span>热榜持续补充热点线索</span>
-                      <span className="text-foreground">{hotItems.length || 5} 条</span>
+                      <span className="text-foreground">
+                        {hotItems.length || NEWS_HOT_LIMIT} 条
+                      </span>
                     </div>
                     <div className="flex items-start justify-between gap-4 rounded-[20px] border border-border/60 bg-card/80 px-4 py-3">
                       <span>列表区维持完整分页浏览</span>
@@ -308,16 +248,21 @@ export function NewsPageShell({ initialQuery }: { initialQuery: NewsQueryState }
       </MotionReveal>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.75fr)_340px]">
-        <NewsRecommendedSection items={recommendedItems} error={recommendedError} />
-        <NewsHotSidebar items={hotItems} error={hotError} />
+        <RecommendedSection
+          items={recommendedItems}
+          error={data?.recommendedError ?? null}
+        />
+        <HotSidebar items={hotItems} error={data?.hotError ?? null} />
       </section>
 
-      <NewsSearchForm
+      <SearchForm
         defaultKeyword={initialQuery.keyword}
         pending={isPending}
-        suggestions={suggestions}
-        suggestionsLoading={suggestionsLoading}
-        suggestionsError={suggestionsError}
+        suggestions={suggestionsQuery.data ?? []}
+        suggestionsLoading={suggestionsQuery.isFetching}
+        suggestionsError={
+          suggestionsQuery.error ? normalizeNewsError(suggestionsQuery.error) : null
+        }
         onKeywordChange={setKeywordInput}
         onSubmit={(keyword) =>
           navigate({
@@ -359,19 +304,20 @@ export function NewsPageShell({ initialQuery }: { initialQuery: NewsQueryState }
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span>检索状态</span>
-                  <span className="font-semibold text-foreground">{currentModeLabel}</span>
+                  <span className="font-semibold text-foreground">
+                    {currentModeLabel}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-          <NewsResults
+          <Results
             items={items}
             loading={isLoading}
             error={error}
             keyword={initialQuery.keyword}
             onRetry={() => {
-              setIsPending(false);
-              setReloadVersion((value) => value + 1);
+              void pageQuery.refetch();
             }}
           />
         </section>
@@ -396,4 +342,4 @@ export function NewsPageShell({ initialQuery }: { initialQuery: NewsQueryState }
       </MotionReveal>
     </div>
   );
-}
+};

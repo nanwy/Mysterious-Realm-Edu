@@ -1,18 +1,24 @@
+"use client";
+
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
-import type { NewsSectionCard } from "./news-types";
+import Image from "next/image";
+import type { NewsSectionCard } from "@/core/news";
 import { resolveMediaUrl } from "@/lib/media";
 
-function NewsCover({
-  title,
-  coverImg,
-}: {
-  title: string;
-  coverImg: string | null;
-}) {
+const Cover = ({ title, coverImg }: { title: string; coverImg: string | null }) => {
   const mediaUrl = resolveMediaUrl(coverImg);
 
   if (mediaUrl) {
-    return <img src={mediaUrl} alt={title} className="h-44 w-full object-cover" />;
+    return (
+      <Image
+        src={mediaUrl}
+        alt={title}
+        width={640}
+        height={352}
+        unoptimized
+        className="h-44 w-full object-cover"
+      />
+    );
   }
 
   return (
@@ -23,15 +29,15 @@ function NewsCover({
       </div>
     </div>
   );
-}
+};
 
-export function NewsRecommendedSection({
+export const RecommendedSection = ({
   items,
   error,
 }: {
   items: NewsSectionCard[];
   error: string | null;
-}) {
+}) => {
   const visibleItems = items.length
     ? items
     : Array.from({ length: 4 }, (_, index) => ({
@@ -68,7 +74,7 @@ export function NewsRecommendedSection({
               href={visibleItems[0]?.href ?? "#"}
               className="group block overflow-hidden rounded-[32px] border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
             >
-              <NewsCover
+              <Cover
                 title={visibleItems[0]?.title ?? "推荐资讯"}
                 coverImg={visibleItems[0]?.coverImg ?? null}
               />
@@ -102,7 +108,7 @@ export function NewsRecommendedSection({
                 >
                   <div className="grid gap-4 p-5 sm:grid-cols-[120px_minmax(0,1fr)] lg:grid-cols-[112px_minmax(0,1fr)]">
                     <div className="overflow-hidden rounded-[22px]">
-                      <NewsCover title={item.title} coverImg={item.coverImg} />
+                      <Cover title={item.title} coverImg={item.coverImg} />
                     </div>
                     <div className="grid gap-3">
                       <div className="flex items-center justify-between gap-3">
@@ -123,4 +129,4 @@ export function NewsRecommendedSection({
       </section>
     </MotionReveal>
   );
-}
+};

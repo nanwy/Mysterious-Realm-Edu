@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Monitor, Settings2, ShieldCheck } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { ScoresFilters } from "./filters";
 import { ScoresResults } from "./results";
 import { ResultsPagination } from "../common/results-pagination";
@@ -52,7 +52,6 @@ export const ScoresPage = ({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
-  const [draftFilters, setDraftFilters] = useState(initialFilters);
   const scoresQuery = useQuery(scoreQueryOptions.list(initialFilters));
   const records = scoresQuery.data?.records ?? [];
   const total = scoresQuery.data?.total ?? 0;
@@ -64,12 +63,7 @@ export const ScoresPage = ({
   const totalPages = Math.max(1, Math.ceil(total / SCORES_PAGE_SIZE));
   const currentPage = Math.min(initialFilters.pageNo, totalPages);
 
-  useEffect(() => {
-    setDraftFilters(initialFilters);
-  }, [initialFilters]);
-
   const navigate = (nextFilters: ScoreFiltersState) => {
-    setDraftFilters(nextFilters);
     startTransition(() => {
       router.push(`${pathname}${createQueryString(nextFilters)}`, {
         scroll: false,
@@ -87,7 +81,6 @@ export const ScoresPage = ({
       pageNo: totalPages,
     };
 
-    setDraftFilters(normalizedFilters);
     startTransition(() => {
       router.push(`${pathname}${createQueryString(normalizedFilters)}`, {
         scroll: false,
@@ -170,7 +163,7 @@ export const ScoresPage = ({
                 </span>
                 <div className="flex items-baseline gap-2 text-right">
                   <span className="text-xl font-black tracking-tight text-foreground">
-                    {getPassedSummary(draftFilters.passed)}
+                    {getPassedSummary(initialFilters.passed)}
                   </span>
                 </div>
               </div>
@@ -188,14 +181,11 @@ export const ScoresPage = ({
             </span>
           </div>
           <ScoresFilters
-            filters={draftFilters}
+            key={`${initialFilters.examTitle}:${initialFilters.passed}`}
+            filters={initialFilters}
             isLoading={isBusy}
-            onChange={setDraftFilters}
             onQuery={navigate}
-            onReset={() => {
-              setDraftFilters(DEFAULT_FILTERS);
-              navigate(DEFAULT_FILTERS);
-            }}
+            onReset={() => navigate(DEFAULT_FILTERS)}
           />
         </div>
       </section>
@@ -238,7 +228,7 @@ export const ScoresPage = ({
               pending={isBusy}
               itemLabel="条考试成绩记录"
               onPageChange={(page) =>
-                navigate({ ...draftFilters, pageNo: page })
+                navigate({ ...initialFilters, pageNo: page })
               }
             />
           </div>

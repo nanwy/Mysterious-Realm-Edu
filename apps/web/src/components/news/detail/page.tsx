@@ -1,13 +1,8 @@
 "use client";
 
-import { getNewsDetail, listHotNews, unwrapEnvelope } from "@workspace/api";
+import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  EmptyState,
-} from "@workspace/ui";
+import { Avatar, AvatarFallback, AvatarImage, EmptyState } from "@workspace/ui";
 import {
   ArrowLeft,
   Clock3,
@@ -17,198 +12,80 @@ import {
   ScanText,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { resolveMediaUrl } from "@/lib/media";
-import { toRecordOrEmpty, toText } from "@/lib/normalize";
+import { newsQueryOptions, normalizeNewsError } from "@/core/news";
 
-interface NewsDetailState {
-  article: NewsDetailRecord | null;
-  hotNews: HotNewsRecord[];
-  error: string | null;
-  loading: boolean;
-}
-
-interface NewsDetailRecord {
-  id: string;
-  title: string;
-  content: string;
-  summary: string;
-  authorName: string;
-  authorAvatar: string | null;
-  publishTime: string;
-  viewCountText: string;
-  source: string;
-}
-
-interface HotNewsRecord {
-  id: string;
-  title: string;
-  viewCountText: string;
-}
-
-function toHtml(value: unknown) {
-  const text = toText(value);
-  if (!text) {
-    return "";
-  }
-
-  if (/<[a-z][\s\S]*>/i.test(text)) {
-    return text;
-  }
-
-  return text
-    .split(/\n{2,}/)
-    .map((paragraph) => `<p>${paragraph.replace(/\n/g, "<br />")}</p>`)
-    .join("");
-}
-
-function normalizeNewsDetail(payload: unknown, newsId: string): NewsDetailRecord | null {
-  const record = toRecordOrEmpty(payload);
-  const title = toText(record.title);
-  const content = toHtml(record.content ?? record.articleContent ?? record.remark);
-
-  if (!title && !content) {
-    return null;
-  }
-
-  return {
-    id: toText(record.id, newsId),
-    title: title || "未命名资讯",
-    content,
-    summary: toText(record.remark ?? record.summary, "当前资讯暂无摘要说明。"),
-    authorName: toText(record.createByName ?? record.publishByName ?? record.author, "平台资讯"),
-    authorAvatar: resolveMediaUrl(toText(record.avatar ?? record.authorAvatar)) ?? null,
-    publishTime: toText(record.publishTime ?? record.createTime ?? record.updateTime, "发布时间待同步"),
-    viewCountText: toText(record.commentNum ?? record.viewCount ?? record.readCount, "0"),
-    source: toText(record.source ?? record.newsSource, "神秘领域教育"),
-  };
-}
-
-function normalizeHotNews(payload: unknown) {
-  const normalizedPayload = toRecordOrEmpty(payload);
-  const records = Array.isArray(payload)
-    ? payload
-    : Array.isArray(normalizedPayload.records)
-      ? (normalizedPayload.records as unknown[])
-      : [];
-
-  return records.slice(0, 5).map((item, index) => {
-    const record = toRecordOrEmpty(item);
-
-    return {
-      id: toText(record.id, `hot-news-${index + 1}`),
-      title: toText(record.title, `热门资讯 ${index + 1}`),
-      viewCountText: toText(record.commentNum ?? record.viewCount ?? record.readCount, "0"),
-    };
-  });
-}
-
-function getNewsDetailErrorMessage(error: unknown) {
-  const message =
-    error instanceof Error && error.message
-      ? error.message
-      : "资讯详情接口暂时不可用，请稍后重试。";
-
-  if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return `${message}。未检测到 NEXT_PUBLIC_API_BASE_URL，当前仅展示错误说明。`;
-  }
-
-  if (message === "网络请求失败") {
-    return "资讯详情接口暂时不可用，请检查服务是否启动或稍后重试。";
-  }
-
-  return message;
-}
-
-async function fetchNewsDetail(newsId: string) {
-  const response = await getNewsDetail(newsId);
-  return normalizeNewsDetail(unwrapEnvelope(response), newsId);
-}
-
-async function fetchHotNews() {
-  try {
-    const response = await listHotNews({
-      pageNo: 1,
-      pageSize: 5,
-    });
-    return normalizeHotNews(unwrapEnvelope(response));
-  } catch {
-    return [];
-  }
-}
-
-function NewsDetailLoadingState() {
-  return (
-    <section className="rounded-[32px] border border-border/80 bg-card/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-      <div className="flex min-h-72 items-center justify-center rounded-[28px] border border-dashed border-border/70 bg-muted/35 px-6 py-14">
-        <div
-          className="flex items-center gap-3 text-sm text-muted-foreground"
-          data-testid="news-detail-loading"
-        >
-          <span className="size-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
-          <span>正在加载资讯详情...</span>
-        </div>
+const LoadingState = () => (
+  <section className="rounded-[32px] border border-border/80 bg-card/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+    <div className="flex min-h-72 items-center justify-center rounded-[28px] border border-dashed border-border/70 bg-muted/35 px-6 py-14">
+      <div
+        className="flex items-center gap-3 text-sm text-muted-foreground"
+        data-testid="news-detail-loading"
+      >
+        <span
+          className="size-2 animate-pulse rounded-full bg-primary"
+          aria-hidden="true"
+        />
+        <span>正在加载资讯详情...</span>
       </div>
-    </section>
-  );
-}
+    </div>
+  </section>
+);
 
-function NewsDetailErrorState({
+const ErrorState = ({
   message,
   onRetry,
 }: {
   message: string;
   onRetry: () => void;
-}) {
-  return (
-    <section className="rounded-[32px] border border-border/80 bg-card/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-      <div className="grid gap-4 rounded-[28px] border border-border/70 bg-background/70 p-6" data-testid="news-detail-error">
-        <EmptyState title="读取失败" description={message} />
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={onRetry}
-            className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
-          >
-            重新加载
-          </button>
-          <Link
-            href="/news"
-            className="inline-flex items-center justify-center rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-primary/30 hover:bg-accent/40"
-          >
-            返回资讯列表
-          </Link>
-        </div>
+}) => (
+  <section className="rounded-[32px] border border-border/80 bg-card/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+    <div
+      className="grid gap-4 rounded-[28px] border border-border/70 bg-background/70 p-6"
+      data-testid="news-detail-error"
+    >
+      <EmptyState title="读取失败" description={message} />
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+        >
+          重新加载
+        </button>
+        <Link
+          href="/news"
+          className="inline-flex items-center justify-center rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-primary/30 hover:bg-accent/40"
+        >
+          返回资讯列表
+        </Link>
       </div>
-    </section>
-  );
-}
+    </div>
+  </section>
+);
 
-function NewsDetailEmptyState() {
-  return (
-    <section className="rounded-[32px] border border-border/80 bg-card/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-      <div
-        className="grid gap-4 rounded-[28px] border border-border/70 bg-background/70 p-6"
-        data-testid="news-detail-empty"
-      >
-        <EmptyState
-          title="暂无内容"
-          description="请稍后重试，或返回资讯列表选择其他文章。"
-        />
-        <div>
-          <Link
-            href="/news"
-            className="inline-flex items-center justify-center rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-primary/30 hover:bg-accent/40"
-          >
-            返回资讯列表
-          </Link>
-        </div>
+const EmptyDetailState = () => (
+  <section className="rounded-[32px] border border-border/80 bg-card/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+    <div
+      className="grid gap-4 rounded-[28px] border border-border/70 bg-background/70 p-6"
+      data-testid="news-detail-empty"
+    >
+      <EmptyState
+        title="暂无内容"
+        description="请稍后重试，或返回资讯列表选择其他文章。"
+      />
+      <div>
+        <Link
+          href="/news"
+          className="inline-flex items-center justify-center rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-primary/30 hover:bg-accent/40"
+        >
+          返回资讯列表
+        </Link>
       </div>
-    </section>
-  );
-}
+    </div>
+  </section>
+);
 
-function ReadingSignal({
+const ReadingSignal = ({
   label,
   value,
   note,
@@ -216,87 +93,42 @@ function ReadingSignal({
   label: string;
   value: string;
   note: string;
-}) {
-  return (
-    <div className="rounded-[24px] border border-border/70 bg-background/78 px-4 py-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-3 text-xl font-semibold tracking-[-0.04em] text-foreground">
-        {value}
-      </p>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">{note}</p>
-    </div>
-  );
-}
+}) => (
+  <div className="rounded-[24px] border border-border/70 bg-background/78 px-4 py-4">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+      {label}
+    </p>
+    <p className="mt-3 text-xl font-semibold tracking-[-0.04em] text-foreground">
+      {value}
+    </p>
+    <p className="mt-2 text-sm leading-6 text-muted-foreground">{note}</p>
+  </div>
+);
 
-export function NewsDetailPageShell({ newsId }: { newsId: string }) {
-  const [state, setState] = useState<NewsDetailState>({
-    article: null,
-    hotNews: [],
-    error: null,
-    loading: true,
-  });
-  const [reloadVersion, setReloadVersion] = useState(0);
+export const NewsDetailPage = ({ newsId }: { newsId: string }) => {
+  const detailQuery = useQuery(newsQueryOptions.detail(newsId));
+  const article = detailQuery.data?.article ?? null;
+  const hotNews = detailQuery.data?.hotNews ?? [];
 
-  useEffect(() => {
-    let cancelled = false;
-
-    setState((current) => ({
-      ...current,
-      loading: true,
-      error: null,
-    }));
-
-    void Promise.all([fetchNewsDetail(newsId), fetchHotNews()])
-      .then(([article, hotNews]) => {
-        if (cancelled) {
-          return;
-        }
-
-        setState({
-          article,
-          hotNews,
-          error: null,
-          loading: false,
-        });
-      })
-      .catch((error) => {
-        if (cancelled) {
-          return;
-        }
-
-        setState({
-          article: null,
-          hotNews: [],
-          error: getNewsDetailErrorMessage(error),
-          loading: false,
-        });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [newsId, reloadVersion]);
-
-  if (state.loading) {
-    return <NewsDetailLoadingState />;
+  if (detailQuery.isLoading) {
+    return <LoadingState />;
   }
 
-  if (state.error) {
+  if (detailQuery.error) {
     return (
-      <NewsDetailErrorState
-        message={state.error}
-        onRetry={() => setReloadVersion((version) => version + 1)}
+      <ErrorState
+        message={normalizeNewsError(detailQuery.error)}
+        onRetry={() => {
+          void detailQuery.refetch();
+        }}
       />
     );
   }
 
-  if (!state.article) {
-    return <NewsDetailEmptyState />;
+  if (!article) {
+    return <EmptyDetailState />;
   }
 
-  const article = state.article;
   const authorFallback = article.authorName.slice(0, 1) || "资";
 
   return (
@@ -333,13 +165,13 @@ export function NewsDetailPageShell({ newsId }: { newsId: string }) {
                   </span>
                 </div>
 
-              <div className="space-y-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                  文章详情
-                </p>
-                <h2 className="max-w-4xl text-[clamp(2.3rem,5vw,4.6rem)] font-semibold leading-[0.95] tracking-[-0.06em] text-foreground">
-                  {article.title}
-                </h2>
+                <div className="space-y-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                    文章详情
+                  </p>
+                  <h2 className="max-w-4xl text-[clamp(2.3rem,5vw,4.6rem)] font-semibold leading-[0.95] tracking-[-0.06em] text-foreground">
+                    {article.title}
+                  </h2>
                   <p className="max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
                     {article.summary}
                   </p>
@@ -349,7 +181,10 @@ export function NewsDetailPageShell({ newsId }: { newsId: string }) {
                   <div className="flex min-w-0 items-center gap-3">
                     <Avatar className="size-12 border border-border/70">
                       {article.authorAvatar ? (
-                        <AvatarImage src={article.authorAvatar} alt={article.authorName} />
+                        <AvatarImage
+                          src={article.authorAvatar}
+                          alt={article.authorName}
+                        />
                       ) : null}
                       <AvatarFallback>{authorFallback}</AvatarFallback>
                     </Avatar>
@@ -383,7 +218,7 @@ export function NewsDetailPageShell({ newsId }: { newsId: string }) {
                 />
                 <ReadingSignal
                   label="热度信号"
-                  value={`Top ${Math.max(state.hotNews.length, 1)}`}
+                  value={`Top ${Math.max(hotNews.length, 1)}`}
                   note="右侧热榜保留为辅助流，不和正文争抢主视觉。"
                 />
                 <ReadingSignal
@@ -447,8 +282,8 @@ export function NewsDetailPageShell({ newsId }: { newsId: string }) {
               </p>
 
               <div className="mt-5 grid gap-3" data-testid="news-detail-hot-news">
-                {state.hotNews.length ? (
-                  state.hotNews.map((item, index) => (
+                {hotNews.length ? (
+                  hotNews.map((item, index) => (
                     <MotionReveal key={item.id} direction="left" delay={index * 0.04}>
                       <Link
                         href={`/news/detail/${item.id}`}
@@ -523,4 +358,5 @@ export function NewsDetailPageShell({ newsId }: { newsId: string }) {
       </MotionItem>
     </MotionStagger>
   );
-}
+};
+
