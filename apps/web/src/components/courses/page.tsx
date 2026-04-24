@@ -1,44 +1,56 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard } from "@workspace/ui";
 import { usePathname, useRouter } from "next/navigation";
-import { startTransition, useEffect, useState } from "react";
-import { fetchCourses, normalizeCourseError } from "./courses-data";
-import { CoursesResults } from "./courses-results";
-import { CoursesSearchForm } from "./courses-search-form";
-import {
-  COURSE_PAGE_SIZE,
-  type CourseCategoryOption,
-  type CourseListItem,
-  type CourseQueryState,
-} from "./courses-types";
+import { useTransition } from "react";
+import { CoursesFilters } from "./filters";
+import { CoursesResults } from "./results";
 import { ResultsPagination } from "../common/results-pagination";
+import {
+  COURSE_ORDER_BY,
+  COURSE_ORDER_BY_OPTIONS,
+  type CourseCategoryOption,
+  type CourseFiltersState,
+  type CourseFormValues,
+  courseQueryOptions,
+  normalizeCourseError,
+} from "@/core/courses";
 
-function createQueryString(query: CourseQueryState) {
+const FALLBACK_CATEGORY_OPTIONS: CourseCategoryOption[] = [
+  { value: "", label: "全部分类" },
+  { value: "placeholder", label: "分类待接口补充" },
+];
+
+const createQueryString = (filters: CourseFiltersState) => {
   const params = new URLSearchParams();
 
-  if (query.page > 1) {
-    params.set("page", String(query.page));
+  if (filters.pageNo > 1) {
+    params.set("page", String(filters.pageNo));
   }
 
-  if (query.keyword?.trim()) {
-    params.set("keyword", query.keyword.trim());
+  if (filters.keyword) {
+    params.set("keyword", filters.keyword);
   }
 
-  if (query.orderByType) {
-    params.set("sort", query.orderByType);
+  if (filters.orderBy !== COURSE_ORDER_BY.DEFAULT) {
+    params.set("sort", filters.orderBy);
   }
 
-  if (query.categoryId) {
-    params.set("category", query.categoryId);
+  if (filters.categoryId) {
+    params.set("category", filters.categoryId);
   }
 
   const result = params.toString();
   return result ? `?${result}` : "";
-}
+};
 
-function getStatusCopy(error: string | null, loading: boolean, total: number) {
+const getStatusCopy = (
+  error: string | null,
+  loading: boolean,
+  total: number
+) => {
   if (error) {
     return "接口异常";
   }
@@ -48,103 +60,89 @@ function getStatusCopy(error: string | null, loading: boolean, total: number) {
   }
 
   return `${total} 门课程`;
-}
+};
 
-function getActiveFilterSummary(query: CourseQueryState, categories: CourseCategoryOption[]) {
-  const summary = [];
+const getActiveFilterSummary = (
+  filters: CourseFiltersState,
+  categories: CourseCategoryOption[]
+) => {
+  const summary: string[] = [];
 
-  if (query.keyword?.trim()) {
-    summary.push(`关键词：${query.keyword.trim()}`);
+  if (filters.keyword) {
+    summary.push(`关键词：${filters.keyword}`);
   }
 
-  if (query.orderByType) {
-    const sortMap = new Map([
-      ["1", "最新上架"],
-      ["2", "学习热度"],
-      ["3", "价格优先"],
-    ]);
-    summary.push(`排序：${sortMap.get(query.orderByType) ?? "已设置"}`);
+  if (filters.orderBy !== COURSE_ORDER_BY.DEFAULT) {
+    const label = COURSE_ORDER_BY_OPTIONS.find(
+      (option) => option.value === filters.orderBy
+    )?.label;
+    summary.push(`排序：${label ?? "已设置"}`);
   }
 
-  if (query.categoryId) {
-    const categoryLabel = categories.find((item) => item.value === query.categoryId)?.label ?? query.categoryId;
+  if (filters.categoryId) {
+    const categoryLabel =
+      categories.find((item) => item.value === filters.categoryId)?.label ??
+      filters.categoryId;
     summary.push(`分类：${categoryLabel}`);
   }
 
   return summary;
-}
+};
 
-export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQueryState }) {
+export const CoursesPage = ({
+  initialFilters,
+}: {
+  initialFilters: CourseFiltersState;
+}) => {
   const router = useRouter();
   const pathname = usePathname();
-  const [items, setItems] = useState<CourseListItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPending, setIsPending] = useState(false);
-  const [reloadVersion, setReloadVersion] = useState(0);
-  const [categories, setCategories] = useState<CourseCategoryOption[]>([
-    { value: "", label: "全部分类" },
-    { value: "placeholder", label: "分类待接口补充" },
-  ]);
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    let cancelled = false;
+  const coursesQuery = useQuery(courseQueryOptions.list(initialFilters));
+  const items = coursesQuery.data?.items ?? [];
+  const total = coursesQuery.data?.total ?? 0;
+  const categories = coursesQuery.data?.categories ?? FALLBACK_CATEGORY_OPTIONS;
+  const isLoading = coursesQuery.isPending;
+  const errorMessage = coursesQuery.isError
+    ? normalizeCourseError(coursesQuery.error)
+    : null;
 
-    setIsLoading(true);
-    setError(null);
-
-    void fetchCourses(initialQuery)
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
-
-        setItems(result.items);
-        setTotal(result.total);
-        setCategories(result.categories);
-      })
-      .catch((requestError) => {
-        if (cancelled) {
-          return;
-        }
-
-        setItems([]);
-        setTotal(0);
-        setCategories([
-          { value: "", label: "全部分类" },
-          { value: "placeholder", label: "分类待接口补充" },
-        ]);
-        setError(normalizeCourseError(requestError));
-      })
-      .finally(() => {
-        if (cancelled) {
-          return;
-        }
-
-        setIsLoading(false);
-        setIsPending(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialQuery, reloadVersion]);
-
-  const navigate = (nextQuery: CourseQueryState) => {
-    setIsPending(true);
+  const navigate = (nextFilters: CourseFiltersState) => {
     startTransition(() => {
-      router.push(`${pathname}${createQueryString(nextQuery)}`, { scroll: false });
+      router.push(`${pathname}${createQueryString(nextFilters)}`, {
+        scroll: false,
+      });
     });
   };
 
-  const totalPages = Math.max(1, Math.ceil(total / COURSE_PAGE_SIZE));
-  const activeFilters = getActiveFilterSummary(initialQuery, categories);
+  const totalPages = Math.max(1, Math.ceil(total / initialFilters.pageSize));
+  const activeFilters = getActiveFilterSummary(initialFilters, categories);
   const heroStats = [
-    { label: "分页规模", value: `${COURSE_PAGE_SIZE} 门/页`, detail: "延续旧站列表节奏" },
-    { label: "当前视图", value: activeFilters.length ? "精准筛选" : "全部课程", detail: activeFilters.length ? `${activeFilters.length} 个条件生效` : "适合先快速浏览" },
-    { label: "接口状态", value: getStatusCopy(error, isLoading, total), detail: error ? "优先暴露真实异常" : "与真实接口保持同步" },
+    {
+      label: "分页规模",
+      value: `${initialFilters.pageSize} 门/页`,
+      detail: "延续旧站列表节奏",
+    },
+    {
+      label: "当前视图",
+      value: activeFilters.length ? "精准筛选" : "全部课程",
+      detail: activeFilters.length
+        ? `${activeFilters.length} 个条件生效`
+        : "适合先快速浏览",
+    },
+    {
+      label: "接口状态",
+      value: getStatusCopy(errorMessage, isLoading, total),
+      detail: errorMessage ? "优先暴露真实异常" : "与真实接口保持同步",
+    },
   ];
+
+  const formDefaults: CourseFormValues = {
+    page: initialFilters.pageNo,
+    keyword: initialFilters.keyword,
+    orderBy: initialFilters.orderBy,
+    categoryId: initialFilters.categoryId,
+  };
 
   return (
     <div className="grid gap-6">
@@ -173,15 +171,22 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
                   </p>
                 </div>
 
-                <MotionStagger className="grid gap-3 sm:grid-cols-3" delayChildren={0.08}>
+                <MotionStagger
+                  className="grid gap-3 sm:grid-cols-3"
+                  delayChildren={0.08}
+                >
                   {heroStats.map((item) => (
                     <MotionItem key={item.label}>
                       <div className="rounded-[24px] border border-border/70 bg-background/75 px-4 py-4">
                         <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
                           {item.label}
                         </p>
-                        <p className="mt-3 text-lg font-semibold text-foreground">{item.value}</p>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.detail}</p>
+                        <p className="mt-3 text-lg font-semibold text-foreground">
+                          {item.value}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          {item.detail}
+                        </p>
                       </div>
                     </MotionItem>
                   ))}
@@ -194,10 +199,14 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
                     <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
                       当前筛选策略
                     </p>
-                    <p className="mt-2 text-lg font-semibold text-foreground">先聚焦，再进入学习</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">
+                      先聚焦，再进入学习
+                    </p>
                   </div>
                   <Badge variant="secondary" className="rounded-full">
-                    {activeFilters.length ? `${activeFilters.length} 个条件` : "无额外筛选"}
+                    {activeFilters.length
+                      ? `${activeFilters.length} 个条件`
+                      : "无额外筛选"}
                   </Badge>
                 </div>
 
@@ -225,17 +234,26 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
             </div>
 
             <div data-testid="courses-filter-section">
-              <CoursesSearchForm
-                defaultValues={initialQuery}
+              <CoursesFilters
+                defaultValues={formDefaults}
                 categoryOptions={categories}
                 pending={isPending}
-                onSubmit={(values) => navigate(values)}
+                onSubmit={(values) =>
+                  navigate({
+                    ...initialFilters,
+                    keyword: values.keyword,
+                    orderBy: values.orderBy,
+                    categoryId: values.categoryId,
+                    pageNo: 1,
+                  })
+                }
                 onReset={() =>
                   navigate({
-                    page: 1,
+                    ...initialFilters,
                     keyword: "",
-                    orderByType: "",
+                    orderBy: COURSE_ORDER_BY.DEFAULT,
                     categoryId: "",
+                    pageNo: 1,
                   })
                 }
               />
@@ -253,31 +271,38 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
             <div className="grid gap-5">
               <div className="flex flex-col gap-3 border-b border-border/60 pb-5 lg:flex-row lg:items-end lg:justify-between">
                 <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">Results summary</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                    Results summary
+                  </p>
                   <h3 className="text-2xl font-semibold tracking-tight text-foreground">
-                    {isLoading ? "正在整理课程结果" : error ? "结果区已切换为异常兜底" : `已整理 ${total} 门可浏览课程`}
+                    {isLoading
+                      ? "正在整理课程结果"
+                      : errorMessage
+                        ? "结果区已切换为异常兜底"
+                        : `已整理 ${total} 门可浏览课程`}
                   </h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(activeFilters.length ? activeFilters : ["全部课程"]).map((item) => (
-                    <span
-                      key={item}
-                      className="inline-flex items-center rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-sm text-muted-foreground"
-                    >
-                      {item}
-                    </span>
-                  ))}
+                  {(activeFilters.length ? activeFilters : ["全部课程"]).map(
+                    (item) => (
+                      <span
+                        key={item}
+                        className="inline-flex items-center rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-sm text-muted-foreground"
+                      >
+                        {item}
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
 
               <CoursesResults
                 items={items}
                 loading={isLoading}
-                error={error}
-                keyword={initialQuery.keyword}
+                error={errorMessage}
+                keyword={initialFilters.keyword}
                 onRetry={() => {
-                  setIsPending(false);
-                  setReloadVersion((value) => value + 1);
+                  void coursesQuery.refetch();
                 }}
               />
             </div>
@@ -286,15 +311,15 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
 
         <MotionReveal direction="up" delay={0.1}>
           <ResultsPagination
-            page={Math.min(initialQuery.page, totalPages)}
+            page={Math.min(initialFilters.pageNo, totalPages)}
             pageCount={totalPages}
             total={total}
             pending={isPending}
             itemLabel="门课程"
             onPageChange={(page) =>
               navigate({
-                ...initialQuery,
-                page,
+                ...initialFilters,
+                pageNo: page,
               })
             }
           />
@@ -302,4 +327,4 @@ export function CoursesPageShell({ initialQuery }: { initialQuery: CourseQuerySt
       </section>
     </div>
   );
-}
+};

@@ -19,11 +19,34 @@ Before page migration or visual work, read:
 
 ## Route and Component Responsibilities
 
-- `src/app/**/page.tsx` files should stay thin. They should connect routes to page shell components.
-- Page shell components in `src/components/<domain>` own page-level layout and compose domain sections.
+- `src/app/**/page.tsx` files should stay thin. They should connect routes to domain page components.
+- Page components in `src/components/<domain>` own page-level layout and compose domain sections.
 - Domain logic should not be hidden in route files.
 - Prefer small domain components with clear props over large page files that mix data, layout, and helper logic.
 - Data-driven pages must render loading, empty, and error states.
+
+## Page Migration Checklist
+
+When migrating or refactoring a student page/domain, use `apps/web/src/components/exams` and `apps/web/src/core/exams` as the structural reference unless the task explicitly says otherwise.
+
+Required for migrated domains:
+
+- Component filenames inside `src/components/<domain>` must not repeat the domain prefix. Prefer `page.tsx`, `filters.tsx`, `results.tsx`, `preview/page.tsx`, and similarly direct names.
+- Do not use `shell` in new or migrated page component filenames or exported component names.
+- Modified route, page, component, and domain-core files must use arrow functions: `const PageRoute = async () => {}` and `export default PageRoute`.
+- Source-string `.test.mts` files must be deleted during migration. Do not add replacement tests unless the task explicitly asks for behavior tests.
+- Data adapters, query options, mutations, config, store, and types belong in `src/core/<domain>`.
+- Components should call `useQuery(domainQueryOptions.xxx(...))` directly unless a custom hook adds real behavior beyond wrapping React Query.
+
+Before finishing a migrated domain, run these structural checks with the real domain and route names:
+
+```bash
+find apps/web/src/components/<domain> -name '*.test.mts'
+rg -n 'page-shell|shell' apps/web/src/components/<domain>
+rg -n '^function |^export function |export default async function' apps/web/src/components/<domain> apps/web/src/core/<domain> 'apps/web/src/app/(student)/<route>'
+```
+
+The expected result for all three checks is no output. If a legacy exception remains, explain why it was intentionally left.
 
 ## Domain Core Pattern
 
@@ -72,9 +95,9 @@ Move reusable API access, types, and normalization toward `packages/api` and `pa
 Use these as current local references:
 
 - `apps/web/src/core/exams`: domain core organization.
-- `apps/web/src/components/exams`: exam page shell and component organization.
+- `apps/web/src/components/exams`: exam page and component organization.
 
-These files are not a command to add `.test.mts` for every page. They are references for separation of responsibilities.
+These files are not a command to add `.test.mts` for every page. They are references for separation of responsibilities, naming, and migration cleanup.
 
 ## Testing
 

@@ -15,43 +15,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui";
-import { useEffect } from "react";
-import type { CourseCategoryOption, CourseQueryState } from "./courses-types";
+import {
+  COURSE_ORDER_BY,
+  COURSE_ORDER_BY_OPTIONS,
+  type CourseCategoryOption,
+  type CourseFormValues,
+} from "@/core/courses";
 
-const ORDER_BY_OPTIONS = [
-  { value: "", label: "综合排序" },
-  { value: "1", label: "最新上架" },
-  { value: "2", label: "学习热度" },
-  { value: "3", label: "价格优先" },
-];
-
-export function CoursesSearchForm({
+export const CoursesFilters = ({
   defaultValues,
   categoryOptions,
   pending,
   onSubmit,
   onReset,
 }: {
-  defaultValues: CourseQueryState;
+  defaultValues: CourseFormValues;
   categoryOptions: CourseCategoryOption[];
   pending: boolean;
-  onSubmit: (values: CourseQueryState) => void;
+  onSubmit: (values: CourseFormValues) => void;
   onReset: () => void;
-}) {
+}) => {
   const form = useForm({
     defaultValues,
     onSubmit: ({ value }) => {
       onSubmit({
-        ...value,
         page: 1,
-        keyword: value.keyword?.trim(),
+        keyword: value.keyword.trim(),
+        orderBy: value.orderBy,
+        categoryId: value.categoryId,
       });
     },
   });
-
-  useEffect(() => {
-    form.reset(defaultValues);
-  }, [defaultValues, form]);
 
   return (
     <section
@@ -102,15 +96,17 @@ export function CoursesSearchForm({
             )}
           </form.Field>
 
-          <form.Field name="orderByType">
+          <form.Field name="orderBy">
             {(field) => (
               <Field>
                 <FieldLabel htmlFor="courses-order-by">排序方式</FieldLabel>
                 <Select
-                  items={ORDER_BY_OPTIONS}
+                  items={COURSE_ORDER_BY_OPTIONS}
                   name={field.name}
                   value={field.state.value}
-                  onValueChange={field.handleChange}
+                  onValueChange={(value) =>
+                    field.handleChange(value as COURSE_ORDER_BY)
+                  }
                 >
                   <SelectTrigger
                     id="courses-order-by"
@@ -121,7 +117,7 @@ export function CoursesSearchForm({
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>排序方式</SelectLabel>
-                      {ORDER_BY_OPTIONS.map((option) => (
+                      {COURSE_ORDER_BY_OPTIONS.map((option) => (
                         <SelectItem
                           key={option.value || "all"}
                           value={option.value}
@@ -144,7 +140,9 @@ export function CoursesSearchForm({
                   items={categoryOptions}
                   name={field.name}
                   value={field.state.value}
-                  onValueChange={field.handleChange}
+                  onValueChange={(value) => {
+                    field.handleChange(value as string);
+                  }}
                 >
                   <SelectTrigger
                     id="courses-category"
@@ -189,7 +187,7 @@ export function CoursesSearchForm({
                 form.reset({
                   page: 1,
                   keyword: "",
-                  orderByType: "",
+                  orderBy: COURSE_ORDER_BY.DEFAULT,
                   categoryId: "",
                 });
                 onReset();
@@ -202,4 +200,4 @@ export function CoursesSearchForm({
       </form>
     </section>
   );
-}
+};

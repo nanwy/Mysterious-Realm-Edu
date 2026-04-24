@@ -70,7 +70,7 @@ Historical generated code is not automatically a pattern to copy.
 ### File Responsibilities
 
 - Route files should be thin wiring files.
-- Page shell components should compose domain sections and own page-level layout.
+- Page components should compose domain sections and own page-level layout.
 - Business components should receive data and callbacks through clear props.
 - Shared UI components must not depend on app routes, business API clients, or domain stores.
 - Shared logic belongs in the narrowest reusable package or domain folder that matches its audience.
@@ -80,7 +80,7 @@ Historical generated code is not automatically a pattern to copy.
 For Web page or domain work, inspect these first:
 
 - `apps/web/src/core/exams`: domain separation, query/mutation/store organization.
-- `apps/web/src/components/exams`: page shell and component organization.
+- `apps/web/src/components/exams`: page and component organization.
 
 These are architecture references, not a mandate that every page must have the same file count or the same number of tests.
 

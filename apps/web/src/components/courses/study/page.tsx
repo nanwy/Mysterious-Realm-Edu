@@ -1,18 +1,18 @@
 import { Badge, Button, EmptyState, SurfaceCard } from "@workspace/ui";
 import { BookOpenText, CircleAlert, Clock3, ListTodo, PlayCircle, Sparkles } from "lucide-react";
 import Link from "next/link";
-import type { CourseStudyResult } from "@/lib/course-study";
+import type { CourseStudyResult } from "@/core/courses";
 import { toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
 
-function formatPercent(value: number | null) {
+const formatPercent = (value: number | null) => {
   if (value === null) {
     return "待同步";
   }
 
   return `${Math.max(0, Math.min(100, Math.round(value)))}%`;
-}
+};
 
-function getProgressTone(value: number | null) {
+const getProgressTone = (value: number | null) => {
   if (value === null) {
     return "border-border/70 bg-background/70 text-muted-foreground";
   }
@@ -26,9 +26,9 @@ function getProgressTone(value: number | null) {
   }
 
   return "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
-}
+};
 
-function formatDuration(value: string) {
+const formatDuration = (value: string) => {
   if (!value) {
     return "待同步";
   }
@@ -49,9 +49,12 @@ function formatDuration(value: string) {
   }
 
   return `${numeric} 分钟`;
-}
+};
 
-function buildStudyViewModel(courseId: string, result: CourseStudyResult) {
+const buildStudyViewModel = (
+  courseId: string,
+  result: CourseStudyResult
+) => {
   const detail = toRecordOrEmpty(result.detail);
   const process = toRecordOrEmpty(result.process);
   const latestTask = toRecordOrEmpty(result.latestTask);
@@ -173,20 +176,20 @@ function buildStudyViewModel(courseId: string, result: CourseStudyResult) {
     examLabel,
     issues,
   };
-}
+};
 
-export function CourseStudyPageShell({
+export const CourseStudyPage = ({
   courseId,
   studyResult,
 }: {
   courseId: string;
   studyResult: CourseStudyResult;
-}) {
+}) => {
   const view = buildStudyViewModel(courseId, studyResult);
   const hasContent = Boolean(studyResult.detail || studyResult.process || studyResult.latestTask);
 
   return (
-    <div className="grid gap-6" data-testid="course-study-page-shell">
+    <div className="grid gap-6" data-testid="course-study-page">
       <section
         data-testid="course-study-hero"
         className="overflow-hidden rounded-[32px] border border-border/80 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--card)_84%,var(--accent)_16%),color-mix(in_oklab,var(--background)_78%,var(--accent)_22%))] p-6 shadow-[0_28px_90px_rgba(15,23,42,0.12)] sm:p-7"
@@ -377,4 +380,4 @@ export function CourseStudyPageShell({
       </div>
     </div>
   );
-}
+};

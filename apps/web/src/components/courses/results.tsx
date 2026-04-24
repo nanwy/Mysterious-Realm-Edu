@@ -2,18 +2,18 @@ import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, Button, Skeleton } from "@workspace/ui";
 import { BookOpenText, CircleAlert, CircleSlash, RefreshCcw } from "lucide-react";
 import Link from "next/link";
-import type { CourseListItem } from "./courses-types";
+import type { CourseListItem } from "@/core/courses";
 
-function getProgressValue(progressLabel: string) {
+const getProgressValue = (progressLabel: string) => {
   const matched = progressLabel.match(/(\d+)/);
   if (!matched) {
     return 0;
   }
 
   return Math.max(0, Math.min(100, Number(matched[1])));
-}
+};
 
-function CoursesLoadingState() {
+const CoursesLoadingState = () => {
   return (
     <div data-state="loading" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }, (_, index) => (
@@ -34,9 +34,9 @@ function CoursesLoadingState() {
       ))}
     </div>
   );
-}
+};
 
-function CoursesEmptyState({ keyword }: { keyword?: string }) {
+const CoursesEmptyState = ({ keyword }: { keyword?: string }) => {
   return (
     <MotionReveal
       data-state="empty"
@@ -60,9 +60,15 @@ function CoursesEmptyState({ keyword }: { keyword?: string }) {
       </div>
     </MotionReveal>
   );
-}
+};
 
-function CoursesErrorState({ error, onRetry }: { error: string; onRetry: () => void }) {
+const CoursesErrorState = ({
+  error,
+  onRetry,
+}: {
+  error: string;
+  onRetry: () => void;
+}) => {
   return (
     <MotionReveal data-state="error" className="rounded-[32px] border border-border bg-card/90 px-6 py-10 shadow-sm">
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -84,9 +90,9 @@ function CoursesErrorState({ error, onRetry }: { error: string; onRetry: () => v
       </div>
     </MotionReveal>
   );
-}
+};
 
-export function CoursesResults({
+export const CoursesResults = ({
   items,
   loading,
   error,
@@ -98,7 +104,7 @@ export function CoursesResults({
   error: string | null;
   keyword?: string;
   onRetry: () => void;
-}) {
+}) => {
   if (loading) {
     return <CoursesLoadingState />;
   }
@@ -182,4 +188,4 @@ export function CoursesResults({
       ))}
     </MotionStagger>
   );
-}
+};
