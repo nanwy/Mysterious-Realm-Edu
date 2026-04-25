@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard } from "@workspace/ui";
 import { Target } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useTransition } from "react";
 import { ResultsPagination } from "@/components/common/results-pagination";
 import { PracticeRecordsFilters } from "@/components/me/practice-records/filters";
@@ -13,8 +13,6 @@ import {
   hasPracticeRecordFilters,
 } from "@/components/me/practice-records/results";
 import {
-  DEFAULT_PRACTICE_RECORDS_QUERY,
-  PRACTICE_RECORDS_PAGE_SIZE,
   createMockPracticeRecords,
   normalizePracticeRecordsError,
   practiceRecordQueryOptions,
@@ -24,23 +22,6 @@ import type {
   PracticeRecordsFilterValues,
   PracticeRecordsQuery,
 } from "@/core/practice-records";
-
-const toPositiveInteger = (value: string | null, fallback: number) => {
-  const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-};
-
-const getPracticeRecordsQuery = (searchParams: {
-  get(name: string): string | null;
-}): PracticeRecordsQuery => ({
-  repositoryName: searchParams.get("repositoryName")?.trim() ?? "",
-  practiceName: searchParams.get("practiceName")?.trim() ?? "",
-  pageNo: toPositiveInteger(
-    searchParams.get("page"),
-    DEFAULT_PRACTICE_RECORDS_QUERY.pageNo
-  ),
-  pageSize: PRACTICE_RECORDS_PAGE_SIZE,
-});
 
 const createQueryString = (query: PracticeRecordsQuery) => {
   const params = new URLSearchParams();
@@ -191,12 +172,15 @@ const PracticeRecordsOverview = ({
   );
 };
 
-export const PracticeRecordsPage = () => {
+export const PracticeRecordsPage = ({
+  initialQuery,
+}: {
+  initialQuery: PracticeRecordsQuery;
+}) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const query = getPracticeRecordsQuery(searchParams);
+  const query = initialQuery;
   const recordsQuery = useQuery(practiceRecordQueryOptions.list(query));
   const error = recordsQuery.error
     ? normalizePracticeRecordsError(recordsQuery.error)
