@@ -30,3 +30,9 @@ export const useSubmitExamMutation = () => {
     },
   });
 };
+
+export const useCacheExamAnswerMutation = () =>
+  useMutation({
+    mutationFn: async (payload: Record<string, unknown>) =>
+      unwrapEnvelope(await api.exam.cacheExamAnswer(payload)),
+  });

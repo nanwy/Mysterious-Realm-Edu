@@ -16,7 +16,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 - `[x]` 平台首页、资讯、问卷、课程列表、考试列表、成绩查询已进入可用状态。
 - `[-]` 课程学习工作台、个人中心主链路、登录、全局壳层仍处于“可承接但未闭环”状态。
-- `[ ]` 注册、在线考试、在线练习结果、商城支付链路、个人中心大部分业务子页仍未迁移。
+- `[ ]` 注册、在线练习结果、商城支付链路、个人中心大部分业务子页仍未迁移；在线考试已进入最小作答承接。
 - `graphify` 对“旧站功能域盘点、页面覆盖检查、横切模块识别”有帮助；对“直接回答迁移实现方案”帮助有限，仍需回到源码核实。
 
 ## Graphify-Derived Source Map
@@ -137,7 +137,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 | --- | --- | --- | --- | --- | --- |
 | `/exam` | `src/views/exam/Index.vue` | `/exams` | `[x]` | `[-]` | 考试列表、筛选、分页已迁移。 |
 | `/exam/preview/:id` | `src/views/exam/ExamPreview.vue` | `/exams/[examId]/preview` | `[x]` | `[ ]` | 预览页已迁移。 |
-| `/exam/onlineExam/:id` | `src/views/exam/OnlineExam.vue` | none | `[ ]` | `[ ]` | 在线考试主链路未迁移。 |
+| `/exam/onlineExam/:id` | `src/views/exam/OnlineExam.vue` | `/exams/[examId]/online` | `[-]` | `[-]` | 已迁移最小进入链路：会话初始化、题目/答题卡/计时展示、缓存答案读取与异常兜底；监考、防切屏与完整交卷闭环待后续补齐。 |
 | `/userCenter/exam/examScore/userExamResult/:id` | `src/views/user/UserExamResult.vue` | `/scores/[examId]` | `[x]` | `[ ]` | 成绩明细已落地。 |
 
 ### News / Questionnaire / Scores
@@ -195,7 +195,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 - `[-]` 个人中心剩余业务子页：`myExam / practiceRecord / studyRecord`
 - `[-]` 课程学习主链路：播放器、目录树、学习计时、防挂机
-- `[ ]` 在线考试与在线练习执行链路
+- `[-]` 在线考试最小进入与作答承接；在线练习执行链路未迁移
 - `[ ]` 商城 / 支付 / 订单后链路
 - `[ ]` 旧站 guard/store 横切能力迁移
 
