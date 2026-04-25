@@ -1,12 +1,19 @@
-import { createApiClient } from "../client";
+import { createApiClient, type ApiHttpClient } from "../client";
 
-const client = createApiClient();
+export const createAuthApi = (client: ApiHttpClient) => ({
+  login: (payload: { username: string; password: string; key?: string }) =>
+    client.post("/auth/login", payload),
+
+  getCaptcha: ({ key }: { key: string }) =>
+    client.get(`/auth/randomImage/${encodeURIComponent(key)}`),
+});
+
+const defaultAuthApi = createAuthApi(createApiClient());
 
 export function login(payload: { username: string; password: string; key?: string }) {
-  return client.post("/auth/login", payload);
+  return defaultAuthApi.login(payload);
 }
 
 export function getCaptcha(key: string) {
-  return client.get(`/auth/randomImage/${key}`);
+  return defaultAuthApi.getCaptcha({ key });
 }
-

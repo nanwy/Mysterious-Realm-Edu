@@ -1,11 +1,4 @@
-import {
-  getNewsDetail,
-  getNewsList,
-  listHotNews,
-  listRecommendedNews,
-  searchNewsList,
-  unwrapEnvelope,
-} from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import {
   NEWS_DETAIL_PATH,
   NEWS_HOT_LIMIT,
@@ -212,17 +205,17 @@ export const fetchNewsPageData = async (
   query: NewsQueryState
 ): Promise<NewsPageData> => {
   const keyword = query.keyword.trim();
-  const recommendedPromise = listRecommendedNews({
+  const recommendedPromise = api.news.listRecommendedNews({
     pageNo: 1,
     pageSize: NEWS_RECOMMENDED_LIMIT,
   });
-  const hotPromise = listHotNews({
+  const hotPromise = api.news.listHotNews({
     pageNo: 1,
     pageSize: NEWS_HOT_LIMIT,
   });
   const listPromise = keyword
-    ? searchNewsList(keyword)
-    : getNewsList({
+    ? api.news.searchNews({ queryString: keyword })
+    : api.news.listNews({
         pageNo: query.page,
         pageSize: NEWS_PAGE_SIZE,
       });
@@ -294,7 +287,7 @@ export const fetchNewsSuggestions = async (
     return [];
   }
 
-  const response = await searchNewsList(trimmed);
+  const response = await api.news.searchNews({ queryString: trimmed });
   const payload = unwrapEnvelope(response);
 
   return toArray(payload)
@@ -314,8 +307,8 @@ export const fetchNewsDetailData = async (
   newsId: string
 ): Promise<NewsDetailData> => {
   const [articleResponse, hotResponse] = await Promise.allSettled([
-    getNewsDetail(newsId),
-    listHotNews({
+    api.news.getNewsDetail({ path: newsId }),
+    api.news.listHotNews({
       pageNo: 1,
       pageSize: NEWS_HOT_LIMIT,
     }),
@@ -333,4 +326,3 @@ export const fetchNewsDetailData = async (
         : [],
   };
 };
-

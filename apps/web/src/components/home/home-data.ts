@@ -1,13 +1,4 @@
-import {
-  getAnnouncementList,
-  getBannerList,
-  getQuestionnaireList,
-  listHotCourse,
-  listHotNews,
-  listLatestExam,
-  listRecommendedNews,
-  unwrapEnvelope,
-} from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import { cache } from "react";
 import type { HomePayload } from "./home-types";
 
@@ -155,25 +146,31 @@ function shouldUseMock() {
 export const getHomePageData = cache(async (): Promise<HomePayload> => {
   if (shouldUseMock()) return HOME_MOCK_DATA;
 
-  const bannerPromise = safeArrayRequest(() => getBannerList());
-  const announcementPromise = safeArrayRequest(() => getAnnouncementList());
-  const coursePromise = safeArrayRequest(() => listHotCourse(8));
-  const examPromise = safeArrayRequest(() => listLatestExam(6));
+  const bannerPromise = safeArrayRequest(() => api.banner.listBanners());
+  const announcementPromise = safeArrayRequest(() =>
+    api.message.listAnnouncements()
+  );
+  const coursePromise = safeArrayRequest(() =>
+    api.course.listHotCourses({ limit: 8 })
+  );
+  const examPromise = safeArrayRequest(() =>
+    api.exam.listLatestExam({ limit: 6 })
+  );
   const questionnairePromise = safeArrayRequest(() =>
-    getQuestionnaireList({
+    api.questionnaire.listQuestionnaires({
       pageNo: 1,
       pageSize: 6,
       type: 1,
     })
   );
   const recommendedNewsPromise = safeArrayRequest(() =>
-    listRecommendedNews({
+    api.news.listRecommendedNews({
       pageNo: 1,
       pageSize: 4,
     })
   );
   const hotNewsPromise = safeArrayRequest(() =>
-    listHotNews({
+    api.news.listHotNews({
       pageNo: 1,
       pageSize: 5,
     })

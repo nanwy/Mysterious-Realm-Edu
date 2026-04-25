@@ -1,4 +1,4 @@
-import { createApiClient, unwrapEnvelope } from "@workspace/api";
+import { createApi, unwrapEnvelope } from "@workspace/api";
 import type {
   ScoreDetailRecord,
   ScoreDetailsFiltersState,
@@ -23,7 +23,7 @@ interface ListResponse {
   totalCount?: number;
 }
 
-const client = createApiClient({
+const scoreApi = createApi({
   getToken: () =>
     typeof window === "undefined" ? null : window.localStorage.getItem("token"),
 });
@@ -119,7 +119,7 @@ export const normalizeScoreError = (error: unknown) => {
 export const fetchScores = async (
   filters: ScoreFiltersState
 ): Promise<ScoreListResult> => {
-  const response = await client.post<ListResponse>("/exam/userExamResult/list", {
+  const response = await scoreApi.exam.getUserExamResultList({
     examTitle: filters.examTitle,
     passed: filters.passed,
     pageNo: filters.pageNo,
@@ -137,7 +137,7 @@ export const fetchScoreDetails = async (
   examId: string,
   filters: ScoreDetailsFiltersState
 ): Promise<ScoreDetailsResult> => {
-  const response = await client.post<ListResponse>("/exam/userExamDetail/list", {
+  const response = await scoreApi.exam.getUserExamDetailList({
     examId,
     passed: filters.passed,
     pageNo: filters.pageNo,
@@ -150,4 +150,3 @@ export const fetchScoreDetails = async (
     total: payload.total,
   };
 };
-

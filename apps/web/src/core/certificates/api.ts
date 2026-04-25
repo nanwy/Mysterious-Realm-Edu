@@ -1,4 +1,4 @@
-import { getUserCertificateList, unwrapEnvelope } from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import type {
   CertificateFiltersState,
   CertificateListResult,
@@ -66,7 +66,7 @@ const normalizeRecord = (
 export const fetchCertificates = async (
   filters: CertificateFiltersState
 ): Promise<CertificateListResult> => {
-  const response = await getUserCertificateList({
+  const response = await api.certificate.listUserCertificates({
     pageNo: filters.pageNo,
     pageSize: filters.pageSize,
     certificateType: filters.certificateType,

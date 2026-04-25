@@ -1,9 +1,4 @@
-import {
-  getCourseList,
-  getExamList,
-  getRepositoryList,
-  unwrapEnvelope,
-} from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 
 function toArray(value: unknown): Array<Record<string, unknown>> {
   if (Array.isArray(value)) {
@@ -50,7 +45,7 @@ async function safeArrayRequest(
 
 export async function getCoursePageData() {
   return safeArrayRequest(() =>
-    getCourseList({
+    api.course.listCourses({
       pageNo: 1,
       pageSize: 8,
     })
@@ -59,7 +54,7 @@ export async function getCoursePageData() {
 
 export async function getPracticePageData() {
   return safeArrayRequest(() =>
-    getRepositoryList({
+    api.practice.listRepositories({
       pageNo: 1,
       pageSize: 8,
     })
@@ -68,7 +63,7 @@ export async function getPracticePageData() {
 
 export async function getExamPageData() {
   return safeArrayRequest(() =>
-    getExamList({
+    api.exam.listExams({
       pageNo: 1,
       pageSize: 8,
     })

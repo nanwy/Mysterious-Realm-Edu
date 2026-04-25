@@ -1,9 +1,4 @@
-import {
-  getRecentPractice,
-  getRepositoryById,
-  getRepositoryList,
-  unwrapEnvelope,
-} from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import {
   PRACTICE_FREE_ACTIONS,
   PRACTICE_PAGE_SIZE,
@@ -200,7 +195,7 @@ const isOverviewPayloadEmpty = (payload: unknown) => {
 export const fetchPracticeRepositories = async (
   query: PracticeQueryState
 ): Promise<PracticeRepositoryResult> => {
-  const response = await getRepositoryList({
+  const response = await api.practice.listRepositories({
     pageNo: query.page,
     pageSize: PRACTICE_PAGE_SIZE,
     repositoryTitle: query.keyword,
@@ -217,8 +212,8 @@ export const fetchPracticeModeData = async (
   repositoryId: string
 ): Promise<PracticeModeResult> => {
   const [overviewResponse, recentResponse] = await Promise.allSettled([
-    getRepositoryById(repositoryId),
-    getRecentPractice(repositoryId),
+    api.practice.getRepositoryById({ id: repositoryId }),
+    api.practice.getRecentPractice({ repositoryId }),
   ]);
 
   let overviewPayload: unknown = null;

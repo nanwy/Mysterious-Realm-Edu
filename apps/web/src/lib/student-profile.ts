@@ -1,9 +1,4 @@
-import { unwrapEnvelope } from "@workspace/api/client";
-import {
-  getCurrentDept,
-  getCurrentUserDeparts,
-  queryUserInfo,
-} from "@workspace/api/modules/user";
+import { api, unwrapEnvelope } from "@workspace/api";
 import { toRecord } from "@/lib/normalize";
 
 export const STUDENT_PROFILE_CONFIG_ERROR =
@@ -112,9 +107,9 @@ export async function getStudentProfile(): Promise<StudentProfileResult> {
   }
 
   const [profileResult, currentDeptResult, departsResult] = await Promise.all([
-    safeRequest("用户信息", () => queryUserInfo()),
-    safeRequest("当前部门", () => getCurrentDept()),
-    safeRequest("部门列表", () => getCurrentUserDeparts()),
+    safeRequest("用户信息", () => api.user.queryUserInfo()),
+    safeRequest("当前部门", () => api.user.getCurrentDept()),
+    safeRequest("部门列表", () => api.user.getCurrentUserDeparts()),
   ]);
 
   const errors = [profileResult.error, currentDeptResult.error, departsResult.error].filter(

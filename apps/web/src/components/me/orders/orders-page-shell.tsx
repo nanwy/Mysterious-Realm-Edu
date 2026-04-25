@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  cancelOrder,
-  deleteOrder,
-  getOrderList,
-  unwrapEnvelope,
-} from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import {
   Alert,
@@ -238,7 +233,7 @@ function normalizeOrder(item: unknown, index: number): OrderListItem {
 }
 
 async function fetchOrders(query: OrdersQuery) {
-  const response = await getOrderList({
+  const response = await api.order.listOrders({
     pageNo: query.pageNo,
     pageSize: query.pageSize,
     orderSn: query.orderSn,
@@ -534,7 +529,7 @@ export function OrdersPageShell() {
     setActionMessage(null);
 
     try {
-      await cancelOrder(orderSn);
+      await api.order.cancelOrder({ orderSn });
       setActionMessage(`订单 ${orderSn} 已取消，列表已刷新。`);
       reloadOrders();
     } catch (requestError) {
@@ -553,7 +548,7 @@ export function OrdersPageShell() {
     setActionMessage(null);
 
     try {
-      await deleteOrder(orderSn);
+      await api.order.deleteOrder({ orderSn });
       setActionMessage(`订单 ${orderSn} 已删除，列表已刷新。`);
       reloadOrders();
     } catch (requestError) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { getStudyProcessList, unwrapEnvelope } from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import {
   Alert,
@@ -216,7 +216,7 @@ function toStudyProgressPayload(value: unknown): StudyProgressPayload {
 }
 
 async function fetchStudyProgress(query: StudyProgressQuery) {
-  const response = await getStudyProcessList({
+  const response = await api.course.listStudyProcesses({
     pageNo: query.pageNo,
     pageSize: query.pageSize,
     name: query.keyword.trim(),

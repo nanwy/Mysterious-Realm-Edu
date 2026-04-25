@@ -1,20 +1,36 @@
-import { createApiClient, buildQuery } from "../client";
+import { createApiClient, type ApiHttpClient } from "../client";
 
-const client = createApiClient();
+export const createSearchApi = (client: ApiHttpClient) => ({
+  listSearch: (payload?: Record<string, unknown>) =>
+    client.post("/search/list", payload ?? {}),
+
+  addKeyword: ({ keyword }: { keyword: string }) =>
+    client.get("/search/addKeywordToHistory", {
+      query: { keyword },
+    }),
+
+  hotSearchCount: ({ limitCount }: { limitCount?: number }) =>
+    client.get("/search/hotSearchCount", {
+      query: { limitCount },
+    }),
+
+  getMySearchHistory: () => client.get("/search/mySearchHistory"),
+});
+
+const defaultSearchApi = createSearchApi(createApiClient());
 
 export function getSearchList(payload?: Record<string, unknown>) {
-  return client.post("/search/list", payload ?? {});
+  return defaultSearchApi.listSearch(payload);
 }
 
 export function addKeyword(keyword: string) {
-  return client.get(`/search/addKeywordToHistory${buildQuery({ keyword })}`);
+  return defaultSearchApi.addKeyword({ keyword });
 }
 
 export function hotSearchCount(limitCount?: number) {
-  return client.get(`/search/hotSearchCount${buildQuery({ limitCount })}`);
+  return defaultSearchApi.hotSearchCount({ limitCount });
 }
 
 export function getMySearchHistory() {
-  return client.get("/search/mySearchHistory");
+  return defaultSearchApi.getMySearchHistory();
 }
-

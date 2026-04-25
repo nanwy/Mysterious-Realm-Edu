@@ -1,4 +1,4 @@
-import { getQuestionnaireList, unwrapEnvelope } from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import { QUESTIONNAIRE_PAGE_SIZE, QUESTIONNAIRE_TYPE_STUDENT } from "./config";
 import type {
   QuestionnaireItem,
@@ -83,7 +83,7 @@ export const normalizeQuestionnaireError = (error: unknown) => {
 export const fetchQuestionnaires = async (
   query: QuestionnaireQueryState
 ): Promise<QuestionnaireResult> => {
-  const response = await getQuestionnaireList({
+  const response = await api.questionnaire.listQuestionnaires({
     pageNo: query.page,
     pageSize: QUESTIONNAIRE_PAGE_SIZE,
     name: query.keyword,
@@ -96,4 +96,3 @@ export const fetchQuestionnaires = async (
     total: payload.total,
   };
 };
-

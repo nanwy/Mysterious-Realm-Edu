@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { login, unwrapEnvelope } from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import {
   Badge,
   Button,
@@ -112,7 +112,7 @@ export function LoginForm() {
       syncNormalizedValues(formApi, normalized);
 
       try {
-        const response = await login(normalized);
+        const response = await api.auth.login(normalized);
         const payload = unwrapEnvelope(response);
         const token = extractToken(payload);
 
