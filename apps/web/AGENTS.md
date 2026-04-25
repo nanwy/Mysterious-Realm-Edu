@@ -73,6 +73,9 @@ Rules:
 - `store.ts` owns Zustand client/UI state only.
 - `index.ts` exports the public domain surface.
 - Domain filters and UI states must use semantic constants or enums in route, component, query-key, and store code. If an API requires numeric/string status codes, keep those values behind named enum members instead of repeating raw literals in component logic.
+- Web pages and components should call domain core functions, not `@workspace/api` directly.
+- Put React Query query options and mutations in `apps/web/src/core/<domain>`.
+- Keep page-specific normalization in domain core instead of `packages/api`.
 
 Move reusable API access, types, and normalization toward `packages/api` and `packages/shared` when Mobile Web or another domain needs the same logic.
 

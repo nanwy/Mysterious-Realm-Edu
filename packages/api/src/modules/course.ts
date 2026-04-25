@@ -1,85 +1,209 @@
-import { createApiClient } from "../client";
+import { createApiClient, type ApiHttpClient } from "../client";
+import type {
+  CourseCategoryListResponse,
+  CourseDetailResponse,
+  CourseEvaluationListRequest,
+  CourseEvaluationListResponse,
+  CourseGradeCountResponse,
+  CourseIntegralResponse,
+  CourseLatestStudyTaskResponse,
+  CourseListRequest,
+  CourseListResponse,
+  CourseStudyDetailResponse,
+  CourseStudyProcessListRequest,
+  CourseStudyProcessResponse,
+  CourseStudyTimeRequest,
+  CourseTaskStudyTimeResponse,
+} from "../types";
 
-const client = createApiClient();
+type Id = string | number;
 
-export function getCourseList(payload: Record<string, unknown>) {
-  return client.post("/course/list", payload);
+export const createCourseApi = (client: ApiHttpClient) => ({
+  listCourses: (payload: CourseListRequest) =>
+    client.post<CourseListResponse>("/course/list", payload),
+
+  getCourseDetail: ({ courseId }: { courseId: Id }) =>
+    client.get<CourseDetailResponse>("/course/getCourseDetail", {
+      query: { courseId },
+    }),
+
+  listCourseCategories: ({ parentId }: { parentId: Id }) =>
+    client.get<CourseCategoryListResponse>("/course/category/loadTreeData", {
+      query: { pid: parentId },
+    }),
+
+  listOptimalCourses: (payload: CourseListRequest) =>
+    client.post<CourseListResponse>("/course/optimalSelectList", payload),
+
+  listRecommendedCourses: (payload: CourseListRequest) =>
+    client.post<CourseListResponse>("/course/recommendList", payload),
+
+  getCourseStudyDetail: ({ courseId }: { courseId: Id }) =>
+    client.get<CourseStudyDetailResponse>("/course/getCourseStudyDetail", {
+      query: { id: courseId },
+    }),
+
+  calcStudyTime: (payload: CourseStudyTimeRequest) =>
+    client.post<CourseIntegralResponse>("/course/calcStudyTime", payload),
+
+  getCourseStudyProcess: ({ courseId }: { courseId: Id }) =>
+    client.get<CourseStudyProcessResponse>("/course/getCourseStudyProcess", {
+      query: { courseId },
+    }),
+
+  findUserCatalog: ({
+    courseCatalogId,
+    courseId,
+  }: {
+    courseCatalogId: Id;
+    courseId: Id;
+  }) =>
+    client.get<CourseStudyProcessResponse>("/course/findUserCatalog", {
+      query: { courseCatalogId, courseId },
+    }),
+
+  checkPreTaskComplete: ({ courseCatalogId }: { courseCatalogId: Id }) =>
+    client.get<CourseStudyProcessResponse>("/course/checkPreTaskComplete", {
+      query: { id: courseCatalogId },
+    }),
+
+  listStudyProcesses: (payload: CourseStudyProcessListRequest) =>
+    client.post<CourseStudyProcessResponse>(
+      "/course/courseStudyProcessList",
+      payload
+    ),
+
+  listMyFootPrint: (payload: CourseStudyProcessListRequest) =>
+    client.post<CourseListResponse>("/course/myFootPrint", payload),
+
+  listMyCollect: (payload: CourseStudyProcessListRequest) =>
+    client.post<CourseListResponse>("/course/myCollect", payload),
+
+  getLatestStudyTask: ({ courseId }: { courseId: Id }) =>
+    client.get<CourseLatestStudyTaskResponse>("/course/latestStudyTask", {
+      query: { courseId },
+    }),
+
+  getTaskStudyTime: ({ courseCatalogId }: { courseCatalogId: Id }) =>
+    client.get<CourseTaskStudyTimeResponse>("/course/getTaskStudyTime", {
+      query: { courseCatalogId },
+    }),
+
+  listGoodsEvaluation: (payload: CourseEvaluationListRequest) =>
+    client.post<CourseEvaluationListResponse>(
+      "/course/goodsEvaluation",
+      payload
+    ),
+
+  countGradeNumber: ({
+    goodsId,
+    goodsType,
+  }: {
+    goodsId: Id;
+    goodsType: Id;
+  }) =>
+    client.get<CourseGradeCountResponse>("/course/countGradeNumber", {
+      query: { goodsId, goodsType },
+    }),
+
+  updateCourseIntegral: ({
+    courseId,
+    integral,
+  }: {
+    courseId: Id;
+    integral: Id;
+  }) =>
+    client.get<CourseIntegralResponse>("/course/updateIntegral", {
+      query: { courseId, integral },
+    }),
+
+  calcLiveStudyTime: (payload: CourseStudyTimeRequest) =>
+    client.post<CourseIntegralResponse>("/course/calcLiveStudyTime", payload),
+
+  listHotCourses: ({ limit }: { limit: number }) =>
+    client.get<CourseListResponse>("/index/listHotCourse", {
+      query: { limit },
+    }),
+});
+
+const defaultCourseApi = createCourseApi(createApiClient());
+
+export function getCourseList(payload: CourseListRequest) {
+  return defaultCourseApi.listCourses(payload);
 }
 
 export function getCourseDetail(courseId: string) {
-  return client.get(`/course/getCourseDetail?courseId=${courseId}`);
+  return defaultCourseApi.getCourseDetail({ courseId });
 }
 
-export function getCourseCategoryList(parentId: string | number) {
-  return client.get(`/course/category/loadTreeData?pid=${parentId}`);
+export function getCourseCategoryList(parentId: Id) {
+  return defaultCourseApi.listCourseCategories({ parentId });
 }
 
-export function getOptimalCourseList(payload: Record<string, unknown>) {
-  return client.post("/course/optimalSelectList", payload);
+export function getOptimalCourseList(payload: CourseListRequest) {
+  return defaultCourseApi.listOptimalCourses(payload);
 }
 
-export function getRecommendedCourseList(payload: Record<string, unknown>) {
-  return client.post("/course/recommendList", payload);
+export function getRecommendedCourseList(payload: CourseListRequest) {
+  return defaultCourseApi.listRecommendedCourses(payload);
 }
 
-export function getCourseStudyDetail(courseId: string | number) {
-  return client.get(`/course/getCourseStudyDetail?id=${courseId}`);
+export function getCourseStudyDetail(courseId: Id) {
+  return defaultCourseApi.getCourseStudyDetail({ courseId });
 }
 
-export function calcStudyTime(payload: Record<string, unknown>) {
-  return client.post("/course/calcStudyTime", payload);
+export function calcStudyTime(payload: CourseStudyTimeRequest) {
+  return defaultCourseApi.calcStudyTime(payload);
 }
 
-export function getCourseStudyProcess(courseId: string | number) {
-  return client.get(`/course/getCourseStudyProcess?courseId=${courseId}`);
+export function getCourseStudyProcess(courseId: Id) {
+  return defaultCourseApi.getCourseStudyProcess({ courseId });
 }
 
-export function findUserCatalog(courseCatalogId: string | number, courseId: string | number) {
-  return client.get(
-    `/course/findUserCatalog?courseCatalogId=${courseCatalogId}&courseId=${courseId}`
-  );
+export function findUserCatalog(courseCatalogId: Id, courseId: Id) {
+  return defaultCourseApi.findUserCatalog({ courseCatalogId, courseId });
 }
 
-export function checkPreTaskComplete(courseCatalogId: string | number) {
-  return client.get(`/course/checkPreTaskComplete?id=${courseCatalogId}`);
+export function checkPreTaskComplete(courseCatalogId: Id) {
+  return defaultCourseApi.checkPreTaskComplete({ courseCatalogId });
 }
 
-export function getStudyProcessList(payload: Record<string, unknown>) {
-  return client.post("/course/courseStudyProcessList", payload);
+export function getStudyProcessList(payload: CourseStudyProcessListRequest) {
+  return defaultCourseApi.listStudyProcesses(payload);
 }
 
-export function getMyFootPrint(payload: Record<string, unknown>) {
-  return client.post("/course/myFootPrint", payload);
+export function getMyFootPrint(payload: CourseStudyProcessListRequest) {
+  return defaultCourseApi.listMyFootPrint(payload);
 }
 
-export function getMyCollect(payload: Record<string, unknown>) {
-  return client.post("/course/myCollect", payload);
+export function getMyCollect(payload: CourseStudyProcessListRequest) {
+  return defaultCourseApi.listMyCollect(payload);
 }
 
-export function getLatestStudyTask(courseId: string | number) {
-  return client.get(`/course/latestStudyTask?courseId=${courseId}`);
+export function getLatestStudyTask(courseId: Id) {
+  return defaultCourseApi.getLatestStudyTask({ courseId });
 }
 
-export function getTaskStudyTime(courseCatalogId: string | number) {
-  return client.get(`/course/getTaskStudyTime?courseCatalogId=${courseCatalogId}`);
+export function getTaskStudyTime(courseCatalogId: Id) {
+  return defaultCourseApi.getTaskStudyTime({ courseCatalogId });
 }
 
-export function listGoodsEvaluation(payload: Record<string, unknown>) {
-  return client.post("/course/goodsEvaluation", payload);
+export function listGoodsEvaluation(payload: CourseEvaluationListRequest) {
+  return defaultCourseApi.listGoodsEvaluation(payload);
 }
 
-export function countGradeNumber(goodsId: string | number, goodsType: string | number) {
-  return client.get(`/course/countGradeNumber?goodsId=${goodsId}&goodsType=${goodsType}`);
+export function countGradeNumber(goodsId: Id, goodsType: Id) {
+  return defaultCourseApi.countGradeNumber({ goodsId, goodsType });
 }
 
-export function updateCourseIntegral(courseId: string | number, integral: string | number) {
-  return client.get(`/course/updateIntegral?courseId=${courseId}&integral=${integral}`);
+export function updateCourseIntegral(courseId: Id, integral: Id) {
+  return defaultCourseApi.updateCourseIntegral({ courseId, integral });
 }
 
-export function calcLiveStudyTime(payload: Record<string, unknown>) {
-  return client.post("/course/calcLiveStudyTime", payload);
+export function calcLiveStudyTime(payload: CourseStudyTimeRequest) {
+  return defaultCourseApi.calcLiveStudyTime(payload);
 }
 
 export function listHotCourse(limit: number) {
-  return client.get(`/index/listHotCourse?limit=${limit}`);
+  return defaultCourseApi.listHotCourses({ limit });
 }

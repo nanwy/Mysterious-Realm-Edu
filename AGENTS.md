@@ -50,6 +50,18 @@ Historical generated code is not automatically a pattern to copy.
 - When Web and Mobile both need the same domain behavior, move reusable API access, types, and normalization toward `packages/api` and `packages/shared`.
 - Do not duplicate common `toXxx`, `normalizeXxx`, `parseXxx`, filtering, or pagination helpers across pages.
 
+### API Package Rules
+
+- New endpoint access must live in `packages/api`.
+- API modules must expose a `createXxxApi(client)` factory.
+- API modules must not instantiate their own client for primary endpoint definitions.
+- API modules must not import React, Next.js, Zustand, UI packages, or Web domain code.
+- API modules must use shared query helpers for GET parameters.
+- Do not hand-build query strings such as `?id=${id}`.
+- React Query `queryOptions` and mutations belong in `apps/web/src/core/<domain>`, not in `packages/api`.
+- Page components must not call `@workspace/api` directly for domain data.
+- Normalize backend payloads in Web domain core unless the transformation is a reusable protocol concern.
+
 ### Package Boundaries
 
 - `packages/ui` must stay presentation-focused and must not import business API clients or domain stores.

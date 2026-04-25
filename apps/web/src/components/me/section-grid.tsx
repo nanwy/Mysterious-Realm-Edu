@@ -3,9 +3,9 @@
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { ArrowUpRight, Hash } from "lucide-react";
 import Link from "next/link";
-import type { MeEntryGroup } from "./me-data";
+import type { MeEntryGroup } from "@/core/me";
 
-export function MeSectionGrid({ groups }: { groups: MeEntryGroup[] }) {
+export const MeSectionGrid = ({ groups }: { groups: MeEntryGroup[] }) => {
   return (
     <div className="flex flex-col w-full gap-16" data-testid="me-section-grid">
       <MotionStagger delayChildren={0.05}>
@@ -23,7 +23,6 @@ export function MeSectionGrid({ groups }: { groups: MeEntryGroup[] }) {
                 id={group.id}
                 className="flex flex-col border border-border/40 bg-background/50 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.02)] transition-shadow"
               >
-                {/* 1. Header: 系统化标题头 */}
                 <div className="flex flex-col gap-4 p-10 border-b border-border/40 bg-muted/20 relative overflow-hidden group/header">
                   <div className="absolute right-0 top-0 p-8 opacity-5 group-hover/header:opacity-10 transition-opacity">
                     <Icon className="w-24 h-24 rotate-12" />
@@ -48,7 +47,6 @@ export function MeSectionGrid({ groups }: { groups: MeEntryGroup[] }) {
                   </div>
                 </div>
 
-                {/* 2. Grid Body: 每个项目增加机械咬合反馈 */}
                 <div className="p-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {group.items.map((item, idx) => (
                     <MotionItem key={item.title}>
@@ -56,7 +54,6 @@ export function MeSectionGrid({ groups }: { groups: MeEntryGroup[] }) {
                         href={item.href}
                         className="group relative flex flex-col p-6 border border-border/40 bg-background/40 hover:border-primary/50 hover:bg-muted/10 transition-all duration-150 overflow-hidden"
                       >
-                        {/* 悬停时的机械背景装饰 */}
                         <div className="absolute -bottom-12 -right-12 p-3 opacity-5 group-hover:opacity-20 group-hover:rotate-45 transition-all">
                           <Hash className="size-24" />
                         </div>
@@ -90,4 +87,4 @@ export function MeSectionGrid({ groups }: { groups: MeEntryGroup[] }) {
       </MotionStagger>
     </div>
   );
-}
+};

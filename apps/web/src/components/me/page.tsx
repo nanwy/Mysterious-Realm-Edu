@@ -12,10 +12,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ME_ENTRY_GROUPS, ME_OVERVIEW_STATS } from "./me-data";
-import { MeSectionGrid } from "./me-section-grid";
+import { MeSectionGrid } from "./section-grid";
+import { ME_ENTRY_GROUPS, ME_OVERVIEW_STATS } from "@/core/me";
 
-// === 增强的数据补全 Mock ===
 const MOCK_ONGOING_ITEMS = [
   {
     id: "1",
@@ -51,12 +50,16 @@ const MOCK_ONGOING_ITEMS = [
   },
 ];
 
-export function MePageShell({ children }: { children?: ReactNode }) {
+const QUICK_LINKS = [
+  { label: "资料同步设置", icon: Settings2 },
+  { label: "订单节点追踪", icon: CreditCard },
+] as const;
+
+export const MePage = ({ children }: { children?: ReactNode }) => {
   return (
     <div className="bg-background min-h-screen selection:bg-primary/10">
       <main className="mx-auto max-w-[1536px]">
         <div className="flex flex-col xl:flex-row min-h-screen">
-          {/* 左侧精密导航基座 - 开启独立滚动 */}
           <aside className="w-full xl:w-[320px] xl:sticky xl:top-0 xl:h-screen border-r border-border/40 bg-muted/5 flex flex-col overflow-y-auto scrollbar-none">
             <div className="p-8 lg:p-10 flex flex-col min-h-full">
               <div className="flex items-center gap-3 mb-16 px-3">
@@ -67,7 +70,6 @@ export function MePageShell({ children }: { children?: ReactNode }) {
               </div>
 
               <nav className="flex-1 flex flex-col gap-12">
-                {/* 第一顺位：功能导航 */}
                 <div className="space-y-4">
                   <span className="px-3 text-[9px] font-mono font-black text-muted-foreground/30 uppercase tracking-[0.4em]">
                     Directory_Root
@@ -90,7 +92,6 @@ export function MePageShell({ children }: { children?: ReactNode }) {
                   </div>
                 </div>
 
-                {/* 第二顺位：统计信号 - 强化对比度与缩放量感 */}
                 <div className="space-y-6 pt-10 border-t border-border/15">
                   <span className="px-3 text-[9px] font-mono font-black text-muted-foreground/30 uppercase tracking-[0.4em]">
                     Live_Metrics
@@ -122,7 +123,6 @@ export function MePageShell({ children }: { children?: ReactNode }) {
             </div>
           </aside>
 
-          {/* 右侧主作业区 */}
           <section className="flex-1 flex flex-col min-w-0">
             <header className="h-20 border-b border-border/40 px-8 lg:px-12 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-10">
               <div className="flex items-center gap-4 ml-[-4px]">
@@ -143,7 +143,6 @@ export function MePageShell({ children }: { children?: ReactNode }) {
 
             <div className="flex-1 p-8 lg:p-12 max-w-6xl">
               <div className="flex flex-col gap-32">
-                {/* 01: 正在运行的任务 - 精雕版 */}
                 <section className="border border-border/40 overflow-hidden bg-background shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] dark:shadow-none">
                   <div className="bg-muted/15 border-b border-border/40 p-8 lg:px-12 lg:py-10 flex items-center justify-between">
                     <div className="flex flex-col gap-3">
@@ -226,7 +225,6 @@ export function MePageShell({ children }: { children?: ReactNode }) {
                   </div>
                 </section>
 
-                {/* 02: 功能集群 */}
                 <section className="space-y-12">
                   <div className="flex flex-col gap-3 px-2">
                     <div className="flex items-center gap-3">
@@ -274,10 +272,7 @@ export function MePageShell({ children }: { children?: ReactNode }) {
                       Quick_Links
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { label: "资料同步设置", icon: Settings2 },
-                        { label: "订单节点追踪", icon: CreditCard },
-                      ].map((btn) => (
+                      {QUICK_LINKS.map((btn) => (
                         <button
                           key={btn.label}
                           className="flex items-center gap-3 p-4 border border-border/40 hover:border-primary/50 hover:bg-muted/10 transition-all text-[11px] font-bold text-left group"
@@ -296,4 +291,4 @@ export function MePageShell({ children }: { children?: ReactNode }) {
       </main>
     </div>
   );
-}
+};

@@ -1,4 +1,4 @@
-import { buildQuery, createApiClient, type ApiClientOptions } from "../client.ts";
+import { buildQuery, createApiClient, type ApiClientOptions } from "../client";
 
 export function createCertificateModule(options: ApiClientOptions = {}) {
   const client = createApiClient(options);

@@ -1,10 +1,4 @@
-import {
-  checkExamLimit,
-  examRecordExist,
-  getExamList,
-  queryExamById,
-  unwrapEnvelope,
-} from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import {
   EXAM_STATUS,
   EXAM_STATUS_OPTIONS,
@@ -408,7 +402,7 @@ export const fetchExamList = async (
   filters: ExamFiltersState
 ): Promise<ExamListResult> => {
   try {
-    const response = await getExamList({ ...filters });
+    const response = await api.exam.listExams({ ...filters });
     const payload = toListPayload(unwrapEnvelope(response));
 
     return {
@@ -425,9 +419,9 @@ export const fetchExamPreview = async (
 ): Promise<ExamPreview | null> => {
   try {
     const [detailResult, recordResult, limitResult] = await Promise.allSettled([
-      queryExamById(examId),
-      examRecordExist(examId),
-      checkExamLimit(examId),
+      api.exam.queryExamById({ id: examId }),
+      api.exam.examRecordExists({ examId }),
+      api.exam.checkExamLimit({ examId }),
     ]);
 
     if (detailResult.status === "rejected") {

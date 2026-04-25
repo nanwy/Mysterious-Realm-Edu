@@ -29,6 +29,13 @@ export interface MeEntryGroup {
   items: MeEntryItem[];
 }
 
+export interface MeOverviewStat {
+  label: string;
+  value: string;
+  description: string;
+  icon: LucideIcon;
+}
+
 export const ME_ENTRY_GROUPS: MeEntryGroup[] = [
   {
     id: "basic-settings",
@@ -184,7 +191,7 @@ export const ME_ENTRY_GROUPS: MeEntryGroup[] = [
   },
 ];
 
-export const ME_OVERVIEW_STATS = [
+export const ME_OVERVIEW_STATS: readonly MeOverviewStat[] = [
   {
     label: "学习入口",
     value: "3",
@@ -193,7 +200,9 @@ export const ME_OVERVIEW_STATS = [
   },
   {
     label: "核心入口",
-    value: String(ME_ENTRY_GROUPS.reduce((sum, group) => sum + group.items.length, 0)),
+    value: String(
+      ME_ENTRY_GROUPS.reduce((sum, group) => sum + group.items.length, 0)
+    ),
     description: "资料、学习、订单、证书和消息都会在这里汇合。",
     icon: UserRound,
   },

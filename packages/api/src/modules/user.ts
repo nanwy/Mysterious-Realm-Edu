@@ -1,4 +1,4 @@
-import { createApiClient, type ApiClientOptions } from "../client.ts";
+import { createApiClient, type ApiClientOptions } from "../client";
 
 export function createUserModule(options: ApiClientOptions = {}) {
   const client = createApiClient(options);

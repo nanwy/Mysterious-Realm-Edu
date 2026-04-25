@@ -1,67 +1,151 @@
-import { createApiClient } from "../client";
+import { createApiClient, type ApiHttpClient } from "../client";
+import type {
+  ExamCacheAnswerRequest,
+  ExamDetailListResponse,
+  ExamDetailResponse,
+  ExamLimitResponse,
+  ExamListRequest,
+  ExamListResponse,
+  ExamPreviewResponse,
+  ExamResultListResponse,
+  ExamResultResponse,
+  ExamSessionResponse,
+  ExamSnapUploadRequest,
+  ExamSubmitRequest,
+} from "../types";
 
-const client = createApiClient();
+type Id = string | number;
 
-export function getUserExamScore(examId: string | number) {
-  return client.get(`/exam/examScore?examId=${examId}`);
+export const createExamApi = (client: ApiHttpClient) => ({
+  getUserExamScore: ({ examId }: { examId: Id }) =>
+    client.get<ExamResultResponse>("/exam/examScore", {
+      query: { examId },
+    }),
+
+  checkExamLimit: ({ examId }: { examId: Id }) =>
+    client.get<ExamLimitResponse>("/exam/checkToLimit", {
+      query: { examId },
+    }),
+
+  queryExamById: ({ id }: { id: Id }) =>
+    client.get<ExamPreviewResponse>("/exam/queryById", {
+      query: { id },
+    }),
+
+  listJoinedExams: () =>
+    client.get<ExamDetailListResponse>("/exam/listExamIn"),
+
+  createExamSession: ({ examId }: { examId: Id }) =>
+    client.get<ExamSessionResponse>("/exam/createExam", {
+      query: { examId },
+    }),
+
+  getExamDetail: ({ userExamId }: { userExamId: Id }) =>
+    client.get<ExamDetailResponse>("/exam/examDetail", {
+      query: { userExamId },
+    }),
+
+  examRecordExists: ({ examId }: { examId: Id }) =>
+    client.get<ExamDetailResponse>("/exam/examRecordExist", {
+      query: { examId },
+    }),
+
+  listExams: (payload: ExamListRequest) =>
+    client.post<ExamListResponse>("/exam/list", payload),
+
+  submitExam: (payload: ExamSubmitRequest) =>
+    client.post<ExamSessionResponse>("/exam/submitExam", payload),
+
+  cacheExamAnswer: (payload: ExamCacheAnswerRequest) =>
+    client.post<unknown>("/exam/cacheExamAnswer", payload),
+
+  getCacheAnswer: ({ userExamId }: { userExamId: Id }) =>
+    client.get<unknown>("/exam/getCacheAnswer", {
+      query: { userExamId },
+    }),
+
+  getUserExamResultDetail: ({ userExamId }: { userExamId: Id }) =>
+    client.get<ExamResultResponse>("/exam/userExamResultDetail", {
+      query: { userExamId },
+    }),
+
+  getUserExamResultList: (payload: ExamListRequest) =>
+    client.post<ExamResultListResponse>("/exam/userExamResult/list", payload),
+
+  getUserExamDetailList: (payload: ExamListRequest) =>
+    client.post<ExamDetailListResponse>("/exam/userExamDetail/list", payload),
+
+  uploadExamSnap: (payload: ExamSnapUploadRequest) =>
+    client.post<unknown>("/exam/uploadExamSnap", payload),
+
+  listLatestExam: ({ limit }: { limit: number }) =>
+    client.get<ExamListResponse>("/index/listLatestExam", {
+      query: { limit },
+    }),
+});
+
+const defaultExamApi = createExamApi(createApiClient());
+
+export function getUserExamScore(examId: Id) {
+  return defaultExamApi.getUserExamScore({ examId });
 }
 
-export function checkExamLimit(examId: string | number) {
-  return client.get(`/exam/checkToLimit?examId=${examId}`);
+export function checkExamLimit(examId: Id) {
+  return defaultExamApi.checkExamLimit({ examId });
 }
 
-export function queryExamById(id: string | number) {
-  return client.get(`/exam/queryById?id=${id}`);
+export function queryExamById(id: Id) {
+  return defaultExamApi.queryExamById({ id });
 }
 
 export function listExamIn() {
-  return client.get("/exam/listExamIn");
+  return defaultExamApi.listJoinedExams();
 }
 
-export function createExam(examId: string | number) {
-  return client.get(`/exam/createExam?examId=${examId}`);
+export function createExam(examId: Id) {
+  return defaultExamApi.createExamSession({ examId });
 }
 
-export function getExamDetail(userExamId: string | number) {
-  return client.get(`/exam/examDetail?userExamId=${userExamId}`);
+export function getExamDetail(userExamId: Id) {
+  return defaultExamApi.getExamDetail({ userExamId });
 }
 
-export function examRecordExist(examId: string | number) {
-  return client.get(`/exam/examRecordExist?examId=${examId}`);
+export function examRecordExist(examId: Id) {
+  return defaultExamApi.examRecordExists({ examId });
 }
 
-export function getExamList(payload: Record<string, unknown>) {
-  return client.post("/exam/list", payload);
+export function getExamList(payload: ExamListRequest) {
+  return defaultExamApi.listExams(payload);
 }
 
-export function submitExam(payload: Record<string, unknown>) {
-  return client.post("/exam/submitExam", payload);
+export function submitExam(payload: ExamSubmitRequest) {
+  return defaultExamApi.submitExam(payload);
 }
 
-export function cacheExamAnswer(payload: Record<string, unknown>) {
-  return client.post("/exam/cacheExamAnswer", payload);
+export function cacheExamAnswer(payload: ExamCacheAnswerRequest) {
+  return defaultExamApi.cacheExamAnswer(payload);
 }
 
-export function getCacheAnswer(userExamId: string | number) {
-  return client.get(`/exam/getCacheAnswer?userExamId=${userExamId}`);
+export function getCacheAnswer(userExamId: Id) {
+  return defaultExamApi.getCacheAnswer({ userExamId });
 }
 
-export function getUserExamResultDetail(userExamId: string | number) {
-  return client.get(`/exam/userExamResultDetail?userExamId=${userExamId}`);
+export function getUserExamResultDetail(userExamId: Id) {
+  return defaultExamApi.getUserExamResultDetail({ userExamId });
 }
 
-export function getUserExamResultList(payload: Record<string, unknown>) {
-  return client.post("/exam/userExamResult/list", payload);
+export function getUserExamResultList(payload: ExamListRequest) {
+  return defaultExamApi.getUserExamResultList(payload);
 }
 
-export function getUserExamDetailList(payload: Record<string, unknown>) {
-  return client.post("/exam/userExamDetail/list", payload);
+export function getUserExamDetailList(payload: ExamListRequest) {
+  return defaultExamApi.getUserExamDetailList(payload);
 }
 
-export function uploadExamSnap(payload: Record<string, unknown>) {
-  return client.post("/exam/uploadExamSnap", payload);
+export function uploadExamSnap(payload: ExamSnapUploadRequest) {
+  return defaultExamApi.uploadExamSnap(payload);
 }
 
 export function listLatestExam(limit: number) {
-  return client.get(`/index/listLatestExam?limit=${limit}`);
+  return defaultExamApi.listLatestExam({ limit });
 }

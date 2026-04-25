@@ -1,10 +1,4 @@
-import {
-  getCourseList,
-  getCourseStudyDetail,
-  getCourseStudyProcess,
-  getLatestStudyTask,
-  unwrapEnvelope,
-} from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import {
   COURSE_CATEGORY_PLACEHOLDER,
   COURSE_STUDY_CONFIG_ERROR,
@@ -189,7 +183,7 @@ export const normalizeCourseError = (error: unknown) => {
 export const fetchCourseList = async (
   filters: CourseFiltersState
 ): Promise<CourseListResult> => {
-  const response = await getCourseList({
+  const response = await api.course.listCourses({
     pageNo: filters.pageNo,
     pageSize: filters.pageSize,
     name: filters.keyword,
@@ -294,9 +288,15 @@ export const fetchCourseStudy = async (
   }
 
   const [detailResult, processResult, latestTaskResult] = await Promise.all([
-    safeStudyRequest("课程学习详情", () => getCourseStudyDetail(courseId)),
-    safeStudyRequest("学习进度", () => getCourseStudyProcess(courseId)),
-    safeStudyRequest("最近学习任务", () => getLatestStudyTask(courseId)),
+    safeStudyRequest("课程学习详情", () =>
+      api.course.getCourseStudyDetail({ courseId })
+    ),
+    safeStudyRequest("学习进度", () =>
+      api.course.getCourseStudyProcess({ courseId })
+    ),
+    safeStudyRequest("最近学习任务", () =>
+      api.course.getLatestStudyTask({ courseId })
+    ),
   ]);
 
   const errors = [

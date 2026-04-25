@@ -1,9 +1,9 @@
 import { MotionItem, MotionStagger } from "@workspace/motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import type { MeEntryGroup } from "./me-data";
+import type { MeEntryGroup } from "@/core/me";
 
-export function MeNavigation({ groups }: { groups: MeEntryGroup[] }) {
+export const MeNavigation = ({ groups }: { groups: MeEntryGroup[] }) => {
   return (
     <nav
       aria-label="个人中心导航"
@@ -60,4 +60,4 @@ export function MeNavigation({ groups }: { groups: MeEntryGroup[] }) {
       </MotionStagger>
     </nav>
   );
-}
+};
