@@ -161,7 +161,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 | `/userCenter/myCourse` | `src/views/user/MyCourse.vue` | `/courses` | `[x]` | `[-]` | 旧站“我的课程”已并入新站课程中心。 |
 | `/userCenter/myExam` | `src/views/user/MyExam.vue` | `/me/exams` | `[x]` | `[-]` | 已迁移我的考试页，承接状态筛选、分页与“进入考试 / 查看详情”入口说明。 |
 | `/userCenter/myPurchaseGoods` | `src/views/user/MyPurchaseGoods.vue` | `/me/purchases` | `[x]` | `[-]` | 已迁移到已购内容工作台，承接课程/考试切换、分页、时间信息与可达入口说明。 |
-| `/userCenter/practice/record` | `src/views/user/PracticeRecord.vue` | none | `[ ]` | `[ ]` | 未迁移。 |
+| `/userCenter/practice/record` | `src/views/user/PracticeRecord.vue` | `/me/practice-records` | `[x]` | `[-]` | 已迁移练习记录列表、题库/模式筛选、分页、查看结果入口与接口异常兜底；结果详情页仍待在线练习结果链路迁移。 |
 | `/userCenter/course/studyRecord` | `src/views/user/CourseStudyRecord.vue` | `/me/study-records` | `[x]` | `[x]` | 已迁移学习记录页，承接课程/任务筛选、分页、学习时长/进度/最近学习字段，并提供 loading/empty/error 与接口异常兜底内容。 |
 | `/userCenter/course/studyProcess` | `src/views/user/CourseStudyProcess.vue` | `/me/study-progress` | `[x]` | `[x]` | 已迁移课程维度学习进度列表，承接筛选、分页、最近学习与错误/空态。 |
 | `/userCenter/myOrder` | `src/views/mall/ordercenter/MyOrder.vue` | `/me/orders` | `[x]` | `[-]` | 已迁移订单筛选、列表、分页与异常兜底；详情 / 支付 / 售后仍待后续子页承接。 |

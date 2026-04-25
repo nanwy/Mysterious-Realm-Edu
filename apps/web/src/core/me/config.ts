@@ -142,8 +142,8 @@ export const ME_ENTRY_GROUPS: MeEntryGroup[] = [
       {
         title: "练习记录",
         description: "查看练习次数、最近训练和错题回顾。",
-        href: "/practice",
-        routeLabel: "/practice",
+        href: "/me/practice-records",
+        routeLabel: "/me/practice-records",
       },
     ],
   },
