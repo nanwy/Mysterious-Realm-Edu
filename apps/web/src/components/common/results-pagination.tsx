@@ -1,7 +1,5 @@
 "use client";
 
-import { Fragment } from "react";
-
 import {
   Pagination,
   PaginationContent,
@@ -11,6 +9,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@workspace/ui";
+import { Fragment } from "react";
+
 
 function getVisiblePages(page: number, pageCount: number) {
   if (pageCount <= 7) {

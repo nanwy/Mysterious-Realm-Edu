@@ -1,33 +1,56 @@
 import { StudentShell } from "@workspace/ui";
-import { ExamsPageShell } from "@/components/exams/exams-page-shell";
-import { EXAMS_PAGE_SIZE, type ExamStatusFilter, type ExamTypeFilter } from "@/components/exams/exams-types";
+import { ExamsPage } from "@/components/exams/page";
+import {
+  EXAM_STATUS,
+  EXAM_TYPE,
+  EXAMS_PAGE_SIZE,
+  type ExamStatusFilter,
+  type ExamTypeFilter,
+} from "@/core/exams";
 
-function toPositivePage(value: string | string[] | undefined) {
+const toPositivePage = (value: string | string[] | undefined) => {
   const raw = Array.isArray(value) ? value[0] : value;
   const page = Number(raw);
   return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-}
+};
 
-function toKeyword(value: string | string[] | undefined) {
+const toKeyword = (value: string | string[] | undefined) => {
   const raw = Array.isArray(value) ? value[0] : value;
   return typeof raw === "string" ? raw.trim() : "";
-}
+};
 
-function toExamType(value: string | string[] | undefined): ExamTypeFilter {
+const toExamType = (
+  value: string | string[] | undefined
+): ExamTypeFilter => {
   const raw = Array.isArray(value) ? value[0] : value;
-  return raw === "2" ? "2" : "1";
-}
+  if (raw === EXAM_TYPE.MINE || raw === EXAM_TYPE.PUBLIC) {
+    return raw;
+  }
 
-function toExamStatus(value: string | string[] | undefined): ExamStatusFilter {
+  return EXAM_TYPE.PUBLIC;
+};
+
+const toExamStatus = (
+  value: string | string[] | undefined
+): ExamStatusFilter => {
   const raw = Array.isArray(value) ? value[0] : value;
-  return raw === "0" || raw === "2" || raw === "3" ? raw : "";
-}
+  if (
+    raw === EXAM_STATUS.ALL ||
+    raw === EXAM_STATUS.IN_PROGRESS ||
+    raw === EXAM_STATUS.NOT_STARTED ||
+    raw === EXAM_STATUS.ENDED
+  ) {
+    return raw;
+  }
 
-export default async function ExamsPage({
+  return EXAM_STATUS.ALL;
+};
+
+const ExamsRoute = async ({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+}) => {
   const params = await searchParams;
   const initialFilters = {
     examTitle: toKeyword(params.keyword),
@@ -40,9 +63,11 @@ export default async function ExamsPage({
   return (
     <StudentShell
       title="在线考试"
-      description="迁移旧学员端考试列表页到 Next.js 学员端，支持公开考试/我的考试切换、状态筛选、关键词搜索与分页浏览，并在接口失败时保留明确错误态。"
+      description="迁移旧学员端考试列表页到 Next.js 学员端，支持公开考试/我的考试切换、状态筛选、关键词搜索与分页浏览。"
     >
-      <ExamsPageShell initialFilters={initialFilters} />
+      <ExamsPage initialFilters={initialFilters} />
     </StudentShell>
   );
-}
+};
+
+export default ExamsRoute;

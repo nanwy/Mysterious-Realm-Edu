@@ -1,55 +1,40 @@
-import type { ApiEnvelope } from "@workspace/shared";
+import { buildQuery, type QueryParams } from "./endpoint";
+import { ApiError } from "./errors";
+import type { ApiEnvelope } from "./types";
+
+export { buildQuery } from "./endpoint";
+export { ApiError } from "./errors";
+export { unwrapEnvelope } from "./types";
 
 export interface ApiClientOptions {
   baseUrl?: string;
   getToken?: () => string | null | undefined;
 }
 
-export class ApiError extends Error {
-  public readonly code: number;
-  public readonly status: number;
-
-  constructor(
-    message: string,
-    code: number,
-    status: number
-  ) {
-    super(message);
-    this.name = "ApiError";
-    this.code = code;
-    this.status = status;
-  }
+export interface ApiRequestOptions extends RequestInit {
+  query?: QueryParams;
 }
 
-export function unwrapEnvelope<T>(payload: ApiEnvelope<T>) {
-  return payload.result ?? payload.data ?? null;
+export interface ApiHttpClient {
+  get: <T>(path: string, init?: ApiRequestOptions) => Promise<ApiEnvelope<T>>;
+  post: <T>(
+    path: string,
+    body?: unknown,
+    init?: ApiRequestOptions
+  ) => Promise<ApiEnvelope<T>>;
 }
 
-export function buildQuery(
-  params: Record<string, string | number | boolean | null | undefined>
-) {
-  const query = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== null && value !== "") {
-      query.set(key, String(value));
-    }
-  }
-
-  const result = query.toString();
-  return result ? `?${result}` : "";
-}
-
-export function createApiClient(options: ApiClientOptions = {}) {
+export function createApiClient(options: ApiClientOptions = {}): ApiHttpClient {
   const baseUrl =
     options.baseUrl ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
   async function request<T>(
     path: string,
-    init: RequestInit = {}
+    init: ApiRequestOptions = {}
   ): Promise<ApiEnvelope<T>> {
-    const headers = new Headers(init.headers);
-    if (!(init.body instanceof FormData)) {
+    const { query, ...fetchInit } = init;
+    const headers = new Headers(fetchInit.headers);
+    if (!(fetchInit.body instanceof FormData)) {
       headers.set("Content-Type", "application/json");
     }
 
@@ -58,8 +43,8 @@ export function createApiClient(options: ApiClientOptions = {}) {
       headers.set("X-exam-Token", token);
     }
 
-    const response = await fetch(`${baseUrl}${path}`, {
-      ...init,
+    const response = await fetch(`${baseUrl}${path}${buildQuery(query)}`, {
+      ...fetchInit,
       headers,
       cache: "no-store",
     });
@@ -77,8 +62,8 @@ export function createApiClient(options: ApiClientOptions = {}) {
   }
 
   return {
-    get: <T>(path: string, init?: RequestInit) => request<T>(path, init),
-    post: <T>(path: string, body?: unknown, init?: RequestInit) =>
+    get: <T>(path: string, init?: ApiRequestOptions) => request<T>(path, init),
+    post: <T>(path: string, body?: unknown, init?: ApiRequestOptions) =>
       request<T>(path, {
         method: "POST",
         body:

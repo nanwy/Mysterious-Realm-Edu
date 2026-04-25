@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
 import { ThemeProvider } from "@workspace/ui";
+import type { Metadata } from "next";
 import "./globals.css";
 import "@workspace/ui/globals.css";
 import { AIChatbot } from "@/components/common/ai/ai-chat-widget";
+import { AppQueryProvider } from "@/components/common/query-provider";
 
 export const metadata: Metadata = {
   title: "云学考系统",
@@ -18,7 +19,7 @@ export default function RootLayout({
     <html lang="zh-CN" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <AppQueryProvider>{children}</AppQueryProvider>
           <AIChatbot />
         </ThemeProvider>
       </body>

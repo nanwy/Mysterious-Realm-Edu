@@ -1,28 +1,47 @@
-import { createApiClient, buildQuery } from "../client";
+import { createApiClient, type ApiHttpClient } from "../client";
 
-const client = createApiClient();
+export const createNewsApi = (client: ApiHttpClient) => ({
+  searchNews: ({ queryString }: { queryString: string }) =>
+    client.get(`/article/searchNews/${encodeURIComponent(queryString)}`),
+
+  listNews: (payload: Record<string, unknown>) =>
+    client.post("/article/list", payload),
+
+  listRecommendedNews: (payload: Record<string, unknown>) =>
+    client.post("/article/recommendNews", payload),
+
+  getNewsDetail: ({ path }: { path: string }) =>
+    client.get(`/article/detail/${path}`),
+
+  listHotNews: (payload: Record<string, unknown>) =>
+    client.post("/article/hotNews", payload),
+
+  getNewsSearchSuggestion: ({ keyword }: { keyword: string }) =>
+    client.get(`/article/searchNews/${encodeURIComponent(keyword)}`),
+});
+
+const defaultNewsApi = createNewsApi(createApiClient());
 
 export function searchNewsList(queryString: string) {
-  return client.get(`/article/searchNews/${queryString}`);
+  return defaultNewsApi.searchNews({ queryString });
 }
 
 export function getNewsList(payload: Record<string, unknown>) {
-  return client.post("/article/list", payload);
+  return defaultNewsApi.listNews(payload);
 }
 
 export function listRecommendedNews(payload: Record<string, unknown>) {
-  return client.post("/article/recommendNews", payload);
+  return defaultNewsApi.listRecommendedNews(payload);
 }
 
 export function getNewsDetail(path: string) {
-  return client.get(`/article/detail/${path}`);
+  return defaultNewsApi.getNewsDetail({ path });
 }
 
 export function listHotNews(payload: Record<string, unknown>) {
-  return client.post("/article/hotNews", payload);
+  return defaultNewsApi.listHotNews(payload);
 }
 
 export function getNewsSearchSuggestion(keyword: string) {
-  return client.get(`/article/searchNews/${keyword}${buildQuery({})}`);
+  return defaultNewsApi.getNewsSearchSuggestion({ keyword });
 }
-

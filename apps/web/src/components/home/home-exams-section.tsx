@@ -1,8 +1,8 @@
 import { MotionReveal } from "@workspace/motion";
 import { ArrowUpRight } from "lucide-react";
-import { toText } from "@/lib/media";
-import type { HomeRecord } from "./home-types";
 import Link from "next/link";
+import type { HomeRecord } from "./home-types";
+import { toText } from "@/lib/media";
 
 export function HomeExamsSection({
   exams,

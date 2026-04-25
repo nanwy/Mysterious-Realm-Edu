@@ -1,60 +1,117 @@
-import { createApiClient } from "../client";
+import { createApiClient, type ApiHttpClient } from "../client";
 
-const client = createApiClient();
+type Id = string | number;
+
+export const createOrderApi = (client: ApiHttpClient) => ({
+  createOrder: (payload: Record<string, unknown>) =>
+    client.post<unknown>("/order/createOrder", payload),
+
+  getOrder: ({ orderSn }: { orderSn: string }) =>
+    client.get<unknown>("/order/getOrder", {
+      query: { orderSn },
+    }),
+
+  listOrders: (payload: Record<string, unknown>) =>
+    client.post<unknown>("/order/orderList", payload),
+
+  getOrderDetail: ({ orderSn }: { orderSn: string }) =>
+    client.get<unknown>(`/order/detail/${encodeURIComponent(orderSn)}`),
+
+  cancelOrder: ({ orderSn }: { orderSn: string }) =>
+    client.get<unknown>(`/order/cancel/${encodeURIComponent(orderSn)}`),
+
+  deleteOrder: ({ orderSn }: { orderSn: string }) =>
+    client.get<unknown>(`/order/delete/${encodeURIComponent(orderSn)}`),
+
+  querySellOrder: (payload: Record<string, unknown>) =>
+    client.post<unknown>("/order/querySellOrder", payload),
+
+  getSellOrderDetail: ({ orderSn }: { orderSn: string }) =>
+    client.get<unknown>(`/order/sellOrderDetail/${encodeURIComponent(orderSn)}`),
+
+  addEvaluation: (payload: Record<string, unknown>) =>
+    client.post<unknown>("/order/addEvaluation", payload),
+
+  addEvaluationReply: (payload: Record<string, unknown>) =>
+    client.post<unknown>("/order/addEvaluationReply", payload),
+
+  getGoodsPurchased: ({
+    goodsId,
+    goodsType,
+  }: {
+    goodsId: Id;
+    goodsType: Id;
+  }) =>
+    client.get<unknown>("/order/getGoodsPurchased", {
+      query: { goodsId, goodsType },
+    }),
+
+  deleteEvaluation: ({ evaluationId }: { evaluationId: Id }) =>
+    client.get<unknown>("/order/deleteEvaluation", {
+      query: { evaluationId },
+    }),
+
+  selectPurchaseCourseList: (payload: Record<string, unknown>) =>
+    client.post<unknown>("/order/selectPurchaseCourseList", payload),
+
+  selectPurchaseExamList: (payload: Record<string, unknown>) =>
+    client.post<unknown>("/order/selectPurchaseExamList", payload),
+});
+
+const defaultOrderApi = createOrderApi(createApiClient());
 
 export function createOrder(payload: Record<string, unknown>) {
-  return client.post("/order/createOrder", payload);
+  return defaultOrderApi.createOrder(payload);
 }
 
 export function getOrder(orderSn: string) {
-  return client.get(`/order/getOrder?orderSn=${orderSn}`);
+  return defaultOrderApi.getOrder({ orderSn });
 }
 
 export function getOrderList(payload: Record<string, unknown>) {
-  return client.post("/order/orderList", payload);
+  return defaultOrderApi.listOrders(payload);
 }
 
 export function getOrderDetail(orderSn: string) {
-  return client.get(`/order/detail/${orderSn}`);
+  return defaultOrderApi.getOrderDetail({ orderSn });
 }
 
 export function cancelOrder(orderSn: string) {
-  return client.get(`/order/cancel/${orderSn}`);
+  return defaultOrderApi.cancelOrder({ orderSn });
 }
 
 export function deleteOrder(orderSn: string) {
-  return client.get(`/order/delete/${orderSn}`);
+  return defaultOrderApi.deleteOrder({ orderSn });
 }
 
 export function querySellOrder(payload: Record<string, unknown>) {
-  return client.post("/order/querySellOrder", payload);
+  return defaultOrderApi.querySellOrder(payload);
 }
 
 export function getSellOrderDetail(orderSn: string) {
-  return client.get(`/order/sellOrderDetail/${orderSn}`);
+  return defaultOrderApi.getSellOrderDetail({ orderSn });
 }
 
 export function addEvaluation(payload: Record<string, unknown>) {
-  return client.post("/order/addEvaluation", payload);
+  return defaultOrderApi.addEvaluation(payload);
 }
 
 export function addEvaluationReply(payload: Record<string, unknown>) {
-  return client.post("/order/addEvaluationReply", payload);
+  return defaultOrderApi.addEvaluationReply(payload);
 }
 
 export function getGoodsPurchased(goodsId: string | number, goodsType: string | number) {
-  return client.get(`/order/getGoodsPurchased?goodsId=${goodsId}&goodsType=${goodsType}`);
+  return defaultOrderApi.getGoodsPurchased({ goodsId, goodsType });
 }
 
 export function deleteEvaluation(evaluationId: string | number) {
-  return client.get(`/order/deleteEvaluation?evaluationId=${evaluationId}`);
+  return defaultOrderApi.deleteEvaluation({ evaluationId });
 }
 
 export function selectPurchaseCourseList(payload: Record<string, unknown>) {
-  return client.post("/order/selectPurchaseCourseList", payload);
+  return defaultOrderApi.selectPurchaseCourseList(payload);
 }
 
 export function selectPurchaseExamList(payload: Record<string, unknown>) {
-  return client.post("/order/selectPurchaseExamList", payload);
+  return defaultOrderApi.selectPurchaseExamList(payload);
 }
-

@@ -1,12 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { startTransition, useEffect, useMemo, useState, type FormEvent } from "react";
-import {
-  selectPurchaseCourseList,
-  selectPurchaseExamList,
-  unwrapEnvelope,
-} from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import {
   Alert,
@@ -33,6 +27,8 @@ import {
   RefreshCcw,
   Search,
 } from "lucide-react";
+import Link from "next/link";
+import { type FormEvent, startTransition, useEffect, useMemo, useState } from "react";
 import { ResultsPagination } from "@/components/common/results-pagination";
 import { toNumberOrFallback, toRecordOrEmpty, toText } from "@/lib/normalize";
 
@@ -237,8 +233,8 @@ async function fetchPurchases(query: PurchaseQuery) {
 
   const response =
     query.tab === "course"
-      ? await selectPurchaseCourseList(payload)
-      : await selectPurchaseExamList(payload);
+      ? await api.order.selectPurchaseCourseList(payload)
+      : await api.order.selectPurchaseExamList(payload);
   const result = toRecordOrEmpty(unwrapEnvelope(response)) as PurchaseListPayload;
   const sourceRecords = Array.isArray(result.records) ? result.records : [];
 

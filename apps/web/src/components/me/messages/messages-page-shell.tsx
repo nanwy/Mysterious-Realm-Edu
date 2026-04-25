@@ -1,6 +1,6 @@
 "use client";
 
-import { getBusinessMessageList, getSystemMessageList, unwrapEnvelope } from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import {
   Alert,
@@ -19,7 +19,7 @@ import {
 import { AlertCircle, BellRing, BriefcaseBusiness, RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ResultsPagination } from "@/components/common/results-pagination";
-import { stripHtmlTags, toNumber, toRecord, toRecordOrEmpty, toText } from "@/lib/normalize";
+import { stripHtmlTags, toNumber, toRecordOrEmpty, toText } from "@/lib/normalize";
 
 type MessageTab = "system" | "business";
 
@@ -121,8 +121,8 @@ async function fetchMessages(query: MessageQuery) {
   };
   const response =
     query.tab === "system"
-      ? await getSystemMessageList(payload)
-      : await getBusinessMessageList(payload);
+      ? await api.message.listSystemMessages(payload)
+      : await api.message.listBusinessMessages(payload);
   const unwrapped = unwrapEnvelope(response);
   const result = toRecordOrEmpty(unwrapped) as MessageListPayload;
   const records = Array.isArray(result.records) ? result.records.map(normalizeMessageRecord) : [];

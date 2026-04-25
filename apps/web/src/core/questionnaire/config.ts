@@ -1,0 +1,3 @@
+export const QUESTIONNAIRE_PAGE_SIZE = 9;
+export const QUESTIONNAIRE_TYPE_STUDENT = 1;
+

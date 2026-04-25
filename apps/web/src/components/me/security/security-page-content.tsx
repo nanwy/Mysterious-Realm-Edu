@@ -1,9 +1,9 @@
-import {
-  type StudentProfileErrorType,
-  getStudentProfile,
-} from "@/lib/student-profile";
-import { toRecord } from "@/lib/normalize";
 import { SecurityPageShell, type SecurityPageShellProps } from "./security-page-shell";
+import { toRecord } from "@/lib/normalize";
+import {
+  getStudentProfile,
+  type StudentProfileErrorType,
+} from "@/lib/student-profile";
 
 function pickText(source: Record<string, unknown> | null, keys: string[], fallback = "") {
   if (!source) {

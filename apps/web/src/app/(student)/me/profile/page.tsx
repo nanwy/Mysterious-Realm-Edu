@@ -1,5 +1,5 @@
-import { Suspense } from "react";
 import { StudentShell } from "@workspace/ui";
+import { Suspense } from "react";
 import { ProfilePageContent } from "@/components/me/profile/profile-page-content";
 import { ProfilePageShell } from "@/components/me/profile/profile-page-shell";
 

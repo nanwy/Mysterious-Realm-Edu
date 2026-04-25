@@ -1,10 +1,12 @@
 import { StudentShell } from "@workspace/ui";
-import { MePageShell } from "@/components/me/me-page-shell";
+import { MePage } from "@/components/me/page";
 
-export default function MePage() {
+const MePageRoute = () => {
   return (
     <StudentShell>
-      <MePageShell />
+      <MePage />
     </StudentShell>
   );
-}
+};
+
+export default MePageRoute;

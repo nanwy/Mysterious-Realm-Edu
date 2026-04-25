@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { toText } from "@/lib/media";
 import type { HomeRecord } from "./home-types";
+import { toText } from "@/lib/media";
 
 export function HomeSidebar({
   announcements,

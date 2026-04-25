@@ -1,6 +1,6 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
-import { X, Send, Sparkles, Loader2, Bot, User } from 'lucide-react';
+import { Bot, Loader2, Send, Sparkles, User, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 // import { GoogleGenAI } from '@google/genai';
 
 export function AIChatbot() {

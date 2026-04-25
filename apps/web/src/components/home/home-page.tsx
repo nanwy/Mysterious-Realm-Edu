@@ -3,10 +3,10 @@ import { HomeCoursesSection } from "./home-courses-section";
 import { HomeCtaSection } from "./home-cta-section";
 import { HomeExamsSection } from "./home-exams-section";
 import { HomeHero } from "./home-hero";
-import { HomeSidebar } from "./home-sidebar";
-import { HomeNewsSection } from "./home-news-section";
 import { HomeHotNewsSection } from "./home-hot-news-section";
+import { HomeNewsSection } from "./home-news-section";
 import { HomeQuestionnairesSection } from "./home-questionnaires-section";
+import { HomeSidebar } from "./home-sidebar";
 import type { HomePayload } from "./home-types";
 
 function Crosshair({ className }: { className?: string }) {
@@ -40,7 +40,7 @@ export function HomePage({
   hotNewsError,
 }: HomePayload) {
   return (
-    <div className="min-h-screen bg-[#FDFDFC] dark:bg-[#0A0A0A] bg-[url('/noise.png')] bg-repeat selection:bg-foreground/10 text-foreground">
+    <div className="min-h-screen bg-background bg-[url('/noise.png')] bg-repeat selection:bg-foreground/10 text-foreground">
       <SiteHeader />
 
       <main className="relative mx-auto max-w-[1536px] px-4 py-8 lg:px-8 xl:px-12 xl:py-12">
@@ -66,7 +66,7 @@ export function HomePage({
             <div className="flex flex-col divide-y divide-border/50">
               <HomeCoursesSection
                 courses={hotCourses}
-                courseError={courseError}
+                error={courseError}
               />
 
               <HomeExamsSection exams={latestExams} examError={examError} />

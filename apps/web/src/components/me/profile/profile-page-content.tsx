@@ -1,11 +1,11 @@
+import { ProfilePageShell, type ProfilePageShellProps } from "./profile-page-shell";
+import { resolveMediaUrl } from "@/lib/media";
+import { toRecord } from "@/lib/normalize";
 import {
+  getStudentProfile,
   type StudentProfileErrorType,
   type StudentProfileResult,
-  getStudentProfile,
 } from "@/lib/student-profile";
-import { toRecord } from "@/lib/normalize";
-import { resolveMediaUrl } from "@/lib/media";
-import { ProfilePageShell, type ProfilePageShellProps } from "./profile-page-shell";
 
 function pickText(
   source: Record<string, unknown> | null,
