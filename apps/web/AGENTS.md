@@ -1,28 +1,32 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing code that depends on Next.js behavior. Heed deprecation notices.
+
 <!-- END:nextjs-agent-rules -->
 
 # Web App Rules
 
-These rules apply inside `apps/web`. They extend the root `AGENTS.md`.
+These rules apply inside `apps/web`. They extend the root `AGENTS.md`. The root file owns global state, package, testing, and verification rules; this file describes the Web app's local modules and migration checks.
 
 ## App Role
 
-`apps/web` is the PC student web app. It owns route wiring, PC-specific page composition, and platform behavior for the Web experience.
+`apps/web` is the PC student web app. It owns route wiring, PC-specific page modules, and platform behavior for the Web experience.
 
 Before page migration or visual work, read:
 
-- `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu/.impeccable.md`
-- `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu/docs/migration-progress.md`
+- `/.impeccable.md`
+- `./docs/migration-progress.md`
 
-## Route and Component Responsibilities
+## Route and React Component Responsibilities
 
-- `src/app/**/page.tsx` files should stay thin. They should connect routes to domain page components.
-- Page components in `src/components/<domain>` own page-level layout and compose domain sections.
-- Domain logic should not be hidden in route files.
-- Prefer small domain components with clear props over large page files that mix data, layout, and helper logic.
+- `src/app/**/page.tsx` files should stay thin route modules. They should connect routes to domain page modules.
+- Parse URL `searchParams` in the server route module and pass `initialQuery` or `initialFilters` into the client page module.
+- Client page modules must not use `useSearchParams()` to build query inputs. They may use `useRouter()` and `usePathname()` to update navigation.
+- Page modules in `src/components/<domain>` own page-level layout and compose domain sections.
+- Domain implementation should not be hidden in route modules.
+- Prefer small domain React components with clear props over large page files that mix data, layout, and helper logic.
 - Data-driven pages must render loading, empty, and error states.
 
 ## Page Migration Checklist
@@ -31,14 +35,14 @@ When migrating or refactoring a student page/domain, use `apps/web/src/component
 
 Required for migrated domains:
 
-- Component filenames inside `src/components/<domain>` must not repeat the domain prefix. Prefer `page.tsx`, `filters.tsx`, `results.tsx`, `preview/page.tsx`, and similarly direct names.
+- React component filenames inside `src/components/<domain>` must not repeat the domain prefix. Prefer `page.tsx`, `filters.tsx`, `results.tsx`, `preview/page.tsx`, and similarly direct names.
 - List filter/search controls must use `filters.tsx` and `<Domain>Filters`. Do not alternate between `filters.tsx` and `search-form.tsx` for the same role.
-- Do not use `shell` in new or migrated page component filenames or exported component names.
-- Modified route, page, component, and domain-core files must use arrow functions: `const PageRoute = async () => {}` and `export default PageRoute`.
-- Do not add `useEffect(() => setLocalState(prop), [prop])` just to mirror route props into local draft state. Prefer keeping draft state inside the filter component and remounting it with a stable `key` when URL-derived defaults change.
+- Do not use `shell` in new or migrated page module filenames or exported names.
+- Modified route, page, React component, and domain-core files must use arrow functions: `const PageRoute = async () => {}` and `export default PageRoute`.
+- Do not add `useEffect(() => setLocalState(prop), [prop])` just to mirror route props into local draft state. Prefer keeping draft state inside the filter React component and remounting it with a stable `key` when URL-derived defaults change.
 - Source-string `.test.mts` files must be deleted during migration. Do not add replacement tests unless the task explicitly asks for behavior tests.
 - Data adapters, query options, mutations, config, store, and types belong in `src/core/<domain>`.
-- Components should call `useQuery(domainQueryOptions.xxx(...))` directly unless a custom hook adds real behavior beyond wrapping React Query.
+- React components should call `useQuery(domainQueryOptions.xxx(...))` directly unless a custom hook creates a real seam beyond wrapping React Query.
 
 Before finishing a migrated domain, run these structural checks with the real domain and route names:
 
@@ -53,6 +57,8 @@ The expected result for all three checks is no output. If a legacy exception rem
 ## Domain Core Pattern
 
 Use `apps/web/src/core/exams` as the current reference for Web-only domain separation.
+
+Treat each `src/core/<domain>` folder as a module. Its exported query, mutation, store, config, and type objects are the interface; helper files behind them are implementation.
 
 Preferred shape for a Web-only domain:
 
@@ -69,25 +75,30 @@ Rules:
 
 - `queries.ts` owns React Query query options, query keys, and server-state reads.
 - `mutations.ts` owns mutations and cache invalidation/update behavior.
-- `hooks.ts` composes domain queries, mutations, and UI stores.
+- `hooks.ts` composes domain queries, mutations, and UI stores only when that hook creates useful leverage; do not add a shallow pass-through hook.
 - `store.ts` owns Zustand client/UI state only.
-- `index.ts` exports the public domain surface.
-- Domain filters and UI states must use semantic constants or enums in route, component, query-key, and store code. If an API requires numeric/string status codes, keep those values behind named enum members instead of repeating raw literals in component logic.
-- Web pages and components should call domain core functions, not `@workspace/api` directly.
+- `index.ts` exports the public domain interface.
+- Domain filters and UI states must use semantic constants or enums in route, React component, query-key, and store code. If an endpoint requires numeric/string status codes, keep those values behind named enum members instead of repeating raw literals in React component logic.
+- Web page modules and React components should call domain core functions, not `@workspace/api` directly.
 - Put React Query query options and mutations in `apps/web/src/core/<domain>`.
 - Keep page-specific normalization in domain core instead of `packages/api`.
+- Do not create a seam until behavior actually varies. One adapter means a hypothetical seam; two adapters means a real one.
 
-Move reusable API access, types, and normalization toward `packages/api` and `packages/shared` when Mobile Web or another domain needs the same logic.
+Move reusable endpoint access, types, and normalization toward `packages/api` and `packages/shared` when Mobile Web or another domain needs the same behavior.
 
 ## State
 
+Follow the root state ownership rules. Web-specific reminder:
+
 - React Query owns server state.
 - Zustand owns client state only.
-- Do not copy fetched API lists or detail records into Zustand.
-- Keep filters, selected tabs, drafts, panel state, and modal state in Zustand or component state depending on reuse needs.
+- Do not copy fetched endpoint lists or detail records into Zustand.
+- Keep filters, selected tabs, drafts, panel state, and modal state in Zustand or local React component state depending on reuse needs.
 - Query keys must include filters, pagination, identifiers, and any other value that affects returned data.
 
 ## UI
+
+Follow the root UI rules. Web-specific reminder:
 
 - Prefer shadcn/ui and `@workspace/ui` before creating local primitives.
 - Do not create page-local replacements for common Button, Dialog, Table, Form, Select, Tabs, Tooltip, or Pagination primitives.
@@ -97,14 +108,16 @@ Move reusable API access, types, and normalization toward `packages/api` and `pa
 
 ## Reference Files
 
-Use these as current local references:
+Use these as current local reference modules:
 
 - `apps/web/src/core/exams`: domain core organization.
-- `apps/web/src/components/exams`: exam page and component organization.
+- `apps/web/src/components/exams`: exam page and React component organization.
 
 These files are not a command to add `.test.mts` for every page. They are references for separation of responsibilities, naming, and migration cleanup.
 
 ## Testing
+
+The module interface is the test surface. Tests should cross the same interface callers use.
 
 Tests are expected for logic-heavy changes:
 
@@ -132,5 +145,5 @@ pnpm --filter web build
 For docs-only changes in this file, inspect the markdown and run:
 
 ```bash
-git diff --check
+git diff --check -- apps/web/AGENTS.md
 ```

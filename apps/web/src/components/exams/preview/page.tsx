@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Button, EmptyState, Skeleton, SurfaceCard } from "@workspace/ui";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { examQueryOptions } from "@/core/exams";
 
 const ExamPreviewLoadingState = () => {
@@ -46,20 +46,13 @@ const ExamPreviewEmptyState = () => {
 };
 
 export const ExamPreviewPage = ({ examId }: { examId: string }) => {
-  const [actionFeedback, setActionFeedback] = useState<{
-    examId: string;
-    message: string;
-  } | null>(null);
+  const router = useRouter();
   const previewQuery = useQuery(examQueryOptions.preview(examId));
   const preview = previewQuery.data;
   const isLoading = previewQuery.isLoading;
 
   const handleStartExam = () => {
-    setActionFeedback({
-      examId,
-      message:
-        "在线作答页仍在迁移中，当前版本先承接预览信息与开始入口；请暂时通过旧版作答链路进入考试。",
-    });
+    router.push(`/exams/${examId}/online`);
   };
 
   if (isLoading) {
@@ -120,7 +113,9 @@ export const ExamPreviewPage = ({ examId }: { examId: string }) => {
                     key={item.label}
                     className="rounded-[24px] border border-border bg-card/90 p-5 shadow-sm"
                   >
-                    <p className="text-sm text-muted-foreground">{item.label}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.label}
+                    </p>
                     <p className="mt-3 text-xl font-semibold text-foreground">
                       {item.value}
                     </p>
@@ -148,7 +143,9 @@ export const ExamPreviewPage = ({ examId }: { examId: string }) => {
                       key={`${index}-${item}`}
                       className="rounded-[24px] border border-border bg-muted/30 p-4"
                     >
-                      <p className="text-sm leading-7 text-foreground">{item}</p>
+                      <p className="text-sm leading-7 text-foreground">
+                        {item}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -165,13 +162,6 @@ export const ExamPreviewPage = ({ examId }: { examId: string }) => {
                     {preview.startHint}
                   </p>
                 </div>
-                {actionFeedback?.examId === examId ? (
-                  <div className="rounded-[24px] border border-border bg-muted/30 p-4">
-                    <p className="text-sm leading-7 text-foreground">
-                      {actionFeedback.message}
-                    </p>
-                  </div>
-                ) : null}
                 <div>
                   <Button
                     data-testid="exam-preview-start-action"
