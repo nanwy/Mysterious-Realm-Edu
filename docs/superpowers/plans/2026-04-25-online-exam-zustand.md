@@ -617,10 +617,8 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
           examAnswers: answers,
         },
         {
-          onSuccess: () => {
-            resetOnlineSession();
-            setActionMessage("试卷已提交，稍后可在成绩中心查看结果。");
-          },
+          onSuccess: () =>
+            setActionMessage("试卷已提交，稍后可在成绩中心查看结果。"),
           onError: () =>
             setActionMessage(
               "提交暂未成功，答案仍保留在当前页面并会继续尝试缓存。",

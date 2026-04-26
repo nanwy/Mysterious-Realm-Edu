@@ -96,7 +96,7 @@ The hydrate action should:
 - Clear `actionMessage`.
 - Skip all writes when the incoming `userExamId` matches the store's current `userExamId`.
 
-The reset action should clear online draft state when the page unmounts or after a successful submit. Since answers are cached to the backend in real time, reset-on-unmount is acceptable.
+The reset action should clear online draft state when the page unmounts. Since answers are cached to the backend in real time, reset-on-unmount is acceptable. A successful submit should keep the mounted page view stable and show success feedback instead of clearing the answer card while the student is still on the page.
 
 ## Controller Hook
 
@@ -151,7 +151,7 @@ Server read errors stay with React Query and the existing loading/empty page sta
 
 Answer cache mutation failures should not create a local persistence fallback in this pass. The UI may keep the current draft in memory while the page is mounted, but recovery after navigation remains backend-owned. If cache failure handling becomes product-critical later, it should be designed explicitly rather than hidden in localStorage.
 
-Submit errors should keep using the existing mutation error path or the current generic action feedback pattern. Successful submit should reset the online store after the mutation resolves.
+Submit errors should keep using the existing mutation error path or the current generic action feedback pattern. Successful submit should show a success message while preserving the mounted answer view; the online store is cleared by the normal unmount cleanup when the student leaves the page.
 
 ## Testing and Verification
 

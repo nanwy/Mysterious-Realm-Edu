@@ -2,48 +2,56 @@ import { Badge, Button, Input, Textarea } from "@workspace/ui";
 import { cn } from "@workspace/ui/lib/utils";
 import { Send, ShieldCheck } from "lucide-react";
 import {
-  parseBlankAnswer,
-  SELECT_QUESTION_TYPES,
   type ExamOnlineAnswerDraft,
   type ExamOnlineQuestion,
+  parseBlankAnswer,
+  SELECT_QUESTION_TYPES,
 } from "@/core/exams";
 
-export const OnlineQuestionPanel = ({
-  currentQuestion,
-  answerForCurrent,
-  currentIndex,
-  questionTotal,
-  submitPending,
-  onToggleOption,
-  onUpdateSubjectiveAnswer,
-  onUpdateBlankAnswer,
-  onPrevious,
-  onNext,
-  onSubmit,
-}: {
-  currentQuestion: ExamOnlineQuestion;
-  answerForCurrent: ExamOnlineAnswerDraft | null | undefined;
+interface OnlineQuestionPanelNavigation {
   currentIndex: number;
   questionTotal: number;
-  submitPending: boolean;
+  onPrevious: () => void;
+  onNext: () => void;
+}
+
+interface OnlineQuestionPanelAnswerActions {
   onToggleOption: (optionId: string, optionIndex: number) => void;
   onUpdateSubjectiveAnswer: (value: string) => void;
   onUpdateBlankAnswer: (tag: string, value: string) => void;
-  onPrevious: () => void;
-  onNext: () => void;
+}
+
+interface OnlineQuestionPanelSubmitAction {
+  pending: boolean;
   onSubmit: () => void;
-}) => (
+}
+
+interface OnlineQuestionPanelProps {
+  question: ExamOnlineQuestion;
+  answer: ExamOnlineAnswerDraft | null | undefined;
+  navigation: OnlineQuestionPanelNavigation;
+  answerActions: OnlineQuestionPanelAnswerActions;
+  submitAction: OnlineQuestionPanelSubmitAction;
+}
+
+export const OnlineQuestionPanel = ({
+  question,
+  answer,
+  navigation,
+  answerActions,
+  submitAction,
+}: OnlineQuestionPanelProps) => (
   <main className="grid gap-5 rounded-[32px] border border-border bg-card/90 p-5 shadow-sm sm:p-6">
     <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="grid gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">{currentQuestion.typeName}</Badge>
+          <Badge variant="outline">{question.typeName}</Badge>
           <span className="text-sm text-muted-foreground">
-            第 {currentQuestion.index} 题 / {currentQuestion.score} 分
+            第 {question.index} 题 / {question.score} 分
           </span>
         </div>
         <h3 className="text-2xl font-semibold leading-snug text-foreground">
-          {currentQuestion.title}
+          {question.title}
         </h3>
       </div>
       <div className="flex items-center gap-2 rounded-full border border-border bg-muted/35 px-3 py-2 text-sm text-muted-foreground">
@@ -52,10 +60,10 @@ export const OnlineQuestionPanel = ({
       </div>
     </div>
 
-    {SELECT_QUESTION_TYPES.has(currentQuestion.type) ? (
+    {SELECT_QUESTION_TYPES.has(question.type) ? (
       <div className="grid gap-3">
-        {currentQuestion.options.map((option, optionIndex) => {
-          const selected = answerForCurrent?.answers?.includes(option.id);
+        {question.options.map((option, optionIndex) => {
+          const selected = answer?.answers?.includes(option.id);
           return (
             <button
               key={option.id}
@@ -66,7 +74,9 @@ export const OnlineQuestionPanel = ({
                   ? "border-primary/40 bg-primary/10 text-foreground"
                   : "border-border bg-background/65 text-foreground hover:border-primary/40"
               )}
-              onClick={() => onToggleOption(option.id, optionIndex)}
+              onClick={() =>
+                answerActions.onToggleOption(option.id, optionIndex)
+              }
             >
               <span
                 className={cn(
@@ -83,13 +93,13 @@ export const OnlineQuestionPanel = ({
           );
         })}
       </div>
-    ) : currentQuestion.type === 5 ? (
+    ) : question.type === 5 ? (
       <div className="grid gap-3">
-        {(currentQuestion.options.length
-          ? currentQuestion.options
+        {(question.options.length
+          ? question.options
           : [{ id: "blank", tag: "1", content: "填空" }]
         ).map((option) => {
-          const blankMap = parseBlankAnswer(answerForCurrent?.blankAnswer);
+          const blankMap = parseBlankAnswer(answer?.blankAnswer);
           return (
             <label
               key={option.id}
@@ -101,7 +111,10 @@ export const OnlineQuestionPanel = ({
               <Input
                 value={blankMap[option.tag] ?? ""}
                 onChange={(event) =>
-                  onUpdateBlankAnswer(option.tag, event.target.value)
+                  answerActions.onUpdateBlankAnswer(
+                    option.tag,
+                    event.target.value
+                  )
                 }
                 placeholder="输入答案"
               />
@@ -109,18 +122,20 @@ export const OnlineQuestionPanel = ({
           );
         })}
       </div>
-    ) : currentQuestion.type === 6 ? (
+    ) : question.type === 6 ? (
       <div className="rounded-[24px] border border-border bg-muted/30 p-5">
         <p className="text-sm leading-7 text-muted-foreground">
-          组合题的子题结构已读取到 {currentQuestion.subQuestions.length} 小题。
+          组合题的子题结构已读取到 {question.subQuestions.length} 小题。
           请先确认题干与其他题目，组合题的精细作答控件会在服务返回完整子题结构后开放。
         </p>
       </div>
     ) : (
       <Textarea
         minLength={0}
-        value={answerForCurrent?.subjectiveAnswer ?? ""}
-        onChange={(event) => onUpdateSubjectiveAnswer(event.target.value)}
+        value={answer?.subjectiveAnswer ?? ""}
+        onChange={(event) =>
+          answerActions.onUpdateSubjectiveAnswer(event.target.value)
+        }
         placeholder="输入本题答案"
       />
     )}
@@ -129,8 +144,8 @@ export const OnlineQuestionPanel = ({
       <Button
         type="button"
         variant="outline"
-        disabled={currentIndex === 0}
-        onClick={onPrevious}
+        disabled={navigation.currentIndex === 0}
+        onClick={navigation.onPrevious}
       >
         上一题
       </Button>
@@ -138,12 +153,16 @@ export const OnlineQuestionPanel = ({
         <Button
           type="button"
           variant="outline"
-          disabled={currentIndex >= questionTotal - 1}
-          onClick={onNext}
+          disabled={navigation.currentIndex >= navigation.questionTotal - 1}
+          onClick={navigation.onNext}
         >
           下一题
         </Button>
-        <Button type="button" disabled={submitPending} onClick={onSubmit}>
+        <Button
+          type="button"
+          disabled={submitAction.pending}
+          onClick={submitAction.onSubmit}
+        >
           <Send className="size-4" />
           提交试卷
         </Button>

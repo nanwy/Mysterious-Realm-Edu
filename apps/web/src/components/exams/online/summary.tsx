@@ -1,6 +1,6 @@
 import { Alert, AlertDescription, AlertTitle, Badge } from "@workspace/ui";
 import { AlertCircle, Clock3 } from "lucide-react";
-import { formatExamSeconds, type ExamOnlineSession } from "@/core/exams";
+import { type ExamOnlineSession, formatExamSeconds } from "@/core/exams";
 
 export const OnlineExamSummary = ({
   session,

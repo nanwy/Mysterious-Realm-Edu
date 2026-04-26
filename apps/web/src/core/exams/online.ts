@@ -43,6 +43,82 @@ export const parseBlankAnswer = (value: string | undefined) => {
 
 export const makeAnswerKey = (index: number | string) => String(index);
 
+export const replaceOnlineAnswer = (
+  answers: ExamOnlineAnswerDraft[],
+  index: number | string,
+  nextAnswer: ExamOnlineAnswerDraft | null
+) => {
+  const withoutCurrent = answers.filter(
+    (answer) => makeAnswerKey(answer.index) !== String(index)
+  );
+
+  return nextAnswer ? [...withoutCurrent, nextAnswer] : withoutCurrent;
+};
+
+export const buildOptionAnswerDraft = (
+  question: ExamOnlineQuestion,
+  currentAnswer: ExamOnlineAnswerDraft | undefined,
+  optionId: string,
+  optionIndex: number
+): ExamOnlineAnswerDraft | null => {
+  const currentIds = currentAnswer?.answers ?? [];
+  const currentIndexes = currentAnswer?.answerIndex ?? [];
+  const isSelected = currentIds.includes(optionId);
+  const isSingle = question.type === 1 || question.type === 3;
+  const nextIds = isSelected
+    ? currentIds.filter((item) => item !== optionId)
+    : isSingle
+      ? [optionId]
+      : [...currentIds, optionId];
+  const nextIndexes = isSelected
+    ? currentIndexes.filter((item) => item !== optionIndex)
+    : isSingle
+      ? [optionIndex]
+      : [...currentIndexes, optionIndex];
+
+  return nextIds.length
+    ? {
+        index: question.index,
+        questionType: question.type,
+        answers: nextIds,
+        answerIndex: nextIndexes,
+      }
+    : null;
+};
+
+export const buildSubjectiveAnswerDraft = (
+  question: ExamOnlineQuestion,
+  value: string
+): ExamOnlineAnswerDraft | null =>
+  value.trim()
+    ? {
+        index: question.index,
+        questionType: question.type,
+        subjectiveAnswer: value,
+      }
+    : null;
+
+export const buildBlankAnswerDraft = (
+  question: ExamOnlineQuestion,
+  currentAnswer: ExamOnlineAnswerDraft | undefined,
+  tag: string,
+  value: string
+): ExamOnlineAnswerDraft | null => {
+  const blankMap = parseBlankAnswer(currentAnswer?.blankAnswer);
+  blankMap[tag] = value;
+  const filled = Object.entries(blankMap)
+    .filter(([, content]) => content.trim())
+    .map(([itemTag, content]) => ({ tag: itemTag, content: content.trim() }));
+
+  return filled.length
+    ? {
+        index: question.index,
+        questionType: question.type,
+        blankAnswer: JSON.stringify(filled),
+      }
+    : null;
+};
+
 export const isQuestionAnswered = (
   question: ExamOnlineQuestion,
   answers: ExamOnlineAnswerDraft[]
