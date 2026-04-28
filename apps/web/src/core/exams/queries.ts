@@ -17,7 +17,8 @@ export const examKeys = {
       filters.pageSize,
     ] as const,
   preview: (examId: string) => [...examKeys.all, "preview", examId] as const,
-  online: (examId: string) => [...examKeys.all, "online", examId] as const,
+  online: (examId: string, userExamId?: string) =>
+    [...examKeys.all, "online", examId, userExamId ?? "new"] as const,
 };
 
 export const examQueryOptions = {
@@ -32,10 +33,10 @@ export const examQueryOptions = {
       queryFn: () => fetchExamPreview(examId),
       enabled: Boolean(examId),
     }),
-  online: (examId: string) =>
+  online: (examId: string, userExamId?: string) =>
     queryOptions({
-      queryKey: examKeys.online(examId),
-      queryFn: () => fetchExamOnlineSession(examId),
+      queryKey: examKeys.online(examId, userExamId),
+      queryFn: () => fetchExamOnlineSession(examId, userExamId),
       enabled: Boolean(examId),
     }),
 };

@@ -28,7 +28,7 @@ const OnlineExamWorkspace = ({ session }: { session: ExamOnlineSession }) => {
       />
 
       {onlineExam.submitStatus === "submitted" ? (
-        <OnlineExamSubmittedState />
+        <OnlineExamSubmittedState session={session} />
       ) : (
         <div className="grid gap-5 xl:grid-cols-[18rem_minmax(0,1fr)_17rem] xl:items-start">
           <OnlineAnswerCard onlineExam={onlineExam} />
@@ -40,8 +40,14 @@ const OnlineExamWorkspace = ({ session }: { session: ExamOnlineSession }) => {
   );
 };
 
-export const OnlineExamPage = ({ examId }: { examId: string }) => {
-  const sessionQuery = useQuery(examQueryOptions.online(examId));
+export const OnlineExamPage = ({
+  examId,
+  userExamId,
+}: {
+  examId: string;
+  userExamId?: string;
+}) => {
+  const sessionQuery = useQuery(examQueryOptions.online(examId, userExamId));
   const session = sessionQuery.data;
 
   if (sessionQuery.isLoading) {

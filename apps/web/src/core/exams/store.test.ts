@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
+import { EXAM_QUESTION_TYPE } from "@workspace/api";
 import { useExamStore } from "./store.ts";
 import type { ExamOnlineAnswerDraft } from "./types.ts";
 
 const cachedAnswers: ExamOnlineAnswerDraft[] = [
   {
     index: 1,
-    questionType: 1,
+    questionType: EXAM_QUESTION_TYPE.RADIO,
     answers: ["option-a"],
     answerIndex: [0],
   },
@@ -34,7 +35,7 @@ test("hydrateOnline keeps in-progress draft for the same session", () => {
     ...current,
     {
       index: 2,
-      questionType: 1,
+      questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["opt-b"],
       answerIndex: [1],
     },
@@ -75,11 +76,21 @@ test("updateOnlineAnswers receives the latest array regardless of caller closure
 
   store.updateOnlineAnswers((current) => [
     ...current,
-    { index: 1, questionType: 1, answers: ["a"], answerIndex: [0] },
+    {
+      index: 1,
+      questionType: EXAM_QUESTION_TYPE.RADIO,
+      answers: ["a"],
+      answerIndex: [0],
+    },
   ]);
   store.updateOnlineAnswers((current) => [
     ...current,
-    { index: 2, questionType: 1, answers: ["b"], answerIndex: [0] },
+    {
+      index: 2,
+      questionType: EXAM_QUESTION_TYPE.RADIO,
+      answers: ["b"],
+      answerIndex: [0],
+    },
   ]);
 
   const state = useExamStore.getState();

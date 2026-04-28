@@ -4,7 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Button, EmptyState, Skeleton, SurfaceCard } from "@workspace/ui";
 import { useRouter } from "next/navigation";
-import { examQueryOptions } from "@/core/exams";
+import {
+  examQueryOptions,
+  resolveOnlineUserExamId,
+  useCreateExamSessionMutation,
+} from "@/core/exams";
 
 const ExamPreviewLoadingState = () => {
   return (
@@ -48,11 +52,19 @@ const ExamPreviewEmptyState = () => {
 export const ExamPreviewPage = ({ examId }: { examId: string }) => {
   const router = useRouter();
   const previewQuery = useQuery(examQueryOptions.preview(examId));
+  const createExamSession = useCreateExamSessionMutation();
   const preview = previewQuery.data;
   const isLoading = previewQuery.isLoading;
 
   const handleStartExam = () => {
-    router.push(`/exams/${examId}/online`);
+    createExamSession.mutate(examId, {
+      onSuccess: (sessionPayload) => {
+        const userExamId = resolveOnlineUserExamId(examId, sessionPayload);
+        router.push(
+          `/exams/${examId}/online?userExamId=${encodeURIComponent(userExamId)}`
+        );
+      },
+    });
   };
 
   if (isLoading) {
@@ -166,10 +178,12 @@ export const ExamPreviewPage = ({ examId }: { examId: string }) => {
                   <Button
                     data-testid="exam-preview-start-action"
                     type="button"
-                    disabled={preview.startDisabled}
+                    disabled={preview.startDisabled || createExamSession.isPending}
                     onClick={handleStartExam}
                   >
-                    {preview.startLabel}
+                    {createExamSession.isPending
+                      ? "正在创建考试"
+                      : preview.startLabel}
                   </Button>
                 </div>
               </section>

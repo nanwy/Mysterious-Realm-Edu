@@ -1,6 +1,7 @@
 import { createApiClient, type ApiHttpClient } from "../client";
 import type {
   ExamCacheAnswerRequest,
+  ExamCacheAnswerResponse,
   ExamDetailListResponse,
   ExamDetailResponse,
   ExamLimitResponse,
@@ -60,7 +61,7 @@ export const createExamApi = (client: ApiHttpClient) => ({
     client.post<unknown>("/exam/cacheExamAnswer", payload),
 
   getCacheAnswer: ({ userExamId }: { userExamId: Id }) =>
-    client.get<unknown>("/exam/getCacheAnswer", {
+    client.get<ExamCacheAnswerResponse>("/exam/getCacheAnswer", {
       query: { userExamId },
     }),
 

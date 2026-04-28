@@ -1,4 +1,21 @@
-import { api, unwrapEnvelope } from "@workspace/api";
+import {
+  api,
+  type ExamCacheAnswerResponse,
+  type ExamDetailResponse,
+  type ExamListResponse,
+  EXAM_PAPER_STATE,
+  EXAM_QUESTION_TYPE,
+  EXAM_QUESTION_TYPE_LABELS,
+  EXAM_RESULT_SHOW_TYPE,
+  type ExamQuestionAnswerDetail,
+  type ExamQuestionType,
+  type ExamSessionResponse,
+  type ExamSummaryResponse,
+  type ExamUserQuestionDetail,
+  type ExamPaperState,
+  type ExamResultShowType,
+  unwrapEnvelope,
+} from "@workspace/api";
 import {
   EXAM_STATUS,
   EXAM_STATUS_OPTIONS,
@@ -22,12 +39,11 @@ import {
   toDate,
   toNumber,
   toNumberOrNull,
-  toRecordOrEmpty,
   toText,
 } from "@/lib/normalize";
 
 interface ListPayload {
-  records: Array<Record<string, unknown>>;
+  records: ExamSummaryResponse[];
   total: number;
 }
 
@@ -67,38 +83,27 @@ const formatDate = (value: unknown) => {
   }).format(rawDate);
 };
 
-const toListPayload = (value: unknown): ListPayload => {
+const toListPayload = (value: ExamListResponse | null): ListPayload => {
   if (Array.isArray(value)) {
     return {
-      records: value.map(toRecordOrEmpty),
+      records: value,
       total: value.length,
     };
   }
 
-  const payload = toRecordOrEmpty(value);
-  const records = Array.isArray(payload.records)
-    ? payload.records.map(toRecordOrEmpty)
-    : Array.isArray(payload.list)
-      ? payload.list.map(toRecordOrEmpty)
-      : Array.isArray(payload.rows)
-        ? payload.rows.map(toRecordOrEmpty)
-        : Array.isArray(payload.data)
-          ? payload.data.map(toRecordOrEmpty)
-          : [];
+  const records =
+    value?.records ?? value?.list ?? value?.rows ?? value?.data ?? [];
 
   const totalValue =
-    payload.total ??
-    payload.count ??
-    payload.totalCount ??
-    payload.recordTotal ??
+    value?.total ??
+    value?.count ??
+    value?.totalCount ??
+    value?.recordTotal ??
     records.length;
   const total = toNumberOrNull(totalValue) ?? records.length;
 
   return { records, total };
 };
-
-const toArray = (value: unknown): unknown[] =>
-  Array.isArray(value) ? value : [];
 
 const getExamTypeLabel = (value: ExamTypeFilter) =>
   EXAM_TYPE_OPTIONS.find((item) => item.value === value)?.label ?? "公开考试";
@@ -111,7 +116,7 @@ const isResolvedExamStatus = (value: string): value is ExamResolvedStatus =>
   value === EXAM_STATUS.NOT_STARTED ||
   value === EXAM_STATUS.ENDED;
 
-const resolveStatus = (record: Record<string, unknown>): ExamResolvedStatus => {
+const resolveStatus = (record: ExamSummaryResponse): ExamResolvedStatus => {
   const raw = toText(record.state ?? record.status ?? record.examStatus);
   if (isResolvedExamStatus(raw)) {
     return raw;
@@ -136,7 +141,7 @@ const resolveStatus = (record: Record<string, unknown>): ExamResolvedStatus => {
   return EXAM_STATUS.IN_PROGRESS;
 };
 
-const buildTimeText = (record: Record<string, unknown>) => {
+const buildTimeText = (record: ExamSummaryResponse) => {
   const directText = toText(record.examTime ?? record.timeRange);
   if (directText) {
     return directText;
@@ -166,7 +171,7 @@ const buildTimeText = (record: Record<string, unknown>) => {
   return "考试时间待公布";
 };
 
-const buildSummary = (record: Record<string, unknown>, statusLabel: string) => {
+const buildSummary = (record: ExamSummaryResponse, statusLabel: string) => {
   const summary = toText(
     record.examDesc ??
       record.description ??
@@ -187,7 +192,7 @@ const buildSummary = (record: Record<string, unknown>, statusLabel: string) => {
   return `当前状态：${statusLabel}，请在开放时间内进入考试。`;
 };
 
-const buildAttendeeText = (record: Record<string, unknown>) => {
+const buildAttendeeText = (record: ExamSummaryResponse) => {
   const attendeeCount = toText(
     record.examNumber ?? record.joinNum ?? record.applyCount ?? record.userCount
   );
@@ -207,7 +212,7 @@ const buildActionLabel = (status: ExamResolvedStatus) => {
 };
 
 const toExamListItem = (
-  item: Record<string, unknown>,
+  item: ExamSummaryResponse,
   index: number
 ): ExamListItem => {
   const rawExamType = toText(item.examType ?? item.type, EXAM_TYPE.PUBLIC);
@@ -240,7 +245,7 @@ const toCountText = (value: unknown, suffix: string, fallback = "--") => {
   return normalized ? `${normalized}${suffix}` : fallback;
 };
 
-const resolvePreviewState = (record: Record<string, unknown>) => {
+const resolvePreviewState = (record: ExamSummaryResponse) => {
   const raw = toText(
     record.state ?? record.status ?? record.examStatus,
     EXAM_STATUS.IN_PROGRESS
@@ -252,11 +257,11 @@ const resolvePreviewState = (record: Record<string, unknown>) => {
   return EXAM_STATUS.IN_PROGRESS;
 };
 
-const buildInstructions = (record: Record<string, unknown>) => {
-  const paper = toRecordOrEmpty(record.paper);
-  const questionCount = toText(paper.questionCount, "--");
-  const joinType = toText(paper.joinType_dictText, "固定组卷");
-  const totalScore = toText(paper.totalScore, "--");
+const buildInstructions = (record: ExamSummaryResponse) => {
+  const paper = record.paper;
+  const questionCount = toText(paper?.questionCount, "--");
+  const joinType = toText(paper?.joinType_dictText, "固定组卷");
+  const totalScore = toText(paper?.totalScore, "--");
   const qualifyScore = toText(record.qualifyScore, "--");
   const totalTime = toText(
     record.totalTime ?? record.examDuration ?? record.duration,
@@ -288,12 +293,11 @@ const buildInstructions = (record: Record<string, unknown>) => {
 };
 
 const buildStartState = (
-  record: Record<string, unknown>,
+  record: ExamSummaryResponse,
   reachedLimit: boolean
 ) => {
   const state = resolvePreviewState(record);
-  const paper = toRecordOrEmpty(record.paper);
-  const hasPaper = Object.keys(paper).length > 0;
+  const hasPaper = Boolean(record.paper);
 
   if (!hasPaper) {
     return {
@@ -336,10 +340,13 @@ const buildStartState = (
 
 const toExamPreview = (
   examId: string,
-  payload: unknown,
+  record: ExamSummaryResponse | null,
   options: { hasRecord: boolean; reachedLimit: boolean }
 ): ExamPreview | null => {
-  const record = toRecordOrEmpty(payload);
+  if (!record) {
+    return null;
+  }
+
   const resolvedId = toText(record.id ?? record.examId, examId);
   const title = toText(record.title ?? record.examName ?? record.name);
 
@@ -347,7 +354,7 @@ const toExamPreview = (
     return null;
   }
 
-  const paper = toRecordOrEmpty(record.paper);
+  const paper = record.paper;
   const startState = buildStartState(record, options.reachedLimit);
   const description = toText(
     record.description ??
@@ -360,7 +367,7 @@ const toExamPreview = (
   return {
     id: resolvedId,
     title,
-    summary: toText(paper.title, "考试预览"),
+    summary: toText(paper?.title, "考试预览"),
     description,
     schedule: [
       {
@@ -388,16 +395,16 @@ const toExamPreview = (
           " 分钟"
         ),
       },
-      { label: "总分", value: toCountText(paper.totalScore, " 分") },
+      { label: "总分", value: toCountText(paper?.totalScore, " 分") },
       { label: "及格分", value: toCountText(record.qualifyScore, " 分") },
-      { label: "题目数量", value: toCountText(paper.questionCount, " 题") },
+      { label: "题目数量", value: toCountText(paper?.questionCount, " 题") },
       { label: "限考次数", value: toCountText(record.limitCount, " 次") },
       { label: "已考次数", value: toCountText(record.tryCount, " 次", "0 次") },
       {
         label: "考试记录",
         value: options.hasRecord ? "已存在记录" : "首次进入",
       },
-      { label: "试卷名称", value: toText(paper.title, "待同步") },
+      { label: "试卷名称", value: toText(paper?.title, "待同步") },
     ],
     instructions: buildInstructions(record),
     ...startState,
@@ -410,8 +417,8 @@ const fallbackOnlineQuestions: ExamOnlineQuestion[] = [
     index: 1,
     title:
       "考试服务暂未同步正式试题。请先确认当前设备能正常进入作答界面，并选择一个状态。",
-    type: 1,
-    typeName: "单选题",
+    type: EXAM_QUESTION_TYPE.RADIO,
+    typeName: EXAM_QUESTION_TYPE_LABELS[EXAM_QUESTION_TYPE.RADIO],
     score: 5,
     options: [
       { id: "A", tag: "A", content: "我已看到考试信息、题号与答题控件。" },
@@ -425,8 +432,8 @@ const fallbackOnlineQuestions: ExamOnlineQuestion[] = [
     index: 2,
     title:
       "请记录当前进入考试时遇到的环境情况，服务恢复后此处会显示正式简答题。",
-    type: 4,
-    typeName: "简答题",
+    type: EXAM_QUESTION_TYPE.SIMPLE,
+    typeName: EXAM_QUESTION_TYPE_LABELS[EXAM_QUESTION_TYPE.SIMPLE],
     score: 10,
     options: [],
     subQuestions: [],
@@ -439,89 +446,98 @@ const stripHtml = (value: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const toExamOption = (value: unknown, index: number): ExamOnlineOption => {
-  const record = toRecordOrEmpty(value);
-  const tag = toText(
-    record.tag ?? record.label,
-    String.fromCharCode(65 + index)
-  );
-  const content = toText(record.content ?? record.answer ?? record.title, tag);
+const isExamQuestionType = (value: number): value is ExamQuestionType =>
+  value in EXAM_QUESTION_TYPE_LABELS;
+
+const toExamQuestionType = (value: unknown): ExamQuestionType => {
+  const type = toNumber(value, EXAM_QUESTION_TYPE.RADIO);
+
+  return isExamQuestionType(type) ? type : EXAM_QUESTION_TYPE.RADIO;
+};
+
+const isExamPaperState = (value: number): value is ExamPaperState =>
+  Object.values(EXAM_PAPER_STATE).includes(value as ExamPaperState);
+
+const toExamPaperState = (value: unknown): ExamPaperState | null => {
+  const state = toNumberOrNull(value);
+
+  return state !== null && isExamPaperState(state) ? state : null;
+};
+
+const isExamResultShowType = (value: number): value is ExamResultShowType =>
+  Object.values(EXAM_RESULT_SHOW_TYPE).includes(value as ExamResultShowType);
+
+const toExamResultShowType = (value: unknown): ExamResultShowType | null => {
+  const showType = toNumberOrNull(value);
+
+  return showType !== null && isExamResultShowType(showType) ? showType : null;
+};
+
+const toExamOption = (
+  answer: ExamQuestionAnswerDetail,
+  index: number
+): ExamOnlineOption => {
+  const tag = toText(answer.tag, String.fromCharCode(65 + index));
+  const content = toText(answer.content, tag);
 
   return {
-    id: toText(record.id ?? record.answerId ?? record.value, tag),
+    id: toText(answer.id, tag),
     tag,
     content: stripHtml(content),
   };
 };
 
 const toExamQuestion = (
-  value: unknown,
+  userQuestion: ExamUserQuestionDetail,
   fallbackIndex: number
 ): ExamOnlineQuestion => {
-  const record = toRecordOrEmpty(value);
-  const question = toRecordOrEmpty(record.question);
+  const question = userQuestion.question;
   const index = toNumber(
-    record.questionIndex ?? record.index ?? record.sort ?? fallbackIndex,
+    userQuestion.questionIndex ?? userQuestion.sort ?? fallbackIndex,
     fallbackIndex
   );
-  const type = toNumber(record.questionType ?? question.questionType, 1);
+  const type = toExamQuestionType(userQuestion.questionType ?? question?.type);
   const typeName = toText(
-    record.questionTypeName ?? question.questionTypeName,
-    type === 4
-      ? "简答题"
-      : type === 5
-        ? "填空题"
-        : type === 6
-          ? "组合题"
-          : type === 2
-            ? "多选题"
-            : type === 3
-              ? "判断题"
-              : "单选题"
+    userQuestion.questionTypeName,
+    EXAM_QUESTION_TYPE_LABELS[type]
   );
   const title = toText(
-    question.content ?? record.content ?? record.title,
+    question?.content,
     `第 ${index} 题题干暂未同步`
   );
 
   return {
     id: toText(
-      record.id ?? question.id ?? record.questionId,
+      userQuestion.id ?? question?.id ?? userQuestion.questionId,
       `question-${index}`
     ),
     index,
     title: stripHtml(title),
     type,
     typeName,
-    score: toNumber(record.questionScore ?? question.score ?? record.score, 0),
-    options: toArray(question.answerList ?? record.answerList).map(
-      toExamOption
-    ),
-    subQuestions: toArray(record.subQuestionList).map((item, subIndex) =>
+    score: toNumber(userQuestion.questionScore ?? question?.score, 0),
+    options: (question?.answerList ?? []).map(toExamOption),
+    subQuestions: (userQuestion.subQuestionList ?? []).map((item, subIndex) =>
       toExamQuestion(item, subIndex + 1)
     ),
   };
 };
 
 const buildAnswerGroups = (
-  record: Record<string, unknown>,
+  detail: ExamDetailResponse,
   questions: ExamOnlineQuestion[]
 ): ExamOnlineAnswerGroup[] => {
-  const fromPayload = toArray(record.answerCardList).flatMap((item) => {
-    const cardRecord = toRecordOrEmpty(item);
-    return Object.entries(cardRecord).map(([typeName, value]) => {
-      const group = toRecordOrEmpty(value);
-      return {
-        typeName,
-        questionType: toNumber(group.questionType, 0),
-        questionCount: toNumber(group.questionCount, 0),
-        questionScore: toNumber(group.questionScore, 0),
-        indexes: toArray(group.indexList)
-          .map((index) => toNumberOrNull(index))
-          .filter((index): index is number => index !== null),
-      };
-    });
-  });
+  const fromPayload = (detail.answerCardList ?? []).flatMap((cardRecord) =>
+    Object.entries(cardRecord).map(([typeName, group]) => ({
+      typeName,
+      questionType: toExamQuestionType(group.questionType),
+      questionCount: toNumber(group.questionCount, 0),
+      questionScore: toNumber(group.questionScore, 0),
+      indexes: (group.indexList ?? [])
+        .map((index) => toNumberOrNull(index))
+        .filter((index): index is number => index !== null),
+    }))
+  );
 
   if (fromPayload.length) {
     return fromPayload;
@@ -548,23 +564,23 @@ const buildAnswerGroups = (
   return Array.from(grouped.values());
 };
 
-const normalizeCacheAnswers = (value: unknown): ExamOnlineAnswerDraft[] => {
-  const record = toRecordOrEmpty(value);
-  return toArray(record.examAnswers ?? value).flatMap((item) => {
-    const answer = toRecordOrEmpty(item);
+const normalizeCacheAnswers = (
+  value: ExamCacheAnswerResponse | null
+): ExamOnlineAnswerDraft[] =>
+  (value?.examAnswers ?? []).flatMap((answer) => {
     const numberIndex = toNumberOrNull(answer.index);
     const index = toText(answer.index) || numberIndex;
-    const questionType = toNumber(answer.questionType, 0);
+    const questionType = toExamQuestionType(answer.questionType);
 
-    if (index === "" || index === null || !questionType) {
+    if (index === "" || index === null) {
       return [];
     }
 
     const normalized: ExamOnlineAnswerDraft = {
       index,
       questionType,
-      answers: toArray(answer.answers).map((option) => toText(option)),
-      answerIndex: toArray(answer.answerIndex)
+      answers: (answer.answers ?? []).map((option) => toText(option)),
+      answerIndex: (answer.answerIndex ?? [])
         .map((optionIndex) => toNumberOrNull(optionIndex))
         .filter((optionIndex): optionIndex is number => optionIndex !== null),
       subjectiveAnswer: toText(answer.subjectiveAnswer),
@@ -573,18 +589,48 @@ const normalizeCacheAnswers = (value: unknown): ExamOnlineAnswerDraft[] => {
 
     return [normalized];
   });
+
+export const resolveOnlineUserExamId = (
+  examId: string,
+  value: ExamSessionResponse | null
+) => toText(value?.userExamId ?? value?.id, examId);
+
+const isOnlineSessionSubmitted = (detail: ExamDetailResponse | null) => {
+  const paperState = toExamPaperState(detail?.state);
+
+  return (
+    paperState === EXAM_PAPER_STATE.WAIT_REVIEW ||
+    paperState === EXAM_PAPER_STATE.FINISHED ||
+    Boolean(detail?.commitTime)
+  );
 };
 
-const getUserExamId = (examId: string, value: unknown) => {
-  const record = toRecordOrEmpty(value);
-  return toText(
-    record.userExamId ??
-      record.id ??
-      record.userExamDetailId ??
-      record.examRecordId ??
-      value,
-    examId
+const diffDays = (start: Date | null, end: Date | null) => {
+  if (!start || !end) {
+    return 0;
+  }
+
+  return Math.floor(
+    Math.abs(end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)
   );
+};
+
+const canShowOnlineResultDetail = (detail: ExamDetailResponse | null) => {
+  const showType = toExamResultShowType(detail?.examResultShowtype);
+  if (showType !== EXAM_RESULT_SHOW_TYPE.SCORE_AND_DETAIL) {
+    return false;
+  }
+
+  const showDeadline = toNumberOrNull(detail?.showDeadline);
+  const paperState = toExamPaperState(detail?.state);
+  const resultTime = toDate(detail?.previewTime ?? detail?.commitTime);
+  const detailExpired =
+    showDeadline !== null &&
+    showDeadline > 0 &&
+    paperState === EXAM_PAPER_STATE.FINISHED &&
+    diffDays(resultTime, new Date()) > showDeadline;
+
+  return !detailExpired;
 };
 
 const buildFallbackOnlineSession = (
@@ -593,6 +639,16 @@ const buildFallbackOnlineSession = (
 ): ExamOnlineSession => ({
   examId,
   userExamId: examId,
+  submitted: false,
+  resultDetailVisible: false,
+  resultShowType: null,
+  showDeadline: null,
+  paperState: null,
+  passed: null,
+  userScore: null,
+  qualifyScore: null,
+  commitTime: "",
+  previewTime: "",
   title: "在线考试",
   totalScore: 15,
   totalTime: 60,
@@ -610,33 +666,39 @@ const buildFallbackOnlineSession = (
 const toOnlineSession = (
   examId: string,
   userExamId: string,
-  detail: unknown,
-  cachedAnswers: unknown,
+  detail: ExamDetailResponse | null,
+  cachedAnswers: ExamCacheAnswerResponse | null,
   warning: string | null
 ): ExamOnlineSession => {
-  const record = toRecordOrEmpty(detail);
-  const questions = toArray(record.userExamQuestionList).map((item, index) =>
+  const questions = (detail?.userExamQuestionList ?? []).map((item, index) =>
     toExamQuestion(item, index + 1)
   );
   const normalizedQuestions = questions.length
     ? questions
     : fallbackOnlineQuestions;
-  const limitTime = toText(record.limitTime);
+  const limitTime = toText(detail?.limitTime);
   const limitDate = toDate(limitTime);
   const remainSeconds = limitDate
     ? Math.max(0, Math.floor((limitDate.getTime() - Date.now()) / 1000))
     : null;
 
   return {
-    examId: toText(record.examId, examId),
+    examId: toText(detail?.examId, examId),
     userExamId,
-    title: toText(
-      record.examTitle ?? record.title ?? record.examName,
-      "在线考试"
-    ),
-    totalScore: toNumber(record.totalScore, 0),
-    totalTime: toNumber(record.totalTime ?? record.examDuration, 0),
-    questionCount: toNumber(record.questionCount, normalizedQuestions.length),
+    submitted: isOnlineSessionSubmitted(detail),
+    resultDetailVisible: canShowOnlineResultDetail(detail),
+    resultShowType: toExamResultShowType(detail?.examResultShowtype),
+    showDeadline: toNumberOrNull(detail?.showDeadline),
+    paperState: toExamPaperState(detail?.state),
+    passed: toBooleanOrNull(detail?.passed),
+    userScore: toNumberOrNull(detail?.userScore),
+    qualifyScore: toNumberOrNull(detail?.qualifyScore),
+    commitTime: toText(detail?.commitTime),
+    previewTime: toText(detail?.previewTime),
+    title: toText(detail?.examTitle, "在线考试"),
+    totalScore: toNumber(detail?.totalScore, 0),
+    totalTime: toNumber(detail?.totalTime, 0),
+    questionCount: toNumber(detail?.questionCount, normalizedQuestions.length),
     limitTime,
     remainSeconds,
     statusMessage: questions.length
@@ -644,7 +706,7 @@ const toOnlineSession = (
       : "正式试题暂未同步，当前显示安全演示题以保持页面可进入。",
     warning,
     questions: normalizedQuestions,
-    answerGroups: buildAnswerGroups(record, normalizedQuestions),
+    answerGroups: buildAnswerGroups(detail ?? {}, normalizedQuestions),
     cachedAnswers: normalizeCacheAnswers(cachedAnswers),
   };
 };
@@ -696,19 +758,22 @@ export const fetchExamPreview = async (
 };
 
 export const fetchExamOnlineSession = async (
-  examId: string
+  examId: string,
+  initialUserExamId?: string
 ): Promise<ExamOnlineSession> => {
-  let sessionPayload: unknown = null;
-  let userExamId = examId;
+  let sessionPayload: ExamSessionResponse | null = null;
+  let userExamId = initialUserExamId || examId;
   let warning: string | null = null;
 
-  try {
-    sessionPayload = unwrapEnvelope(
-      await api.exam.createExamSession({ examId })
-    );
-    userExamId = getUserExamId(examId, sessionPayload);
-  } catch {
-    warning = "考试会话暂时无法自动创建，系统会尝试读取既有考试记录。";
+  if (!initialUserExamId) {
+    try {
+      sessionPayload = unwrapEnvelope(
+        await api.exam.createExamSession({ examId })
+      );
+      userExamId = resolveOnlineUserExamId(examId, sessionPayload);
+    } catch {
+      warning = "考试会话暂时无法自动创建，系统会尝试读取既有考试记录。";
+    }
   }
 
   try {

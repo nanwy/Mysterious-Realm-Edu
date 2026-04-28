@@ -1,5 +1,6 @@
 import { Badge, Button, Input, Textarea } from "@workspace/ui";
 import { cn } from "@workspace/ui/lib/utils";
+import { EXAM_QUESTION_TYPE } from "@workspace/api";
 import { Send, ShieldCheck } from "lucide-react";
 import {
   type OnlineExamController,
@@ -83,7 +84,7 @@ export const OnlineQuestionPanel = ({
             );
           })}
         </div>
-      ) : question.type === 5 ? (
+      ) : question.type === EXAM_QUESTION_TYPE.BLANK ? (
         <div className="grid gap-3">
           {(question.options.length
             ? question.options
@@ -109,7 +110,7 @@ export const OnlineQuestionPanel = ({
             );
           })}
         </div>
-      ) : question.type === 6 ? (
+      ) : question.type === EXAM_QUESTION_TYPE.COMBINATION ? (
         <div className="rounded-[24px] border border-border bg-muted/30 p-5">
           <p className="text-sm leading-7 text-muted-foreground">
             组合题的子题结构已读取到 {question.subQuestions.length} 小题。

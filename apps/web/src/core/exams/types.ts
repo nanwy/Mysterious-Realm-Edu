@@ -3,6 +3,11 @@ import type {
   ExamStatusFilter,
   ExamTypeFilter,
 } from "./config";
+import type {
+  ExamPaperState,
+  ExamQuestionType,
+  ExamResultShowType,
+} from "@workspace/api";
 
 export interface ExamFiltersState {
   examTitle: string;
@@ -53,7 +58,7 @@ export interface ExamOnlineQuestion {
   id: string;
   index: number;
   title: string;
-  type: number;
+  type: ExamQuestionType;
   typeName: string;
   score: number;
   options: ExamOnlineOption[];
@@ -62,7 +67,7 @@ export interface ExamOnlineQuestion {
 
 export interface ExamOnlineAnswerGroup {
   typeName: string;
-  questionType: number;
+  questionType: ExamQuestionType;
   questionCount: number;
   questionScore: number;
   indexes: number[];
@@ -70,7 +75,7 @@ export interface ExamOnlineAnswerGroup {
 
 export interface ExamOnlineAnswerDraft {
   index: number | string;
-  questionType: number;
+  questionType: ExamQuestionType;
   answers?: string[];
   answerIndex?: number[];
   subjectiveAnswer?: string;
@@ -80,6 +85,16 @@ export interface ExamOnlineAnswerDraft {
 export interface ExamOnlineSession {
   examId: string;
   userExamId: string;
+  submitted: boolean;
+  resultDetailVisible: boolean;
+  resultShowType: ExamResultShowType | null;
+  showDeadline: number | null;
+  paperState: ExamPaperState | null;
+  passed: boolean | null;
+  userScore: number | null;
+  qualifyScore: number | null;
+  commitTime: string;
+  previewTime: string;
   title: string;
   totalScore: number;
   totalTime: number;

@@ -51,11 +51,26 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
   // - `hydrateOnline` guards on `userExamId`, so refetches for the same session
   //   are no-ops (preserves in-progress draft) and switching sessions resets
   //   with backend recovery data.
-  // - Submit success switches the page to a terminal state, so the draft can be
-  //   reset without showing an emptied answer card.
+  // - A submitted backend session is terminal and must win over any fresh
+  //   Zustand default state after reload.
+  // - Submit success switches the page to the same terminal state, so the draft
+  //   can be reset without showing an emptied answer card.
   useEffect(() => {
+    if (session.submitted) {
+      resetOnline();
+      setOnlineSubmitStatus("submitted");
+      return;
+    }
+
     hydrateOnline(session.userExamId, session.cachedAnswers);
-  }, [hydrateOnline, session.userExamId, session.cachedAnswers]);
+  }, [
+    hydrateOnline,
+    resetOnline,
+    session.cachedAnswers,
+    session.submitted,
+    session.userExamId,
+    setOnlineSubmitStatus,
+  ]);
 
   const questions = session.questions;
   const totalQuestions = questions.length;
@@ -84,6 +99,10 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
   const unansweredCount = Math.max(0, totalQuestions - answeredCount);
 
   const persistAnswers = useCallback(() => {
+    if (session.submitted) {
+      return;
+    }
+
     const requestId = beginOnlineCacheRequest();
     cacheMutate(
       {
@@ -101,6 +120,7 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
     cacheMutate,
     finishOnlineCacheRequest,
     session.limitTime,
+    session.submitted,
     session.userExamId,
   ]);
 
@@ -175,6 +195,10 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
   );
 
   const submitExam = useCallback(() => {
+    if (session.submitted) {
+      return;
+    }
+
     setOnlineSubmitStatus("submitting");
     submitMutate(
       {
@@ -193,10 +217,12 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
   }, [
     resetOnline,
     session.examId,
+    session.submitted,
     session.userExamId,
     setOnlineSubmitStatus,
     submitMutate,
   ]);
+  const resolvedSubmitStatus = session.submitted ? "submitted" : submitStatus;
 
   return {
     questions,
@@ -209,7 +235,7 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
     unansweredCount,
     progress,
     cacheStatus,
-    submitStatus,
+    submitStatus: resolvedSubmitStatus,
     cachePending,
     submitPending,
     selectQuestion,

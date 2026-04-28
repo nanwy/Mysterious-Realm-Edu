@@ -6,13 +6,14 @@ import {
   buildSubjectiveAnswerDraft,
   replaceOnlineAnswer,
 } from "./online.ts";
+import { EXAM_QUESTION_TYPE } from "@workspace/api";
 import type { ExamOnlineAnswerDraft, ExamOnlineQuestion } from "./types.ts";
 
 const question: ExamOnlineQuestion = {
   id: "q-1",
   index: 1,
   title: "Question",
-  type: 1,
+  type: EXAM_QUESTION_TYPE.RADIO,
   typeName: "单选题",
   score: 2,
   options: [
@@ -26,7 +27,7 @@ test("replaceOnlineAnswer replaces an existing answer by answer key", () => {
   const answers: ExamOnlineAnswerDraft[] = [
     {
       index: 1,
-      questionType: 1,
+      questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["option-a"],
       answerIndex: [0],
     },
@@ -34,7 +35,7 @@ test("replaceOnlineAnswer replaces an existing answer by answer key", () => {
 
   const nextAnswers = replaceOnlineAnswer(answers, 1, {
     index: 1,
-    questionType: 1,
+    questionType: EXAM_QUESTION_TYPE.RADIO,
     answers: ["option-b"],
     answerIndex: [1],
   });
@@ -42,7 +43,7 @@ test("replaceOnlineAnswer replaces an existing answer by answer key", () => {
   assert.deepEqual(nextAnswers, [
     {
       index: 1,
-      questionType: 1,
+      questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["option-b"],
       answerIndex: [1],
     },
@@ -53,7 +54,7 @@ test("replaceOnlineAnswer removes an answer when next answer is null", () => {
   const answers: ExamOnlineAnswerDraft[] = [
     {
       index: 1,
-      questionType: 1,
+      questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["option-a"],
       answerIndex: [0],
     },
@@ -64,7 +65,9 @@ test("replaceOnlineAnswer removes an answer when next answer is null", () => {
 
 test("buildOptionAnswerDraft toggles single choice answers", () => {
   const current = buildOptionAnswerDraft(question, undefined, "option-a", 0);
+  assert.ok(current);
   const next = buildOptionAnswerDraft(question, current, "option-b", 1);
+  assert.ok(next);
   const cleared = buildOptionAnswerDraft(question, next, "option-b", 1);
 
   assert.deepEqual(current?.answers, ["option-a"]);
@@ -75,7 +78,7 @@ test("buildOptionAnswerDraft toggles single choice answers", () => {
 });
 
 test("buildOptionAnswerDraft toggles multiple choice answers", () => {
-  const multipleQuestion = { ...question, type: 2 };
+  const multipleQuestion = { ...question, type: EXAM_QUESTION_TYPE.MULTI };
 
   const first = buildOptionAnswerDraft(
     multipleQuestion,
@@ -85,13 +88,13 @@ test("buildOptionAnswerDraft toggles multiple choice answers", () => {
   );
   const second = buildOptionAnswerDraft(
     multipleQuestion,
-    first,
+    first ?? undefined,
     "option-b",
     1
   );
   const third = buildOptionAnswerDraft(
     multipleQuestion,
-    second,
+    second ?? undefined,
     "option-a",
     0
   );
@@ -108,7 +111,7 @@ test("buildSubjectiveAnswerDraft returns null for blank text", () => {
 test("buildBlankAnswerDraft serializes filled blanks", () => {
   const blankQuestion = {
     ...question,
-    type: 5,
+    type: EXAM_QUESTION_TYPE.BLANK,
     options: [{ id: "blank-1", tag: "1", content: "填空" }],
   };
 

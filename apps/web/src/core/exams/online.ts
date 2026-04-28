@@ -1,6 +1,14 @@
+import {
+  EXAM_QUESTION_TYPE,
+  type ExamQuestionType,
+} from "@workspace/api";
 import type { ExamOnlineAnswerDraft, ExamOnlineQuestion } from "./types";
 
-export const SELECT_QUESTION_TYPES = new Set([1, 2, 3]);
+export const SELECT_QUESTION_TYPES: ReadonlySet<ExamQuestionType> = new Set([
+  EXAM_QUESTION_TYPE.RADIO,
+  EXAM_QUESTION_TYPE.MULTI,
+  EXAM_QUESTION_TYPE.JUDGE,
+]);
 
 export const formatExamSeconds = (value: number | null) => {
   if (value === null) {
@@ -64,7 +72,9 @@ export const buildOptionAnswerDraft = (
   const currentIds = currentAnswer?.answers ?? [];
   const currentIndexes = currentAnswer?.answerIndex ?? [];
   const isSelected = currentIds.includes(optionId);
-  const isSingle = question.type === 1 || question.type === 3;
+  const isSingle =
+    question.type === EXAM_QUESTION_TYPE.RADIO ||
+    question.type === EXAM_QUESTION_TYPE.JUDGE;
   const nextIds = isSelected
     ? currentIds.filter((item) => item !== optionId)
     : isSingle
@@ -123,7 +133,7 @@ export const isQuestionAnswered = (
   question: ExamOnlineQuestion,
   answers: ExamOnlineAnswerDraft[]
 ) => {
-  if (question.type === 6) {
+  if (question.type === EXAM_QUESTION_TYPE.COMBINATION) {
     return answers.some((answer) =>
       makeAnswerKey(answer.index).startsWith(`${question.index}.`)
     );
