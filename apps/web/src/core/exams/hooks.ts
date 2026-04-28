@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   useCacheExamAnswerMutation,
   useSubmitExamMutation,
@@ -14,139 +14,189 @@ import {
   replaceOnlineAnswer,
 } from "./online";
 import { useExamStore } from "./store";
-import type { ExamOnlineAnswerDraft, ExamOnlineSession } from "./types";
+import type { ExamOnlineSession } from "./types";
 
 export const useOnlineExamController = (session: ExamOnlineSession) => {
-  const initialCachedAnswersRef = useRef(session.cachedAnswers);
-  const cacheMutation = useCacheExamAnswerMutation();
-  const submitMutation = useSubmitExamMutation();
+  const { mutate: cacheMutate, isPending: cachePending } =
+    useCacheExamAnswerMutation();
+  const { mutate: submitMutate, isPending: submitPending } =
+    useSubmitExamMutation();
+
   const currentIndex = useExamStore((state) => state.onlineCurrentIndex);
   const answers = useExamStore((state) => state.onlineAnswers);
-  const actionMessage = useExamStore((state) => state.onlineActionMessage);
-  const hydrateOnlineSession = useExamStore(
-    (state) => state.hydrateOnlineSession
+  const cacheStatus = useExamStore((state) => state.onlineCacheStatus);
+  const submitStatus = useExamStore((state) => state.onlineSubmitStatus);
+  const hydrateOnline = useExamStore((state) => state.hydrateOnline);
+  const selectOnlineQuestionAt = useExamStore(
+    (state) => state.selectOnlineQuestionAt
   );
-  const resetOnlineSession = useExamStore((state) => state.resetOnlineSession);
-  const setCurrentIndex = useExamStore((state) => state.setOnlineCurrentIndex);
-  const setAnswers = useExamStore((state) => state.setOnlineAnswers);
-  const setActionMessage = useExamStore(
-    (state) => state.setOnlineActionMessage
+  const shiftOnlineQuestion = useExamStore(
+    (state) => state.shiftOnlineQuestion
+  );
+  const updateOnlineAnswers = useExamStore(
+    (state) => state.updateOnlineAnswers
+  );
+  const resetOnline = useExamStore((state) => state.resetOnline);
+  const beginOnlineCacheRequest = useExamStore(
+    (state) => state.beginOnlineCacheRequest
+  );
+  const finishOnlineCacheRequest = useExamStore(
+    (state) => state.finishOnlineCacheRequest
+  );
+  const setOnlineSubmitStatus = useExamStore(
+    (state) => state.setOnlineSubmitStatus
   );
 
+  // Slice lifecycle is event-driven, not mount-driven:
+  // - `hydrateOnline` guards on `userExamId`, so refetches for the same session
+  //   are no-ops (preserves in-progress draft) and switching sessions resets
+  //   with backend recovery data.
+  // - Submit success switches the page to a terminal state, so the draft can be
+  //   reset without showing an emptied answer card.
   useEffect(() => {
-    hydrateOnlineSession(session.userExamId, initialCachedAnswersRef.current);
-    return () => resetOnlineSession();
+    hydrateOnline(session.userExamId, session.cachedAnswers);
+  }, [hydrateOnline, session.userExamId, session.cachedAnswers]);
+
+  const questions = session.questions;
+  const totalQuestions = questions.length;
+  const lastQuestionIndex = Math.max(0, totalQuestions - 1);
+
+  const currentQuestion = useMemo(
+    () => questions[currentIndex] ?? questions[0],
+    [questions, currentIndex]
+  );
+  const answerForCurrent = useMemo(
+    () =>
+      currentQuestion
+        ? getAnswerForQuestion(currentQuestion, answers)
+        : undefined,
+    [currentQuestion, answers]
+  );
+  const answeredCount = useMemo(
+    () =>
+      questions.filter((question) => isQuestionAnswered(question, answers))
+        .length,
+    [questions, answers]
+  );
+  const progress = totalQuestions
+    ? Math.round((answeredCount / totalQuestions) * 100)
+    : 0;
+  const unansweredCount = Math.max(0, totalQuestions - answeredCount);
+
+  const persistAnswers = useCallback(() => {
+    const requestId = beginOnlineCacheRequest();
+    cacheMutate(
+      {
+        limitTime: session.limitTime,
+        userExamId: session.userExamId,
+        examAnswers: useExamStore.getState().onlineAnswers,
+      },
+      {
+        onSuccess: () => finishOnlineCacheRequest(requestId, "saved"),
+        onError: () => finishOnlineCacheRequest(requestId, "error"),
+      }
+    );
   }, [
-    hydrateOnlineSession,
-    resetOnlineSession,
+    beginOnlineCacheRequest,
+    cacheMutate,
+    finishOnlineCacheRequest,
+    session.limitTime,
     session.userExamId,
   ]);
 
-  const questions = session.questions;
-  const currentQuestion = questions[currentIndex] ?? questions[0];
-  const answerForCurrent = currentQuestion
-    ? getAnswerForQuestion(currentQuestion, answers)
-    : undefined;
-  const answeredCount = questions.filter((question) =>
-    isQuestionAnswered(question, answers)
-  ).length;
-  const progress = questions.length
-    ? Math.round((answeredCount / questions.length) * 100)
-    : 0;
+  const selectQuestion = useCallback(
+    (questionIndex: number) => {
+      const target = questions.findIndex(
+        (question) => question.index === questionIndex
+      );
+      selectOnlineQuestionAt(Math.max(0, target));
+    },
+    [questions, selectOnlineQuestionAt]
+  );
 
-  const persistAnswers = (nextAnswers: ExamOnlineAnswerDraft[]) => {
-    setAnswers(nextAnswers);
-    cacheMutation.mutate({
-      limitTime: session.limitTime,
-      userExamId: session.userExamId,
-      examAnswers: nextAnswers,
-    });
-    setActionMessage("答案已自动保存");
-  };
+  const previousQuestion = useCallback(() => {
+    shiftOnlineQuestion(-1, lastQuestionIndex);
+  }, [shiftOnlineQuestion, lastQuestionIndex]);
 
-  const replaceCurrentAnswer = (
-    nextAnswer: ExamOnlineAnswerDraft | null
-  ) => {
-    if (!currentQuestion) {
-      return;
-    }
+  const nextQuestion = useCallback(() => {
+    shiftOnlineQuestion(1, lastQuestionIndex);
+  }, [shiftOnlineQuestion, lastQuestionIndex]);
 
-    persistAnswers(
-      replaceOnlineAnswer(answers, currentQuestion.index, nextAnswer)
-    );
-  };
+  const toggleOption = useCallback(
+    (optionId: string, optionIndex: number) => {
+      if (!currentQuestion) {
+        return;
+      }
+      updateOnlineAnswers((current) => {
+        const draft = getAnswerForQuestion(currentQuestion, current);
+        const next = buildOptionAnswerDraft(
+          currentQuestion,
+          draft,
+          optionId,
+          optionIndex
+        );
+        return replaceOnlineAnswer(current, currentQuestion.index, next);
+      });
+      persistAnswers();
+    },
+    [currentQuestion, persistAnswers, updateOnlineAnswers]
+  );
 
-  const selectQuestion = (index: number) => {
-    const nextIndex = questions.findIndex(
-      (question) => question.index === index
-    );
-    setCurrentIndex(Math.max(0, nextIndex));
-  };
+  const updateSubjectiveAnswer = useCallback(
+    (value: string) => {
+      if (!currentQuestion) {
+        return;
+      }
+      updateOnlineAnswers((current) =>
+        replaceOnlineAnswer(
+          current,
+          currentQuestion.index,
+          buildSubjectiveAnswerDraft(currentQuestion, value)
+        )
+      );
+      persistAnswers();
+    },
+    [currentQuestion, persistAnswers, updateOnlineAnswers]
+  );
 
-  const previousQuestion = () => {
-    setCurrentIndex(Math.max(0, currentIndex - 1));
-  };
+  const updateBlankAnswer = useCallback(
+    (tag: string, value: string) => {
+      if (!currentQuestion) {
+        return;
+      }
+      updateOnlineAnswers((current) => {
+        const draft = getAnswerForQuestion(currentQuestion, current);
+        const next = buildBlankAnswerDraft(currentQuestion, draft, tag, value);
+        return replaceOnlineAnswer(current, currentQuestion.index, next);
+      });
+      persistAnswers();
+    },
+    [currentQuestion, persistAnswers, updateOnlineAnswers]
+  );
 
-  const nextQuestion = () => {
-    setCurrentIndex(Math.min(questions.length - 1, currentIndex + 1));
-  };
-
-  const toggleOption = (optionId: string, optionIndex: number) => {
-    if (!currentQuestion) {
-      return;
-    }
-
-    replaceCurrentAnswer(
-      buildOptionAnswerDraft(
-        currentQuestion,
-        answerForCurrent,
-        optionId,
-        optionIndex
-      )
-    );
-  };
-
-  const updateSubjectiveAnswer = (value: string) => {
-    if (!currentQuestion) {
-      return;
-    }
-
-    replaceCurrentAnswer(buildSubjectiveAnswerDraft(currentQuestion, value));
-  };
-
-  const updateBlankAnswer = (tag: string, value: string) => {
-    if (!currentQuestion) {
-      return;
-    }
-
-    replaceCurrentAnswer(
-      buildBlankAnswerDraft(currentQuestion, answerForCurrent, tag, value)
-    );
-  };
-
-  const submitExam = () => {
-    const unanswered = Math.max(0, questions.length - answeredCount);
-    setActionMessage(
-      unanswered
-        ? `还有 ${unanswered} 题未作答。请确认是否继续提交当前答案。`
-        : "正在提交当前答题结果。"
-    );
-    submitMutation.mutate(
+  const submitExam = useCallback(() => {
+    setOnlineSubmitStatus("submitting");
+    submitMutate(
       {
         examId: session.examId,
         userExamId: session.userExamId,
-        examAnswers: answers,
+        examAnswers: useExamStore.getState().onlineAnswers,
       },
       {
-        onSuccess: () =>
-          setActionMessage("试卷已提交，稍后可在成绩中心查看结果。"),
-        onError: () =>
-          setActionMessage(
-            "提交暂未成功，答案仍保留在当前页面并会继续尝试缓存。"
-          ),
+        onSuccess: () => {
+          resetOnline();
+          setOnlineSubmitStatus("submitted");
+        },
+        onError: () => setOnlineSubmitStatus("error"),
       }
     );
-  };
+  }, [
+    resetOnline,
+    session.examId,
+    session.userExamId,
+    setOnlineSubmitStatus,
+    submitMutate,
+  ]);
 
   return {
     questions,
@@ -156,10 +206,12 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
     answerForCurrent,
     answers,
     answeredCount,
+    unansweredCount,
     progress,
-    actionMessage,
-    cachePending: cacheMutation.isPending,
-    submitPending: submitMutation.isPending,
+    cacheStatus,
+    submitStatus,
+    cachePending,
+    submitPending,
     selectQuestion,
     previousQuestion,
     nextQuestion,

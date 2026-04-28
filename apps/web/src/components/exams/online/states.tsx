@@ -1,4 +1,5 @@
 import { EmptyState, Skeleton } from "@workspace/ui";
+import { CheckCircle2 } from "lucide-react";
 
 export const OnlineExamLoadingState = () => (
   <div className="grid gap-5">
@@ -18,4 +19,20 @@ export const OnlineExamEmptyState = () => (
       description="当前路由缺少可用考试 ID，或考试详情没有返回可展示的题目信息。"
     />
   </div>
+);
+
+export const OnlineExamSubmittedState = () => (
+  <section className="grid gap-4 rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
+    <div className="flex items-start gap-3">
+      <div className="rounded-full bg-primary/10 p-2 text-primary">
+        <CheckCircle2 className="size-5" />
+      </div>
+      <div className="grid gap-2">
+        <h3 className="text-xl font-semibold text-foreground">试卷已提交</h3>
+        <p className="text-sm leading-6 text-muted-foreground">
+          当前答题结果已提交，稍后可在成绩中心查看结果。答题草稿已从本地状态清理，后续以服务端记录为准。
+        </p>
+      </div>
+    </div>
+  </section>
 );

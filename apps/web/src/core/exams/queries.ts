@@ -6,10 +6,10 @@ import type { ExamFiltersState } from "./types";
 
 export const examKeys = {
   all: ["exams"] as const,
+  lists: () => [...examKeys.all, "list"] as const,
   list: (filters: ExamFiltersState) =>
     [
-      ...examKeys.all,
-      "list",
+      ...examKeys.lists(),
       filters.examTitle,
       filters.examType,
       filters.state,

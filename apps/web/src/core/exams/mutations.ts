@@ -11,7 +11,11 @@ export const useCreateExamSessionMutation = () => {
       unwrapEnvelope(await api.exam.createExamSession({ examId })),
     onSuccess: (_result, examId) => {
       qc.invalidateQueries({ queryKey: examKeys.preview(examId) });
-      qc.invalidateQueries({ queryKey: examKeys.all });
+      qc.invalidateQueries({ queryKey: examKeys.lists() });
+      // Starting a new attempt produces a fresh `userExamId` and empty
+      // `cachedAnswers`; drop any stale online cache for this examId so the
+      // online page hydrates from the new session.
+      qc.invalidateQueries({ queryKey: examKeys.online(examId) });
     },
   });
 };
@@ -26,7 +30,7 @@ export const useSubmitExamMutation = () => {
       if (examId) {
         qc.invalidateQueries({ queryKey: examKeys.preview(examId) });
       }
-      qc.invalidateQueries({ queryKey: examKeys.all });
+      qc.invalidateQueries({ queryKey: examKeys.lists() });
     },
   });
 };
