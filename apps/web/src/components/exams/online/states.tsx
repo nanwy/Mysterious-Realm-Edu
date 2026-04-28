@@ -29,7 +29,10 @@ export const OnlineExamSubmittedState = ({
   session,
 }: {
   session: ExamOnlineSession;
-}) => (
+}) => {
+  const detail = session.detail;
+
+  return (
   <section className="grid gap-4 rounded-[32px] border border-border bg-card/90 p-6 shadow-sm">
     <div className="flex items-start gap-3">
       <div className="rounded-full bg-primary/10 p-2 text-primary">
@@ -44,23 +47,23 @@ export const OnlineExamSubmittedState = ({
           <div>
             <p className="text-xs text-muted-foreground">本次得分</p>
             <p className="mt-1 text-2xl font-semibold text-foreground">
-              {session.userScore ?? "--"} 分
+              {detail?.userScore ?? "--"} 分
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">试卷总分</p>
             <p className="mt-1 text-2xl font-semibold text-foreground">
-              {session.totalScore || "--"} 分
+              {detail?.totalScore || "--"} 分
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">及格分数</p>
             <p className="mt-1 text-2xl font-semibold text-foreground">
-              {session.qualifyScore ?? "--"} 分
+              {detail?.qualifyScore ?? "--"} 分
             </p>
           </div>
         </div>
-        {session.paperState === EXAM_PAPER_STATE.WAIT_REVIEW ? (
+        {detail?.state === EXAM_PAPER_STATE.WAIT_REVIEW ? (
           <p className="rounded-[20px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
             该试卷还有主观题，主观题分数将在阅卷后累计到总成绩。
           </p>
@@ -91,4 +94,5 @@ export const OnlineExamSubmittedState = ({
       </div>
     </div>
   </section>
-);
+  );
+};

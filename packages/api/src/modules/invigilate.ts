@@ -1,4 +1,8 @@
 import { createApiClient, type ApiHttpClient } from "../client";
+import type {
+  InvigilateCheatCountResponse,
+  InvigilateCheatRequest,
+} from "../types";
 
 export const createInvigilateApi = (client: ApiHttpClient) => ({
   userJoin: (payload: Record<string, unknown>) =>
@@ -16,11 +20,14 @@ export const createInvigilateApi = (client: ApiHttpClient) => ({
   handleUserLeave: (payload: Record<string, unknown>) =>
     client.post<unknown>("/invigilate/userLeave", payload),
 
-  reportCheat: (payload: Record<string, unknown>) =>
-    client.post<unknown>("/invigilate/reportCheat", payload),
+  reportCheat: (payload: InvigilateCheatRequest) =>
+    client.post<null>("/invigilate/reportCheat", payload),
 
-  countCheat: (payload: Record<string, unknown>) =>
-    client.post<unknown>("/invigilate/countCheat", payload),
+  countCheat: (payload: InvigilateCheatRequest) =>
+    client.post<InvigilateCheatCountResponse>(
+      "/invigilate/countCheat",
+      payload
+    ),
 });
 
 const defaultInvigilateApi = createInvigilateApi(createApiClient());
@@ -45,10 +52,10 @@ export function handleUserLeave(payload: Record<string, unknown>) {
   return defaultInvigilateApi.handleUserLeave(payload);
 }
 
-export function reportCheat(payload: Record<string, unknown>) {
+export function reportCheat(payload: InvigilateCheatRequest) {
   return defaultInvigilateApi.reportCheat(payload);
 }
 
-export function countCheat(payload: Record<string, unknown>) {
+export function countCheat(payload: InvigilateCheatRequest) {
   return defaultInvigilateApi.countCheat(payload);
 }

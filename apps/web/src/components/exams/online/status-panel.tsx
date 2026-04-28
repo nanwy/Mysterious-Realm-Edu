@@ -1,5 +1,5 @@
 import { Alert, AlertDescription, AlertTitle } from "@workspace/ui";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ShieldAlert } from "lucide-react";
 import { useMemo } from "react";
 import type {
   ExamOnlineCacheStatus,
@@ -57,6 +57,8 @@ export const OnlineStatusPanel = ({
     currentQuestion,
     questions,
     submitStatus,
+    screenSwitchMessage,
+    screenSwitchTimes,
     unansweredCount,
   } = onlineExam;
 
@@ -78,6 +80,7 @@ export const OnlineStatusPanel = ({
           ["缓存状态", cacheStatusLabel[cacheStatus]],
           ["答题进度", `${answeredCount}/${questions.length}`],
           ["当前题型", currentQuestion?.typeName ?? "未选择"],
+          ["切屏次数", `${screenSwitchTimes}`],
         ].map(([label, value]) => (
           <div
             key={label}
@@ -97,6 +100,13 @@ export const OnlineStatusPanel = ({
           <CheckCircle2 className="size-4" />
           <AlertTitle>操作反馈</AlertTitle>
           <AlertDescription>{actionMessage}</AlertDescription>
+        </Alert>
+      ) : null}
+      {screenSwitchMessage ? (
+        <Alert variant="destructive">
+          <ShieldAlert className="size-4" />
+          <AlertTitle>切屏检测</AlertTitle>
+          <AlertDescription>{screenSwitchMessage}</AlertDescription>
         </Alert>
       ) : null}
     </aside>

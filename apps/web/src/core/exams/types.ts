@@ -4,9 +4,8 @@ import type {
   ExamTypeFilter,
 } from "./config";
 import type {
-  ExamPaperState,
+  ExamDetailResponse,
   ExamQuestionType,
-  ExamResultShowType,
 } from "@workspace/api";
 
 export interface ExamFiltersState {
@@ -85,20 +84,9 @@ export interface ExamOnlineAnswerDraft {
 export interface ExamOnlineSession {
   examId: string;
   userExamId: string;
+  detail: ExamDetailResponse | null;
   submitted: boolean;
   resultDetailVisible: boolean;
-  resultShowType: ExamResultShowType | null;
-  showDeadline: number | null;
-  paperState: ExamPaperState | null;
-  passed: boolean | null;
-  userScore: number | null;
-  qualifyScore: number | null;
-  commitTime: string;
-  previewTime: string;
-  title: string;
-  totalScore: number;
-  totalTime: number;
-  questionCount: number;
   limitTime: string;
   remainSeconds: number | null;
   statusMessage: string;

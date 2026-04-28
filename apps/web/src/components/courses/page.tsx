@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { CourseCategoryDetail } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard } from "@workspace/ui";
 import { usePathname, useRouter } from "next/navigation";
@@ -9,85 +10,20 @@ import { CoursesFilters } from "./filters";
 import { CoursesResults } from "./results";
 import { ResultsPagination } from "../common/results-pagination";
 import {
+  buildCourseQueryString,
   COURSE_ORDER_BY,
-  COURSE_ORDER_BY_OPTIONS,
-  type CourseCategoryOption,
   type CourseFiltersState,
   type CourseFormValues,
   courseQueryOptions,
+  getCourseActiveFilterSummary,
+  getCourseStatusCopy,
   normalizeCourseError,
 } from "@/core/courses";
 
-const FALLBACK_CATEGORY_OPTIONS: CourseCategoryOption[] = [
-  { value: "", label: "全部分类" },
-  { value: "placeholder", label: "分类待接口补充" },
+const FALLBACK_CATEGORY_OPTIONS: CourseCategoryDetail[] = [
+  { id: "", name: "全部分类" },
+  { id: "placeholder", name: "分类待接口补充" },
 ];
-
-const createQueryString = (filters: CourseFiltersState) => {
-  const params = new URLSearchParams();
-
-  if (filters.pageNo > 1) {
-    params.set("page", String(filters.pageNo));
-  }
-
-  if (filters.keyword) {
-    params.set("keyword", filters.keyword);
-  }
-
-  if (filters.orderBy !== COURSE_ORDER_BY.DEFAULT) {
-    params.set("sort", filters.orderBy);
-  }
-
-  if (filters.categoryId) {
-    params.set("category", filters.categoryId);
-  }
-
-  const result = params.toString();
-  return result ? `?${result}` : "";
-};
-
-const getStatusCopy = (
-  error: string | null,
-  loading: boolean,
-  total: number
-) => {
-  if (error) {
-    return "接口异常";
-  }
-
-  if (loading) {
-    return "加载中";
-  }
-
-  return `${total} 门课程`;
-};
-
-const getActiveFilterSummary = (
-  filters: CourseFiltersState,
-  categories: CourseCategoryOption[]
-) => {
-  const summary: string[] = [];
-
-  if (filters.keyword) {
-    summary.push(`关键词：${filters.keyword}`);
-  }
-
-  if (filters.orderBy !== COURSE_ORDER_BY.DEFAULT) {
-    const label = COURSE_ORDER_BY_OPTIONS.find(
-      (option) => option.value === filters.orderBy
-    )?.label;
-    summary.push(`排序：${label ?? "已设置"}`);
-  }
-
-  if (filters.categoryId) {
-    const categoryLabel =
-      categories.find((item) => item.value === filters.categoryId)?.label ??
-      filters.categoryId;
-    summary.push(`分类：${categoryLabel}`);
-  }
-
-  return summary;
-};
 
 export const CoursesPage = ({
   initialFilters,
@@ -99,7 +35,7 @@ export const CoursesPage = ({
   const [isPending, startTransition] = useTransition();
 
   const coursesQuery = useQuery(courseQueryOptions.list(initialFilters));
-  const items = coursesQuery.data?.items ?? [];
+  const items = coursesQuery.data?.records ?? [];
   const total = coursesQuery.data?.total ?? 0;
   const categories = coursesQuery.data?.categories ?? FALLBACK_CATEGORY_OPTIONS;
   const isLoading = coursesQuery.isPending;
@@ -109,14 +45,17 @@ export const CoursesPage = ({
 
   const navigate = (nextFilters: CourseFiltersState) => {
     startTransition(() => {
-      router.push(`${pathname}${createQueryString(nextFilters)}`, {
+      router.push(`${pathname}${buildCourseQueryString(nextFilters)}`, {
         scroll: false,
       });
     });
   };
 
   const totalPages = Math.max(1, Math.ceil(total / initialFilters.pageSize));
-  const activeFilters = getActiveFilterSummary(initialFilters, categories);
+  const activeFilters = getCourseActiveFilterSummary(
+    initialFilters,
+    categories
+  );
   const heroStats = [
     {
       label: "分页规模",
@@ -132,7 +71,7 @@ export const CoursesPage = ({
     },
     {
       label: "接口状态",
-      value: getStatusCopy(errorMessage, isLoading, total),
+      value: getCourseStatusCopy(errorMessage, isLoading, total),
       detail: errorMessage ? "优先暴露真实异常" : "与真实接口保持同步",
     },
   ];

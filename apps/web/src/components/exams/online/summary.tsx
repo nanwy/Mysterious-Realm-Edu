@@ -5,11 +5,16 @@ import { type ExamOnlineSession, formatExamSeconds } from "@/core/exams";
 export const OnlineExamSummary = ({
   session,
   questionTotal,
+  remainingSeconds,
 }: {
   session: ExamOnlineSession;
   questionTotal: number;
-}) => (
-  <section className="overflow-hidden rounded-[32px] border border-border bg-card/90 shadow-sm">
+  remainingSeconds: number | null;
+}) => {
+  const detail = session.detail;
+
+  return (
+    <section className="overflow-hidden rounded-[32px] border border-border bg-card/90 shadow-sm">
     <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="grid gap-5 p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-3">
@@ -20,7 +25,7 @@ export const OnlineExamSummary = ({
         </div>
         <div className="grid gap-3">
           <h2 className="max-w-4xl text-3xl font-semibold tracking-tight text-foreground">
-            {session.title}
+            {detail?.examTitle ?? "在线考试"}
           </h2>
           <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
             {session.statusMessage}
@@ -42,16 +47,16 @@ export const OnlineExamSummary = ({
               剩余时间
             </p>
             <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground">
-              {formatExamSeconds(session.remainSeconds)}
+              {formatExamSeconds(remainingSeconds)}
             </p>
           </div>
           <Clock3 className="size-8 text-muted-foreground" />
         </div>
         <div className="grid grid-cols-3 gap-3">
           {[
-            ["题目", `${session.questionCount || questionTotal}`],
-            ["总分", `${session.totalScore || "--"}`],
-            ["时长", session.totalTime ? `${session.totalTime}m` : "--"],
+            ["题目", `${detail?.questionCount || questionTotal}`],
+            ["总分", `${detail?.totalScore || "--"}`],
+            ["时长", detail?.totalTime ? `${detail.totalTime}m` : "--"],
           ].map(([label, value]) => (
             <div
               key={label}
@@ -66,5 +71,6 @@ export const OnlineExamSummary = ({
         </div>
       </aside>
     </div>
-  </section>
-);
+    </section>
+  );
+};

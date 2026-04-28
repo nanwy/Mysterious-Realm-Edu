@@ -1,9 +1,12 @@
+import type { CourseDetailResponse } from "@workspace/api";
+
 export type HomeRecord = Record<string, unknown>;
+export type HomeCourseRecord = CourseDetailResponse;
 
 export type HomePayload = {
   banners: HomeRecord[];
   announcements: HomeRecord[];
-  hotCourses: HomeRecord[];
+  hotCourses: HomeCourseRecord[];
   latestExams: HomeRecord[];
   questionnaires: HomeRecord[];
   recommendedNews: HomeRecord[];

@@ -4,13 +4,17 @@ import type {
   CourseDetailResponse,
   CourseEvaluationListRequest,
   CourseEvaluationListResponse,
+  CourseFindUserCatalogResponse,
   CourseGradeCountResponse,
+  CourseHotListResponse,
   CourseIntegralResponse,
   CourseLatestStudyTaskResponse,
   CourseListRequest,
   CourseListResponse,
+  CoursePreTaskCompleteResponse,
   CourseStudyDetailResponse,
   CourseStudyProcessListRequest,
+  CourseStudyProcessListResponse,
   CourseStudyProcessResponse,
   CourseStudyTimeRequest,
   CourseTaskStudyTimeResponse,
@@ -58,17 +62,17 @@ export const createCourseApi = (client: ApiHttpClient) => ({
     courseCatalogId: Id;
     courseId: Id;
   }) =>
-    client.get<CourseStudyProcessResponse>("/course/findUserCatalog", {
+    client.get<CourseFindUserCatalogResponse>("/course/findUserCatalog", {
       query: { courseCatalogId, courseId },
     }),
 
   checkPreTaskComplete: ({ courseCatalogId }: { courseCatalogId: Id }) =>
-    client.get<CourseStudyProcessResponse>("/course/checkPreTaskComplete", {
+    client.get<CoursePreTaskCompleteResponse>("/course/checkPreTaskComplete", {
       query: { id: courseCatalogId },
     }),
 
   listStudyProcesses: (payload: CourseStudyProcessListRequest) =>
-    client.post<CourseStudyProcessResponse>(
+    client.post<CourseStudyProcessListResponse>(
       "/course/courseStudyProcessList",
       payload
     ),
@@ -121,7 +125,7 @@ export const createCourseApi = (client: ApiHttpClient) => ({
     client.post<CourseIntegralResponse>("/course/calcLiveStudyTime", payload),
 
   listHotCourses: ({ limit }: { limit: number }) =>
-    client.get<CourseListResponse>("/index/listHotCourse", {
+    client.get<CourseHotListResponse>("/index/listHotCourse", {
       query: { limit },
     }),
 });

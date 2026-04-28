@@ -25,6 +25,7 @@ const OnlineExamWorkspace = ({ session }: { session: ExamOnlineSession }) => {
       <OnlineExamSummary
         session={session}
         questionTotal={onlineExam.questions.length}
+        remainingSeconds={onlineExam.remainingSeconds}
       />
 
       {onlineExam.submitStatus === "submitted" ? (

@@ -4,7 +4,9 @@ import {
   buildBlankAnswerDraft,
   buildOptionAnswerDraft,
   buildSubjectiveAnswerDraft,
+  getRemainingScreenSwitchTimes,
   replaceOnlineAnswer,
+  shouldRecordScreenSwitch,
 } from "./online.ts";
 import { EXAM_QUESTION_TYPE } from "@workspace/api";
 import type { ExamOnlineAnswerDraft, ExamOnlineQuestion } from "./types.ts";
@@ -121,4 +123,40 @@ test("buildBlankAnswerDraft serializes filled blanks", () => {
     answer?.blankAnswer,
     JSON.stringify([{ tag: "1", content: "A" }])
   );
+});
+
+test("shouldRecordScreenSwitch follows leave switch threshold", () => {
+  assert.equal(
+    shouldRecordScreenSwitch({
+      leaveOn: true,
+      leaveTime: 3,
+      leftAt: 1_000,
+      returnedAt: 4_500,
+    }),
+    true
+  );
+  assert.equal(
+    shouldRecordScreenSwitch({
+      leaveOn: true,
+      leaveTime: 3,
+      leftAt: 1_000,
+      returnedAt: 3_000,
+    }),
+    false
+  );
+  assert.equal(
+    shouldRecordScreenSwitch({
+      leaveOn: false,
+      leaveTime: 0,
+      leftAt: 1_000,
+      returnedAt: 2_000,
+    }),
+    false
+  );
+});
+
+test("getRemainingScreenSwitchTimes mirrors backend leave count rule", () => {
+  assert.equal(getRemainingScreenSwitchTimes(3, 2), 1);
+  assert.equal(getRemainingScreenSwitchTimes(3, 4), -1);
+  assert.equal(getRemainingScreenSwitchTimes(null, 4), null);
 });

@@ -151,3 +151,25 @@ export const getAnswerForQuestion = (
   answers.find(
     (answer) => makeAnswerKey(answer.index) === String(question.index)
   );
+
+export const shouldRecordScreenSwitch = ({
+  leaveOn,
+  leaveTime,
+  leftAt,
+  returnedAt,
+}: {
+  leaveOn: boolean;
+  leaveTime: number | null;
+  leftAt: number | null;
+  returnedAt: number;
+}) =>
+  leaveOn &&
+  leftAt !== null &&
+  leaveTime !== null &&
+  leaveTime >= 0 &&
+  (returnedAt - leftAt) / 1000 > leaveTime;
+
+export const getRemainingScreenSwitchTimes = (
+  totalLeaveTimes: number | null,
+  usedTimes: number
+) => (totalLeaveTimes === null ? null : totalLeaveTimes - usedTimes);

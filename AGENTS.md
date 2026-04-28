@@ -46,6 +46,10 @@ Use these terms instead of loose "component", "service", "API", or "boundary" wh
 
 Prefer deep modules and clear interfaces. Use the deletion test: if deleting a module only moves identical code into callers, the module was not earning its keep.
 
+For small helpers, apply the same rule. Avoid single-use `toXxx`, `normalizeXxx`, or `buildXxx` helpers that only move fields around. Keep helpers when they protect invariants, hide protocol handling, validate data, parse formats, handle recursion, encode shared rules, or provide meaningful API adaptation. Use role-based names: `formatXxx` for display formatting, `resolveXxx` for decisions, `buildXxx` for derived objects, and `toXxx` only for real adapter conversion between protocol shapes.
+
+The interface is the test surface. Tests should exercise the same module interface callers use, not private helpers extracted only for testability.
+
 ## Hard Architecture Rules
 
 ### Server State and Client State
@@ -65,6 +69,9 @@ Prefer deep modules and clear interfaces. Use the deletion test: if deleting a m
 - Existing app-local domain modules, such as `apps/web/src/core/exams`, may remain while a domain is Web-only.
 - When Web and Mobile both need the same domain behavior, move reusable endpoint access, types, and normalization toward `packages/api` and `packages/shared`.
 - Do not duplicate common `toXxx`, `normalizeXxx`, `parseXxx`, filtering, or pagination helpers across page modules.
+- Endpoint types should reflect the backend contract. Do not add frontend-only aliases or convenience fields to shared API types unless the backend response, old client usage, or documentation proves they exist.
+- Do not flatten endpoint detail data into a second frontend shape just to rename or re-expose the same fields. Keep raw endpoint detail available and add derived fields only for real frontend behavior.
+- Keep endpoint adapters and normalization when they hide protocol details such as envelopes, pagination variants, backend code validation, serialization formats, or cross-page reuse. Do not delete adapters just because there is currently one caller.
 
 ### Endpoint Package Rules
 

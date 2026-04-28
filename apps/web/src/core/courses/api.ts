@@ -1,171 +1,51 @@
 import { api, unwrapEnvelope } from "@workspace/api";
+import type {
+  CourseCategoryDetail,
+  CourseLatestStudyTaskResponse,
+  CourseListResponse,
+  CourseStudyDetailResponse,
+  CourseStudyProcessResponse,
+} from "@workspace/api";
 import {
   COURSE_CATEGORY_PLACEHOLDER,
   COURSE_STUDY_CONFIG_ERROR,
   COURSE_TYPE_STUDENT,
 } from "./config";
-import type {
-  CourseCategoryOption,
-  CourseFiltersState,
-  CourseListItem,
-  CourseListResult,
-  CourseStudyErrorType,
-  CourseStudyResult,
-} from "./types";
-import {
-  toNumberOrNull,
-  toRecord,
-  toRecordOrEmpty,
-  toText,
-} from "@/lib/normalize";
-
-interface ListPayloadShape {
-  records?: unknown[];
-  list?: unknown[];
-  rows?: unknown[];
-  total?: number;
-}
-
-const formatPrice = (value: unknown) => {
-  const amount = toNumberOrNull(value);
-  if (amount === null) {
-    return "价格待更新";
-  }
-
-  if (amount <= 0) {
-    return "免费学习";
-  }
-
-  return `¥${amount.toFixed(amount % 1 === 0 ? 0 : 2)}`;
-};
-
-const formatProgress = (value: unknown) => {
-  const progress = toNumberOrNull(value);
-  if (progress === null) {
-    return "进度待同步";
-  }
-
-  const normalized = Math.min(100, Math.max(0, Math.round(progress)));
-  return `已学 ${normalized}%`;
-};
-
-const formatLessonCount = (value: unknown) => {
-  const count = toNumberOrNull(value);
-  return count && count > 0 ? `${count} 节内容` : "课时待补充";
-};
-
-const formatStatus = (record: Record<string, unknown>) => {
-  const numericProgress = toNumberOrNull(record.studyProcess);
-  return (
-    toText(record.studyStatusName) ||
-    toText(record.statusText) ||
-    toText(record.learnStatus) ||
-    (numericProgress && numericProgress > 0 ? "学习中" : "可开始")
-  );
-};
-
-const toCourseListItem = (value: unknown, index: number): CourseListItem => {
-  const record = toRecordOrEmpty(value);
-  const id =
-    record.id ??
-    record.courseId ??
-    record.goodsId ??
-    record.productId ??
-    `course-${index + 1}`;
-
-  const title =
-    toText(record.courseName) ||
-    toText(record.title) ||
-    toText(record.goodsName) ||
-    `课程 ${index + 1}`;
-
-  const teacherName =
-    toText(record.teacherName) ||
-    toText(record.lecturerName) ||
-    toText(record.authorName) ||
-    "讲师待补充";
-
-  const categoryName =
-    toText(record.categoryName) ||
-    toText(record.categoryTitle) ||
-    toText(record.courseCategoryName) ||
-    "未分类";
-
-  return {
-    id: String(id),
-    title,
-    teacherName,
-    categoryName,
-    priceLabel: formatPrice(record.price ?? record.salePrice ?? record.amount),
-    statusLabel: formatStatus(record),
-    progressLabel: formatProgress(
-      record.studyProcess ?? record.progress ?? record.schedule
-    ),
-    lessonCountLabel: formatLessonCount(
-      record.lessonNum ?? record.classHour ?? record.periods
-    ),
-    coverLabel: title.slice(0, 2).toUpperCase(),
-  };
-};
-
-const toListArray = (payload: unknown) => {
-  const record = toRecordOrEmpty(payload) as ListPayloadShape;
-
-  if (Array.isArray(record.records)) {
-    return record.records;
-  }
-
-  if (Array.isArray(record.list)) {
-    return record.list;
-  }
-
-  if (Array.isArray(record.rows)) {
-    return record.rows;
-  }
-
-  return [];
-};
-
-const toListTotal = (payload: unknown, fallback: number) => {
-  const record = toRecordOrEmpty(payload) as ListPayloadShape;
-  return typeof record.total === "number" && Number.isFinite(record.total)
-    ? record.total
-    : fallback;
-};
+import type { CourseFiltersState } from "./types";
 
 const buildCategoryOptions = (
-  items: CourseListItem[],
+  courses: CourseListResponse["records"],
   selectedCategoryId: string
-): CourseCategoryOption[] => {
+): CourseCategoryDetail[] => {
   const seen = new Set<string>();
-  const dynamic = items
-    .map((item) => item.categoryName)
-    .filter((label) => {
-      if (!label || seen.has(label)) {
+  const dynamic = courses
+    .map((course) => course.categoryName?.trim())
+    .filter((name): name is string => {
+      if (!name || seen.has(name)) {
         return false;
       }
 
-      seen.add(label);
+      seen.add(name);
       return true;
     })
-    .map((label): CourseCategoryOption => ({ value: label, label }));
+    .map((name): CourseCategoryDetail => ({ id: name, name }));
 
-  const options: CourseCategoryOption[] = [
-    { value: "", label: "全部分类" },
+  const options: CourseCategoryDetail[] = [
+    { id: "", name: "全部分类" },
     ...dynamic,
   ];
 
   if (
     selectedCategoryId &&
-    !options.some((item) => item.value === selectedCategoryId)
+    !options.some((item) => item.id === selectedCategoryId)
   ) {
-    options.push({ value: selectedCategoryId, label: selectedCategoryId });
+    options.push({ id: selectedCategoryId, name: selectedCategoryId });
   }
 
   if (options.length === 1) {
     options.push({
-      value: COURSE_CATEGORY_PLACEHOLDER,
-      label: "分类待接口补充",
+      id: COURSE_CATEGORY_PLACEHOLDER,
+      name: "分类待接口补充",
     });
   }
 
@@ -180,9 +60,7 @@ export const normalizeCourseError = (error: unknown) => {
   return "课程接口暂不可用，请确认已登录且 NEXT_PUBLIC_API_BASE_URL 已配置。";
 };
 
-export const fetchCourseList = async (
-  filters: CourseFiltersState
-): Promise<CourseListResult> => {
+export const fetchCourseList = async (filters: CourseFiltersState) => {
   const response = await api.course.listCourses({
     pageNo: filters.pageNo,
     pageSize: filters.pageSize,
@@ -193,14 +71,13 @@ export const fetchCourseList = async (
     courseType: COURSE_TYPE_STUDENT,
   });
 
-  const payload = unwrapEnvelope(response);
-  const records = toListArray(payload);
-  const items = records.map(toCourseListItem);
+  const payload = unwrapEnvelope(response) as CourseListResponse | null;
+  const records = payload?.records ?? [];
 
   return {
-    items,
-    total: toListTotal(payload, items.length),
-    categories: buildCategoryOptions(items, filters.categoryId),
+    records,
+    total: payload?.total ?? records.length,
+    categories: buildCategoryOptions(records, filters.categoryId),
   };
 };
 
@@ -226,6 +103,11 @@ const isUnauthorizedError = (error: unknown) => {
   );
 };
 
+type CourseStudyErrorType =
+  | "config_missing"
+  | "unauthorized"
+  | "request_failed"
+  | null;
 type StudyFailureType = Exclude<CourseStudyErrorType, "config_missing" | null>;
 
 interface StudyRequestOutcome<T> {
@@ -274,9 +156,7 @@ const combineStudyErrorType = (
   return null;
 };
 
-export const fetchCourseStudy = async (
-  courseId: string | number
-): Promise<CourseStudyResult> => {
+export const fetchCourseStudy = async (courseId: string | number) => {
   if (!getBaseUrl()) {
     return {
       detail: null,
@@ -288,13 +168,13 @@ export const fetchCourseStudy = async (
   }
 
   const [detailResult, processResult, latestTaskResult] = await Promise.all([
-    safeStudyRequest("课程学习详情", () =>
+    safeStudyRequest<CourseStudyDetailResponse>("课程学习详情", () =>
       api.course.getCourseStudyDetail({ courseId })
     ),
-    safeStudyRequest("学习进度", () =>
+    safeStudyRequest<CourseStudyProcessResponse>("学习进度", () =>
       api.course.getCourseStudyProcess({ courseId })
     ),
-    safeStudyRequest("最近学习任务", () =>
+    safeStudyRequest<CourseLatestStudyTaskResponse>("最近学习任务", () =>
       api.course.getLatestStudyTask({ courseId })
     ),
   ]);
@@ -306,9 +186,9 @@ export const fetchCourseStudy = async (
   ].filter((value): value is string => Boolean(value));
 
   return {
-    detail: toRecord(detailResult.data),
-    process: toRecord(processResult.data),
-    latestTask: toRecord(latestTaskResult.data),
+    detail: detailResult.data,
+    process: processResult.data,
+    latestTask: latestTaskResult.data,
     error: errors.length > 0 ? errors.join("；") : null,
     errorType: combineStudyErrorType([
       detailResult,

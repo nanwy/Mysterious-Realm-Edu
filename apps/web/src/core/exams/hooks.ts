@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { INVIGILATE_CHEAT_TYPE } from "@workspace/api";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useCacheExamAnswerMutation,
+  useCountScreenSwitchMutation,
+  useReportScreenSwitchMutation,
   useSubmitExamMutation,
 } from "./mutations";
 import {
@@ -10,8 +13,10 @@ import {
   buildOptionAnswerDraft,
   buildSubjectiveAnswerDraft,
   getAnswerForQuestion,
+  getRemainingScreenSwitchTimes,
   isQuestionAnswered,
   replaceOnlineAnswer,
+  shouldRecordScreenSwitch,
 } from "./online";
 import { useExamStore } from "./store";
 import type { ExamOnlineSession } from "./types";
@@ -21,6 +26,17 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
     useCacheExamAnswerMutation();
   const { mutate: submitMutate, isPending: submitPending } =
     useSubmitExamMutation();
+  const { mutate: reportScreenSwitchMutate } = useReportScreenSwitchMutation();
+  const { mutate: countScreenSwitchMutate } = useCountScreenSwitchMutation();
+  const [screenSwitchTimes, setScreenSwitchTimes] = useState(0);
+  const [screenSwitchMessage, setScreenSwitchMessage] = useState<string | null>(
+    null
+  );
+  const [remainingSeconds, setRemainingSeconds] = useState(
+    session.remainSeconds
+  );
+  const isScreenAwayRef = useRef(false);
+  const screenLeftAtRef = useRef<number | null>(null);
 
   const currentIndex = useExamStore((state) => state.onlineCurrentIndex);
   const answers = useExamStore((state) => state.onlineAnswers);
@@ -97,6 +113,9 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
     ? Math.round((answeredCount / totalQuestions) * 100)
     : 0;
   const unansweredCount = Math.max(0, totalQuestions - answeredCount);
+  const leaveOn = session.detail?.leaveOn ?? false;
+  const leaveTime = session.detail?.leaveTime ?? null;
+  const totalLeaveTimes = session.detail?.totalLeaveTimes ?? null;
 
   const persistAnswers = useCallback(() => {
     if (session.submitted) {
@@ -222,6 +241,170 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
     setOnlineSubmitStatus,
     submitMutate,
   ]);
+
+  useEffect(() => {
+    setRemainingSeconds(session.remainSeconds);
+  }, [session.remainSeconds, session.userExamId]);
+
+  useEffect(() => {
+    if (session.submitted || remainingSeconds === null) {
+      return;
+    }
+
+    if (remainingSeconds <= 0) {
+      submitExam();
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setRemainingSeconds((current) =>
+        current === null ? null : Math.max(0, current - 1)
+      );
+    }, 1000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [remainingSeconds, session.submitted, submitExam]);
+
+  useEffect(() => {
+    if (session.submitted) {
+      return;
+    }
+
+    const handleBeforeUnload = () => {
+      persistAnswers();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [persistAnswers, session.submitted]);
+
+  useEffect(() => {
+    setScreenSwitchTimes(0);
+    setScreenSwitchMessage(null);
+    isScreenAwayRef.current = false;
+    screenLeftAtRef.current = null;
+
+    if (!leaveOn || session.submitted) {
+      return;
+    }
+
+    countScreenSwitchMutate(
+      {
+        userExamId: session.userExamId,
+        cheatType: INVIGILATE_CHEAT_TYPE.SCREEN_SWITCH,
+      },
+      {
+        onSuccess: (result) => {
+          setScreenSwitchTimes(result?.cheatNum ?? 0);
+        },
+      }
+    );
+  }, [
+    countScreenSwitchMutate,
+    leaveOn,
+    session.submitted,
+    session.userExamId,
+  ]);
+
+  useEffect(() => {
+    if (!leaveOn || session.submitted) {
+      return;
+    }
+
+    const markAway = () => {
+      if (isScreenAwayRef.current) {
+        return;
+      }
+      isScreenAwayRef.current = true;
+      screenLeftAtRef.current = Date.now();
+    };
+
+    const markReturned = () => {
+      if (
+        !shouldRecordScreenSwitch({
+          leaveOn,
+          leaveTime,
+          leftAt: screenLeftAtRef.current,
+          returnedAt: Date.now(),
+        })
+      ) {
+        isScreenAwayRef.current = false;
+        screenLeftAtRef.current = null;
+        return;
+      }
+
+      isScreenAwayRef.current = false;
+      screenLeftAtRef.current = null;
+      reportScreenSwitchMutate({
+        examId: session.examId,
+        userExamId: session.userExamId,
+        cheatType: INVIGILATE_CHEAT_TYPE.SCREEN_SWITCH,
+      });
+
+      setScreenSwitchTimes((current) => {
+        const next = current + 1;
+        const remaining = getRemainingScreenSwitchTimes(
+          totalLeaveTimes,
+          next
+        );
+
+        if (remaining !== null && remaining < 0) {
+          setScreenSwitchMessage("已达到最大切屏次数，系统正在自动提交试卷。");
+          window.setTimeout(() => {
+            submitExam();
+          }, 3000);
+        } else {
+          setScreenSwitchMessage(
+            remaining === null
+              ? `检测到第 ${next} 次切屏，请保持考试页面在前台。`
+              : `检测到第 ${next} 次切屏，还可切换 ${remaining} 次，超过 ${totalLeaveTimes} 次将自动交卷。`
+          );
+        }
+
+        return next;
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        markAway();
+        return;
+      }
+      markReturned();
+    };
+
+    const handleResize = () => {
+      const screenWidth = window.screen.width;
+      const windowWidth = window.innerWidth;
+      if (screenWidth - windowWidth > 100) {
+        markAway();
+        return;
+      }
+      markReturned();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [
+    reportScreenSwitchMutate,
+    session.examId,
+    leaveOn,
+    leaveTime,
+    session.submitted,
+    totalLeaveTimes,
+    session.userExamId,
+    submitExam,
+  ]);
   const resolvedSubmitStatus = session.submitted ? "submitted" : submitStatus;
 
   return {
@@ -238,6 +421,9 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
     submitStatus: resolvedSubmitStatus,
     cachePending,
     submitPending,
+    remainingSeconds,
+    screenSwitchTimes,
+    screenSwitchMessage,
     selectQuestion,
     previousQuestion,
     nextQuestion,

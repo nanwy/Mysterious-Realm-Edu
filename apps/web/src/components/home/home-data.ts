@@ -1,36 +1,39 @@
 import { api, unwrapEnvelope } from "@workspace/api";
+import type { CourseDetailResponse } from "@workspace/api";
 import { cache } from "react";
 import type { HomePayload } from "./home-types";
 
-type ApiEnvelope = {
+type ApiEnvelope<T = unknown> = {
   code: number;
   message: string;
-  result?: unknown;
-  data?: unknown;
+  result?: T;
+  data?: T;
 };
 
-function toArray(value: unknown): Array<Record<string, unknown>> {
-  if (Array.isArray(value)) return value as Array<Record<string, unknown>>;
+function toArray<TRecord = Record<string, unknown>>(value: unknown): TRecord[] {
+  if (Array.isArray(value)) return value as TRecord[];
   if (value && typeof value === "object") {
     const record = value as Record<string, unknown>;
-    if (Array.isArray(record.records)) return record.records as Array<Record<string, unknown>>;
-    if (Array.isArray(record.list)) return record.list as Array<Record<string, unknown>>;
-    if (Array.isArray(record.rows)) return record.rows as Array<Record<string, unknown>>;
-    if (Array.isArray(record.data)) return record.data as Array<Record<string, unknown>>;
+    if (Array.isArray(record.records)) return record.records as TRecord[];
+    if (Array.isArray(record.list)) return record.list as TRecord[];
+    if (Array.isArray(record.rows)) return record.rows as TRecord[];
+    if (Array.isArray(record.data)) return record.data as TRecord[];
   }
   return [];
 }
 
-async function safeArrayRequest(factory: () => Promise<ApiEnvelope>) {
+async function safeArrayRequest<TRecord = Record<string, unknown>>(
+  factory: () => Promise<ApiEnvelope>
+) {
   try {
     const response = await factory();
     return {
-      items: toArray(unwrapEnvelope(response)),
+      items: toArray<TRecord>(unwrapEnvelope(response)),
       error: null as string | null,
     };
   } catch (error) {
     return {
-      items: [] as Array<Record<string, unknown>>,
+      items: [] as TRecord[],
       error: error instanceof Error ? error.message : "接口请求失败",
     };
   }
@@ -150,7 +153,7 @@ export const getHomePageData = cache(async (): Promise<HomePayload> => {
   const announcementPromise = safeArrayRequest(() =>
     api.message.listAnnouncements()
   );
-  const coursePromise = safeArrayRequest(() =>
+  const coursePromise = safeArrayRequest<CourseDetailResponse>(() =>
     api.course.listHotCourses({ limit: 8 })
   );
   const examPromise = safeArrayRequest(() =>

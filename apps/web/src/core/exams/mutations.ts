@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, unwrapEnvelope } from "@workspace/api";
+import { api, type InvigilateCheatRequest, unwrapEnvelope } from "@workspace/api";
 import { examKeys } from "./queries";
 
 export const useCreateExamSessionMutation = () => {
@@ -39,4 +39,16 @@ export const useCacheExamAnswerMutation = () =>
   useMutation({
     mutationFn: async (payload: Record<string, unknown>) =>
       unwrapEnvelope(await api.exam.cacheExamAnswer(payload)),
+  });
+
+export const useReportScreenSwitchMutation = () =>
+  useMutation({
+    mutationFn: async (payload: InvigilateCheatRequest) =>
+      unwrapEnvelope(await api.invigilate.reportCheat(payload)),
+  });
+
+export const useCountScreenSwitchMutation = () =>
+  useMutation({
+    mutationFn: async (payload: InvigilateCheatRequest) =>
+      unwrapEnvelope(await api.invigilate.countCheat(payload)),
   });

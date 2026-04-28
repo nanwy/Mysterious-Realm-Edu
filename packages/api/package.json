@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "extract:java-types": "node scripts/extract-java-types.mjs",
     "test": "tsx --test src/*.test.mts src/**/*.test.mts",
     "typecheck": "tsc --noEmit"
   },
