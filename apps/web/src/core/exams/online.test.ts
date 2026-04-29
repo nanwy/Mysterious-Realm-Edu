@@ -1,5 +1,15 @@
+import { EXAM_QUESTION_TYPE } from "@workspace/api";
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import {
+  buildInvigilateWebSocketBaseUrl,
+  buildInvigilateWebSocketUrl,
+  getExamWatermarkContent,
+  getInvigilateSnapIntervalMs,
+  normalizeInvigilateAnswer,
+  parseInvigilatePeerList,
+  parseInvigilateSocketMessage,
+} from "./invigilate.ts";
 import {
   buildBlankAnswerDraft,
   buildOptionAnswerDraft,
@@ -8,7 +18,6 @@ import {
   replaceOnlineAnswer,
   shouldRecordScreenSwitch,
 } from "./online.ts";
-import { EXAM_QUESTION_TYPE } from "@workspace/api";
 import type { ExamOnlineAnswerDraft, ExamOnlineQuestion } from "./types.ts";
 
 const question: ExamOnlineQuestion = {
@@ -159,4 +168,63 @@ test("getRemainingScreenSwitchTimes mirrors backend leave count rule", () => {
   assert.equal(getRemainingScreenSwitchTimes(3, 2), 1);
   assert.equal(getRemainingScreenSwitchTimes(3, 4), -1);
   assert.equal(getRemainingScreenSwitchTimes(null, 4), null);
+});
+
+test("getExamWatermarkContent mirrors Vue realname plus username rule", () => {
+  assert.equal(
+    getExamWatermarkContent({
+      enabled: true,
+      profile: { id: "u-1", realname: "张三", username: "student01" },
+    }),
+    "张三student01"
+  );
+  assert.equal(
+    getExamWatermarkContent({
+      enabled: false,
+      profile: { id: "u-1", realname: "张三", username: "student01" },
+    }),
+    ""
+  );
+});
+
+test("getInvigilateSnapIntervalMs defaults to one minute and clamps invalid values", () => {
+  assert.equal(getInvigilateSnapIntervalMs(2), 120_000);
+  assert.equal(getInvigilateSnapIntervalMs(0), 60_000);
+  assert.equal(getInvigilateSnapIntervalMs("bad"), 60_000);
+});
+
+test("parseInvigilateSocketMessage ignores heartbeat and parses JSON messages", () => {
+  assert.equal(parseInvigilateSocketMessage("ping"), null);
+  assert.deepEqual(parseInvigilateSocketMessage('{"msgType":"forceSubmitExam"}'), {
+    msgType: "forceSubmitExam",
+  });
+});
+
+test("parseInvigilatePeerList splits monitor ids", () => {
+  assert.deepEqual(parseInvigilatePeerList("a,b, c ,"), ["a", "b", "c"]);
+  assert.deepEqual(parseInvigilatePeerList({ id: "a" }), []);
+});
+
+test("normalizeInvigilateAnswer keeps the old SDP newline compatibility fix", () => {
+  assert.deepEqual(normalizeInvigilateAnswer({ type: "answer", sdp: "abc" }), {
+    type: "answer",
+    sdp: "abc\n",
+  });
+});
+
+test("buildInvigilateWebSocketUrl derives the websocket endpoint from API base", () => {
+  const baseUrl = buildInvigilateWebSocketBaseUrl(
+    undefined,
+    "https://example.test/api/v1"
+  );
+
+  assert.equal(baseUrl, "wss://example.test");
+  assert.equal(
+    buildInvigilateWebSocketUrl({
+      baseUrl,
+      userId: "user-1",
+      token: "abc.def",
+    }),
+    "wss://example.test/websocket/user-1_abcdef_1"
+  );
 });

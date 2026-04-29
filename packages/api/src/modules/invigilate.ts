@@ -2,23 +2,25 @@ import { createApiClient, type ApiHttpClient } from "../client";
 import type {
   InvigilateCheatCountResponse,
   InvigilateCheatRequest,
+  InvigilateMutationResponse,
+  InvigilateWebrtcRequest,
 } from "../types";
 
 export const createInvigilateApi = (client: ApiHttpClient) => ({
-  userJoin: (payload: Record<string, unknown>) =>
-    client.post<unknown>("/invigilate/userJoin", payload),
+  userJoin: (payload: InvigilateWebrtcRequest) =>
+    client.post<InvigilateMutationResponse>("/invigilate/userJoin", payload),
 
-  handleOffer: (payload: Record<string, unknown>) =>
-    client.post<unknown>("/invigilate/handleOffer", payload),
+  handleOffer: (payload: InvigilateWebrtcRequest) =>
+    client.post<InvigilateMutationResponse>("/invigilate/handleOffer", payload),
 
-  handleAnswer: (payload: Record<string, unknown>) =>
-    client.post<unknown>("/invigilate/handleAnswer", payload),
+  handleAnswer: (payload: InvigilateWebrtcRequest) =>
+    client.post<InvigilateMutationResponse>("/invigilate/handleAnswer", payload),
 
-  handleCandidate: (payload: Record<string, unknown>) =>
-    client.post<unknown>("/invigilate/candidate", payload),
+  handleCandidate: (payload: InvigilateWebrtcRequest) =>
+    client.post<InvigilateMutationResponse>("/invigilate/candidate", payload),
 
-  handleUserLeave: (payload: Record<string, unknown>) =>
-    client.post<unknown>("/invigilate/userLeave", payload),
+  handleUserLeave: (payload: InvigilateWebrtcRequest) =>
+    client.post<InvigilateMutationResponse>("/invigilate/userLeave", payload),
 
   reportCheat: (payload: InvigilateCheatRequest) =>
     client.post<null>("/invigilate/reportCheat", payload),
@@ -32,23 +34,23 @@ export const createInvigilateApi = (client: ApiHttpClient) => ({
 
 const defaultInvigilateApi = createInvigilateApi(createApiClient());
 
-export function userJoinInvigilate(payload: Record<string, unknown>) {
+export function userJoinInvigilate(payload: InvigilateWebrtcRequest) {
   return defaultInvigilateApi.userJoin(payload);
 }
 
-export function handleOffer(payload: Record<string, unknown>) {
+export function handleOffer(payload: InvigilateWebrtcRequest) {
   return defaultInvigilateApi.handleOffer(payload);
 }
 
-export function handleAnswer(payload: Record<string, unknown>) {
+export function handleAnswer(payload: InvigilateWebrtcRequest) {
   return defaultInvigilateApi.handleAnswer(payload);
 }
 
-export function handleCandidate(payload: Record<string, unknown>) {
+export function handleCandidate(payload: InvigilateWebrtcRequest) {
   return defaultInvigilateApi.handleCandidate(payload);
 }
 
-export function handleUserLeave(payload: Record<string, unknown>) {
+export function handleUserLeave(payload: InvigilateWebrtcRequest) {
   return defaultInvigilateApi.handleUserLeave(payload);
 }
 

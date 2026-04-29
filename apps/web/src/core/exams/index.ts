@@ -1,6 +1,7 @@
 export * from "./api";
 export * from "./config";
 export * from "./hooks";
+export * from "./invigilate";
 export * from "./mutations";
 export * from "./online";
 export * from "./queries";

@@ -1,5 +1,6 @@
 "use client";
 
+import type { UserCertificateDetail } from "@workspace/api";
 import { MotionReveal } from "@workspace/motion";
 import {
   Alert,
@@ -22,7 +23,10 @@ import {
   FileBadge2,
   RefreshCcw,
 } from "lucide-react";
-import type { CertificateRecord } from "@/core/certificates";
+import {
+  resolveCertificateDownloadUrl,
+  resolveCertificatePreviewUrl,
+} from "@/lib/media";
 
 const openInNewTab = (url: string) => {
   if (typeof window === "undefined") {
@@ -53,7 +57,11 @@ const CertificatesLoadingState = () => {
   );
 };
 
-const CertificateTable = ({ records }: { records: CertificateRecord[] }) => {
+const CertificateTable = ({
+  records,
+}: {
+  records: UserCertificateDetail[];
+}) => {
   return (
     <MotionReveal direction="up">
       <div
@@ -73,54 +81,82 @@ const CertificateTable = ({ records }: { records: CertificateRecord[] }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {records.map((record) => (
-              <TableRow key={record.id}>
-                <TableCell>{record.userName}</TableCell>
-                <TableCell>{record.certificateName}</TableCell>
-                <TableCell>{record.certificateTypeLabel}</TableCell>
-                <TableCell>{record.examName}</TableCell>
-                <TableCell>{record.courseName}</TableCell>
-                <TableCell>{record.issueTime}</TableCell>
-                <TableCell>
-                  <div className="grid gap-2 py-1">
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={!record.previewUrl}
-                        onClick={() => {
-                          if (record.previewUrl) {
-                            openInNewTab(record.previewUrl);
-                          }
-                        }}
-                      >
-                        <Eye className="size-4" />
-                        预览证书
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={!record.downloadUrl}
-                        onClick={() => {
-                          if (record.downloadUrl) {
-                            openInNewTab(record.downloadUrl);
-                          }
-                        }}
-                      >
-                        <Download className="size-4" />
-                        下载证书
-                      </Button>
+            {records.map((record, index) => {
+              const certificatePath = record.certificatePath;
+              const previewResolution =
+                resolveCertificatePreviewUrl(certificatePath);
+              const downloadResolution =
+                resolveCertificateDownloadUrl(certificatePath);
+              const actionHint =
+                previewResolution.reason ?? downloadResolution.reason ?? null;
+              const id =
+                record.id ??
+                record.certificateId ??
+                record.examId ??
+                `certificate-${index + 1}`;
+
+              return (
+                <TableRow key={id}>
+                  <TableCell>
+                    {(record.userId_dictText ?? record.realname) ||
+                      `学员 ${index + 1}`}
+                  </TableCell>
+                  <TableCell>
+                    {record.certificateId_dictText || `证书 ${index + 1}`}
+                  </TableCell>
+                  <TableCell>
+                    {record.certificateType_dictText || "待补类型"}
+                  </TableCell>
+                  <TableCell>
+                    {record.examId_dictText || "未关联考试"}
+                  </TableCell>
+                  <TableCell>
+                    {record.courseId_dictText || "未关联课程"}
+                  </TableCell>
+                  <TableCell>
+                    {(record.createTime ?? record.updateTime) || "待补发证时间"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="grid gap-2 py-1">
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={!previewResolution.url}
+                          onClick={() => {
+                            if (previewResolution.url) {
+                              openInNewTab(previewResolution.url);
+                            }
+                          }}
+                        >
+                          <Eye className="size-4" />
+                          预览证书
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={!downloadResolution.url}
+                          onClick={() => {
+                            if (downloadResolution.url) {
+                              openInNewTab(downloadResolution.url);
+                            }
+                          }}
+                        >
+                          <Download className="size-4" />
+                          下载证书
+                        </Button>
+                      </div>
+                      {actionHint ? (
+                        <p className="text-xs leading-6 text-muted-foreground">
+                          {actionHint}
+                        </p>
+                      ) : null}
                     </div>
-                    {record.actionHint ? (
-                      <p className="text-xs leading-6 text-muted-foreground">
-                        {record.actionHint}
-                      </p>
-                    ) : null}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -129,7 +165,7 @@ const CertificateTable = ({ records }: { records: CertificateRecord[] }) => {
 };
 
 interface CertificatesResultsProps {
-  records: CertificateRecord[];
+  records: UserCertificateDetail[];
   loading: boolean;
   error: string | null;
   emptyLabel: string;
@@ -154,7 +190,8 @@ export const CertificatesResults = ({
           <AlertCircle className="size-4" />
           <AlertTitle>证书接口暂不可用</AlertTitle>
           <AlertDescription>
-            当前无法加载{emptyLabel}证书：{error}。请确认已登录且接口环境可访问后重试。
+            当前无法加载{emptyLabel}证书：{error}
+            。请确认已登录且接口环境可访问后重试。
           </AlertDescription>
         </Alert>
         <div>

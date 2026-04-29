@@ -12,7 +12,14 @@ import {
   ScanText,
 } from "lucide-react";
 import Link from "next/link";
-import { newsQueryOptions, normalizeNewsError } from "@/core/news";
+import {
+  buildNewsHtmlContent,
+  formatNewsViewCount,
+  newsQueryOptions,
+  normalizeNewsError,
+  resolveNewsDetailHref,
+} from "@/core/news";
+import { resolveMediaUrl } from "@/lib/media";
 
 const LoadingState = () => (
   <section className="rounded-[32px] border border-border/80 bg-card/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
@@ -129,7 +136,22 @@ export const NewsDetailPage = ({ newsId }: { newsId: string }) => {
     return <EmptyDetailState />;
   }
 
-  const authorFallback = article.authorName.slice(0, 1) || "资";
+  const articleId = article.id || newsId;
+  const authorName = article.createByName || "平台资讯";
+  const authorAvatar = resolveMediaUrl(article.avatar);
+  const authorFallback = authorName.slice(0, 1) || "资";
+  const title = article.title || "未命名资讯";
+  const summary =
+    article.remark || "摘要待补充，详情页迁移后将继续承接完整正文。";
+  const publishTime =
+    article.publishTime ??
+    article.createTime ??
+    article.updateTime ??
+    "发布时间待同步";
+  const count = article.clickNum ?? article.commentNum;
+  const viewCountText =
+    typeof count === "number" && count >= 0 ? `${count} 次浏览` : "热度待同步";
+  const content = buildNewsHtmlContent(article);
 
   return (
     <MotionStagger
@@ -158,10 +180,10 @@ export const NewsDetailPage = ({ newsId }: { newsId: string }) => {
                 <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                   <span className="inline-flex items-center gap-2">
                     <Newspaper className="size-4" />
-                    {article.source}
+                    神秘领域教育
                   </span>
                   <span className="rounded-full border border-border/70 bg-background/75 px-3 py-1 text-[10px] tracking-[0.18em] text-muted-foreground">
-                    资讯 ID {article.id}
+                    资讯 ID {articleId}
                   </span>
                 </div>
 
@@ -170,38 +192,35 @@ export const NewsDetailPage = ({ newsId }: { newsId: string }) => {
                     文章详情
                   </p>
                   <h2 className="max-w-4xl text-[clamp(2.3rem,5vw,4.6rem)] font-semibold leading-[0.95] tracking-[-0.06em] text-foreground">
-                    {article.title}
+                    {title}
                   </h2>
                   <p className="max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
-                    {article.summary}
+                    {summary}
                   </p>
                 </div>
 
                 <div className="flex flex-col gap-4 rounded-[28px] border border-border/70 bg-background/72 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-center gap-3">
                     <Avatar className="size-12 border border-border/70">
-                      {article.authorAvatar ? (
-                        <AvatarImage
-                          src={article.authorAvatar}
-                          alt={article.authorName}
-                        />
+                      {authorAvatar ? (
+                        <AvatarImage src={authorAvatar} alt={authorName} />
                       ) : null}
                       <AvatarFallback>{authorFallback}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-foreground">
-                        {article.authorName}
+                        {authorName}
                       </p>
                       <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <Clock3 className="size-4" />
-                        {article.publishTime}
+                        {publishTime}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
                     <span className="rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm font-medium text-foreground">
-                      浏览 {article.viewCountText}
+                      浏览 {viewCountText}
                     </span>
                     <span className="rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm font-medium text-foreground">
                       正文已接入
@@ -260,7 +279,7 @@ export const NewsDetailPage = ({ newsId }: { newsId: string }) => {
               <article
                 data-testid="news-detail-body"
                 className="prose prose-neutral mt-6 max-w-none text-foreground dark:prose-invert [&_a]:break-all [&_a]:text-primary [&_blockquote]:rounded-r-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-border [&_blockquote]:bg-muted/40 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain [&_li]:marker:text-primary [&_p]:leading-8 [&_pre]:overflow-x-auto [&_pre]:rounded-2xl [&_pre]:bg-slate-950 [&_pre]:p-4 [&_table]:block [&_table]:w-full [&_table]:overflow-x-auto [&_table]:text-sm [&_td]:border [&_td]:border-border [&_td]:p-2 [&_th]:border [&_th]:border-border [&_th]:bg-muted/70 [&_th]:p-2 [&_ul]:pl-6"
-                dangerouslySetInnerHTML={{ __html: article.content }}
+                dangerouslySetInnerHTML={{ __html: content }}
               />
             </section>
           </MotionReveal>
@@ -281,44 +300,59 @@ export const NewsDetailPage = ({ newsId }: { newsId: string }) => {
                 右侧只保留轻量热榜，帮助继续阅读，不制造第二个主舞台。
               </p>
 
-              <div className="mt-5 grid gap-3" data-testid="news-detail-hot-news">
+              <div
+                className="mt-5 grid gap-3"
+                data-testid="news-detail-hot-news"
+              >
                 {hotNews.length ? (
-                  hotNews.map((item, index) => (
-                    <MotionReveal key={item.id} direction="left" delay={index * 0.04}>
-                      <Link
-                        href={`/news/detail/${item.id}`}
-                        className="group flex items-start gap-4 rounded-[24px] border border-border/70 bg-background/72 p-4 transition hover:-translate-y-0.5 hover:border-primary/30 hover:bg-accent/35"
+                  hotNews.map((item, index) => {
+                    const id = item.id || `hot-news-${index + 1}`;
+                    return (
+                      <MotionReveal
+                        key={id}
+                        direction="left"
+                        delay={index * 0.04}
                       >
-                        <div
-                          className={`flex size-10 shrink-0 items-center justify-center rounded-2xl text-sm font-extrabold ${
-                            index === 0
-                              ? "bg-primary text-primary-foreground"
-                              : index < 3
-                                ? "bg-primary/15 text-primary"
-                                : "bg-card text-muted-foreground"
-                          }`}
+                        <Link
+                          href={resolveNewsDetailHref(id)}
+                          className="group flex items-start gap-4 rounded-[24px] border border-border/70 bg-background/72 p-4 transition hover:-translate-y-0.5 hover:border-primary/30 hover:bg-accent/35"
                         >
-                          {index + 1}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            <Flame className="size-3.5 text-primary" />
-                            热榜条目
+                          <div
+                            className={`flex size-10 shrink-0 items-center justify-center rounded-2xl text-sm font-extrabold ${
+                              index === 0
+                                ? "bg-primary text-primary-foreground"
+                                : index < 3
+                                  ? "bg-primary/15 text-primary"
+                                  : "bg-card text-muted-foreground"
+                            }`}
+                          >
+                            {index + 1}
                           </div>
-                          <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-foreground">
-                            {item.title}
-                          </p>
-                          <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                            <span>浏览量 {item.viewCountText}</span>
-                            <span className="inline-flex items-center gap-1 text-foreground transition group-hover:text-primary">
-                              阅读
-                              <MoveUpRight className="size-3.5" />
-                            </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                              <Flame className="size-3.5 text-primary" />
+                              热榜条目
+                            </div>
+                            <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-foreground">
+                              {item.title || `热门资讯 ${index + 1}`}
+                            </p>
+                            <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                              <span>
+                                浏览量
+                                {formatNewsViewCount(
+                                  item.clickNum ?? item.commentNum
+                                )}
+                              </span>
+                              <span className="inline-flex items-center gap-1 text-foreground transition group-hover:text-primary">
+                                阅读
+                                <MoveUpRight className="size-3.5" />
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
-                    </MotionReveal>
-                  ))
+                        </Link>
+                      </MotionReveal>
+                    );
+                  })
                 ) : (
                   <EmptyState
                     title="热点列表暂未返回"
@@ -359,4 +393,3 @@ export const NewsDetailPage = ({ newsId }: { newsId: string }) => {
     </MotionStagger>
   );
 };
-

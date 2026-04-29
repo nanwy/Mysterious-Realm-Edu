@@ -1,10 +1,7 @@
+import type { CertificateListRequest } from "@workspace/api";
 import { StudentShell } from "@workspace/ui";
 import { CertificatesPage } from "@/components/me/certificates/page";
-import {
-  CERTIFICATE_TYPE,
-  CERTIFICATES_PAGE_SIZE,
-  type CertificateTypeFilter,
-} from "@/core/certificates";
+import { CERTIFICATE_TYPE, CERTIFICATES_PAGE_SIZE } from "@/core/certificates";
 
 const toPositivePage = (value: string | string[] | undefined) => {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -14,17 +11,13 @@ const toPositivePage = (value: string | string[] | undefined) => {
 
 const toCertificateType = (
   value: string | string[] | undefined
-): CertificateTypeFilter => {
+): CertificateListRequest["certificateType"] => {
   const raw = Array.isArray(value) ? value[0] : value;
-  if (
-    raw === CERTIFICATE_TYPE.ALL ||
-    raw === CERTIFICATE_TYPE.STUDY ||
-    raw === CERTIFICATE_TYPE.EXAM
-  ) {
+  if (raw === CERTIFICATE_TYPE.STUDY || raw === CERTIFICATE_TYPE.EXAM) {
     return raw;
   }
 
-  return CERTIFICATE_TYPE.ALL;
+  return undefined;
 };
 
 const MeCertificatesRoute = async ({

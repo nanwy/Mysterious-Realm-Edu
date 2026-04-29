@@ -1,16 +1,20 @@
 "use client";
 
+import type { NewsArticle } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Button, EmptyState, Skeleton } from "@workspace/ui";
 import { CircleAlert, RefreshCcw } from "lucide-react";
 import Image from "next/image";
-import type { NewsListItem } from "@/core/news";
+import { resolveNewsDetailHref } from "@/core/news";
 import { resolveMediaUrl } from "@/lib/media";
 
 const LoadingState = () => (
   <div data-state="loading" className="grid gap-4">
     {Array.from({ length: 3 }, (_, index) => (
-      <div key={index} className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm">
+      <div
+        key={index}
+        className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm"
+      >
         <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
           <Skeleton className="h-36 w-full rounded-[24px]" />
           <div className="grid gap-3">
@@ -42,7 +46,9 @@ const ErrorState = ({
           <CircleAlert className="size-5" />
         </div>
         <div className="space-y-2">
-          <p className="text-lg font-semibold text-foreground">资讯列表暂时无法加载</p>
+          <p className="text-lg font-semibold text-foreground">
+            资讯列表暂时无法加载
+          </p>
           <p className="text-sm leading-7 text-muted-foreground">{error}</p>
         </div>
       </div>
@@ -69,7 +75,13 @@ const EmptyStateView = ({ keyword }: { keyword: string }) => (
   </MotionReveal>
 );
 
-const Cover = ({ title, coverImg }: { title: string; coverImg: string | null }) => {
+const Cover = ({
+  title,
+  coverImg,
+}: {
+  title: string;
+  coverImg: string | null;
+}) => {
   const mediaUrl = resolveMediaUrl(coverImg);
 
   if (mediaUrl) {
@@ -88,7 +100,9 @@ const Cover = ({ title, coverImg }: { title: string; coverImg: string | null }) 
   return (
     <div className="flex h-36 items-end rounded-[24px] border border-border bg-muted/70 p-4">
       <div className="rounded-2xl bg-card/95 px-4 py-3 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">News</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          News
+        </p>
         <p className="mt-2 text-sm text-foreground">等待封面资源</p>
       </div>
     </div>
@@ -102,7 +116,7 @@ export const Results = ({
   keyword,
   onRetry,
 }: {
-  items: NewsListItem[];
+  items: NewsArticle[];
   loading: boolean;
   error: string | null;
   keyword: string;
@@ -121,42 +135,68 @@ export const Results = ({
   }
 
   return (
-    <MotionStagger data-testid="news-results-section" className="grid gap-4" delayChildren={0.08}>
-      {items.map((item, index) => (
-        <MotionItem key={item.id}>
-          <article className="overflow-hidden rounded-[28px] border border-border bg-card/95 p-5 shadow-sm">
-            <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
-              <a href={item.href} className="block">
-                <Cover title={item.title} coverImg={item.coverImg} />
-              </a>
-              <div className="grid gap-4">
-                <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground">
-                  <span className="rounded-full border border-border/70 bg-background/80 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-primary">
-                    #{String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span>{item.publishTime}</span>
-                  <span>{item.viewCountLabel}</span>
-                </div>
-                <div className="space-y-3">
-                  <a href={item.href} className="block">
-                    <h3 className="line-clamp-2 text-2xl font-semibold text-foreground">{item.title}</h3>
-                  </a>
-                  <p className="line-clamp-3 text-sm leading-7 text-muted-foreground">{item.summary}</p>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm text-muted-foreground">从列表直接进入详情页，继续阅读完整正文。</p>
-                  <a
-                    href={item.href}
-                    className="inline-flex items-center rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/40"
-                  >
-                    查看详情
-                  </a>
+    <MotionStagger
+      data-testid="news-results-section"
+      className="grid gap-4"
+      delayChildren={0.08}
+    >
+      {items.map((item, index) => {
+        const id = item.id || `news-${index + 1}`;
+        const title = item.title || `资讯 ${index + 1}`;
+        const href = resolveNewsDetailHref(id);
+        const count = item.clickNum ?? item.commentNum;
+        return (
+          <MotionItem key={id}>
+            <article className="overflow-hidden rounded-[28px] border border-border bg-card/95 p-5 shadow-sm">
+              <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
+                <a href={href} className="block">
+                  <Cover title={title} coverImg={item.coverImg ?? null} />
+                </a>
+                <div className="grid gap-4">
+                  <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground">
+                    <span className="rounded-full border border-border/70 bg-background/80 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-primary">
+                      #{String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span>
+                      {item.publishTime ??
+                        item.createTime ??
+                        item.updateTime ??
+                        "发布时间待补充"}
+                    </span>
+                    <span>
+                      {typeof count === "number" && count >= 0
+                        ? `${count} 次浏览`
+                        : "热度待同步"}
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    <a href={href} className="block">
+                      <h3 className="line-clamp-2 text-2xl font-semibold text-foreground">
+                        {title}
+                      </h3>
+                    </a>
+                    <p className="line-clamp-3 text-sm leading-7 text-muted-foreground">
+                      {item.remark ||
+                        "摘要待补充，详情页迁移后将继续承接完整正文。"}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-sm text-muted-foreground">
+                      从列表直接进入详情页，继续阅读完整正文。
+                    </p>
+                    <a
+                      href={href}
+                      className="inline-flex items-center rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/40"
+                    >
+                      查看详情
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
-          </article>
-        </MotionItem>
-      ))}
+            </article>
+          </MotionItem>
+        );
+      })}
     </MotionStagger>
   );
 };
