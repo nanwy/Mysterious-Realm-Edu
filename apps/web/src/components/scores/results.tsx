@@ -2,12 +2,18 @@
 
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Button, EmptyState } from "@workspace/ui";
+import { EXAM_PASSED_STATE, type ExamResultListItem } from "@workspace/api";
 import { ArrowUpRight, CircleAlert, Clock, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { ScoreRecord } from "@/core/scores";
 
-const renderStatusNode = (passed: boolean | null) => {
-  if (passed === true) {
+const isPassed = (passed: ExamResultListItem["passed"]) =>
+  passed === EXAM_PASSED_STATE.PASSED;
+
+const isFailed = (passed: ExamResultListItem["passed"]) =>
+  passed === EXAM_PASSED_STATE.NOT_PASSED;
+
+const renderStatusNode = (passed: ExamResultListItem["passed"]) => {
+  if (isPassed(passed)) {
     return (
       <div className="flex items-center gap-3">
         <div className="h-2 w-2 rounded-full bg-primary" />
@@ -18,7 +24,7 @@ const renderStatusNode = (passed: boolean | null) => {
     );
   }
 
-  if (passed === false) {
+  if (isFailed(passed)) {
     return (
       <div className="flex items-center gap-3">
         <div className="h-2 w-2 animate-pulse rounded-full bg-destructive" />
@@ -53,7 +59,7 @@ export const ScoresResults = ({
   error,
   onRetry,
 }: {
-  records: ScoreRecord[];
+  records: ExamResultListItem[];
   loading: boolean;
   error: string | null;
   onRetry: () => void;
@@ -98,12 +104,17 @@ export const ScoresResults = ({
   return (
     <div className="relative z-10 flex flex-col border-y border-border/40 bg-background">
       <MotionStagger className="divide-y divide-border/10" delayChildren={0.03}>
-        {records.map((record) => {
+        {records.map((record, index) => {
+          const id = record.id ?? record.examId ?? `score-record-${index + 1}`;
+          const examTitle = record.examTitle?.trim() || `考试 ${index + 1}`;
+          const maxScore = record.maxScore ?? 0;
+          const passed = isPassed(record.passed);
+          const failed = isFailed(record.passed);
           const scorePercent = Math.min(100, record.maxScore ?? 0);
-          const isHighScore = (record.maxScore ?? 0) >= 90;
+          const isHighScore = maxScore >= 90;
 
           return (
-            <MotionItem key={record.id}>
+            <MotionItem key={id}>
               <button
                 type="button"
                 onClick={() => {
@@ -116,9 +127,9 @@ export const ScoresResults = ({
               >
                 <div
                   className={`absolute bottom-1/4 left-0 top-1/4 w-0.5 transition-all group-hover:bottom-0 group-hover:top-0 ${
-                    record.passed
+                    passed
                       ? "bg-primary"
-                      : record.passed === false
+                      : failed
                         ? "bg-destructive"
                         : "bg-muted-foreground/20"
                   }`}
@@ -127,19 +138,20 @@ export const ScoresResults = ({
                 <div className="flex-1 space-y-6">
                   <div className="flex items-center gap-6">
                     <span className="bg-muted/20 px-2 py-0.5 font-mono text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">
-                      编号_{record.id.slice(-4).toUpperCase()}
+                      编号_{id.slice(-4).toUpperCase()}
                     </span>
                     {renderStatusNode(record.passed)}
                   </div>
 
                   <h3 className="pr-12 text-2xl font-bold leading-tight tracking-tighter transition-colors group-hover:text-primary lg:text-4xl">
-                    {record.examTitle}
+                    {examTitle}
                   </h3>
 
                   <div className="flex flex-wrap items-center gap-10 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30">
                     <div className="flex items-center gap-2">
                       <Clock className="h-3.5 w-3.5" />
-                      最近考期: {record.recentExamTime || "无记录"}
+                      最近考期:{" "}
+                      {record.updateTime ?? record.createTime ?? "无记录"}
                     </div>
                     <div className="flex items-center gap-2">
                       <Zap className="h-3.5 w-3.5" />
@@ -157,13 +169,16 @@ export const ScoresResults = ({
                     <div className="relative h-1 w-full bg-muted/10">
                       <div
                         className={`absolute inset-y-0 left-0 z-10 transition-all duration-1000 ease-out ${
-                          record.passed ? "bg-primary" : "bg-destructive/40"
+                          passed ? "bg-primary" : "bg-destructive/40"
                         }`}
                         style={{ width: `${scorePercent}%` }}
                       />
                       <div className="absolute inset-0 flex justify-between px-px opacity-20">
                         {[0, 1, 2, 3, 4].map((item) => (
-                          <div key={item} className="h-full w-px bg-foreground" />
+                          <div
+                            key={item}
+                            className="h-full w-px bg-foreground"
+                          />
                         ))}
                       </div>
                     </div>
@@ -172,7 +187,7 @@ export const ScoresResults = ({
                   <div className="flex min-w-[120px] items-baseline gap-2 text-right">
                     <span
                       className={`font-mono text-6xl font-black leading-none tracking-tighter lg:text-8xl ${
-                        record.passed === false
+                        failed
                           ? "text-destructive"
                           : isHighScore
                             ? "text-primary"
@@ -205,4 +220,3 @@ export const ScoresResults = ({
     </div>
   );
 };
-

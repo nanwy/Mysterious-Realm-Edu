@@ -58,6 +58,7 @@ pnpm --filter @workspace/api extract:java-types -- --domain exam --backend /abso
 - 字段是否真实来自 Java 文件。
 - 注释是否来自 Java 注释、`@Schema`、`@Dict`、`@JsonFormat`。
 - endpoint 实际返回类型是否与 controller 方法一致。
+- endpoint 路径和 HTTP method 必须对照旧前端 API 文件或 Java controller；迁移类型不能顺手改接口行为。
 - `Object` 被脚本生成为 `unknown` 时，是否能从使用点或 Java service 继续收窄。
 - `IPage<T>` 是否应落为 `PageResponse<T>`，不要为了兼容猜测成 `T[] | PageResponse<T>`。
 - 枚举数字或字符串是否有 Java enum、dict、注释支撑。
@@ -117,6 +118,7 @@ packages/api/src/modules/<domain>.ts
 
 - 使用 `createXxxApi(client)` factory。
 - request 和 response 类型从 `packages/api/src/types/<domain>.ts` 引入。
+- endpoint path 和 method 必须保持旧前端已验证的调用方式，除非 Java controller 和任务要求明确证明需要变更。
 - 不在 endpoint module 里 import React、Next、Zustand、Web domain。
 - 不在 page/component 里直接拼 URL 或调用 `fetch`。
 - 不要在 endpoint access 外面再包一层只转发参数和返回值的函数。
@@ -151,11 +153,12 @@ apps/web/src/core/<domain>/
 使用方式：
 
 - endpoint 类型从 `@workspace/api` 引入。
-- Web-only 返回类型留在 `apps/web/src/core/<domain>/types.ts` 或直接用 `ReturnType`。
+- 不再新建 `apps/web/src/core/<domain>/types.ts` 保存接口投影；接口 request/response/detail/list 类型统一来自 `@workspace/api` 的 Java 契约。
 - 组件需要的业务接口类型优先来自 `@workspace/api` 或 `@/core/<domain>`，不要在组件文件顶部手写。
 - 后端 payload 到 UI 卡片字段的转换放进 `view-model.ts`，不要放在组件顶部。
-- 删除没有增加语义的 `toXxx`、`normalizeXxx`、`getXxxRecords` 函数。如果函数只是返回 `payload.records`、`payload.total`、或把同名字段复制到同名字段，它不构成模块深度。
-- 命名要表达角色：`formatXxx` 用于展示格式化，`resolveXxx` 用于决策，`buildXxx` 用于派生对象，`toXxx` 只用于真实协议/类型转换。不要用 `toXxx` 包装普通字段读取。
+- 删除没有增加语义的 `toXxx`、`normalizeXxx`、`formatXxx`、`getXxxRecords` 函数。如果函数只是返回 `payload.records`、`payload.total`、字段兜底、或把字段换名，它不构成模块深度。
+- 组件中禁止使用无意义的 `toText` 或同类 `toXxx` 字段读取函数。后端字段已是 Java 契约时直接读取，用 `??`、`.trim()`、显示用局部表达式即可。
+- 命名要表达角色：`formatXxx` 只用于真实显示格式化，例如日期、时长、金额；`resolveXxx` 用于决策；`buildXxx` 用于派生对象；`toXxx` 只用于真实协议/类型转换，不用于普通字段读取。
 - 保留有价值的转换：枚举语义化、Java `Object` 收窄、时间/布尔值兼容、UI view model、跨接口字段合并、错误消息归一化、资源 URL 解析。
 - 当后端返回已经明确时，不要反复尝试 `records/list/rows/data` 等多种形状。先回到 Java controller/service 确认真实结构。
 - 如果需要兼容后端 bug 或历史异常，必须在代码旁写明来源和退出条件，不能伪装成通用解析模式。
@@ -181,6 +184,7 @@ export const buildCourseCardView = (course: CourseDetailResponse) => ({
 组件层不要：
 
 - 自己定义 API response/request 类型。
+- 从 `apps/web/src/core/<domain>/types.ts` 引用接口投影类型。
 - 从 `packages/api/generated/*.draft.ts` 引入。
 - 为了适配接口写 `Record<string, unknown>`、`any`、大 union。
 - 把列表解析、分页兼容、字段兜底函数写在组件上方。
@@ -234,10 +238,11 @@ pnpm --filter web lint
 2. 对照 Java controller/service/entity/DTO/VO/enum 审核草稿。
 3. 把真实契约写进 `packages/api/src/types/<domain>.ts`。
 4. 更新 `packages/api/src/modules/<domain>.ts` 的 request/response 类型。
-5. 删除组件或 Web domain 里重复的 API 类型。
-6. 删除只转发、只改名、只复制字段的 `toXxx` 和额外返回包装。
-7. 把真正有语义的 UI projection/helper 移到 `apps/web/src/core/<domain>`。
-8. 组件从 `@workspace/api` 或 `@/core/<domain>` 引用类型。
-9. 跑最小验证，并记录失败是否为既有无关问题。
+5. 对照旧前端 API 文件或 Java controller 确认 path/method 没被迁移过程改掉。
+6. 删除组件或 Web domain 里重复的 API 类型，删除对应 `core/<domain>/types.ts`。
+7. 删除只转发、只改名、只复制字段的 `toXxx`、`normalizeXxx`、`formatXxx` 和额外返回包装。
+8. 把真正有语义的 UI projection/helper 移到 `apps/web/src/core/<domain>`。
+9. 组件从 `@workspace/api` 或 `@/core/<domain>` 引用类型。
+10. 跑最小验证，并记录失败是否为既有无关问题。
 
 核心规则：草稿只用来辅助定位 Java 契约；正式类型只落在 `@workspace/api`；组件不猜接口。

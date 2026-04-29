@@ -1,24 +1,12 @@
+import type { ExamListRequest } from "@workspace/api";
 import { StudentShell } from "@workspace/ui";
 import { ScoresPage } from "@/components/scores/page";
-import { SCORE_PASS_STATE, SCORES_PAGE_SIZE } from "@/core/scores";
-
-const toPositivePage = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  const page = Number(raw);
-  return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-};
-
-const toKeyword = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  return typeof raw === "string" ? raw.trim() : "";
-};
-
-const toPassedFilter = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  return raw === SCORE_PASS_STATE.PASSED || raw === SCORE_PASS_STATE.FAILED
-    ? raw
-    : SCORE_PASS_STATE.ALL;
-};
+import {
+  resolveScoreKeywordParam,
+  resolveScorePageParam,
+  resolveScorePassedParam,
+  SCORES_PAGE_SIZE,
+} from "@/core/scores";
 
 const ScoresPageRoute = async ({
   searchParams,
@@ -26,12 +14,12 @@ const ScoresPageRoute = async ({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) => {
   const params = await searchParams;
-  const initialFilters = {
-    examTitle: toKeyword(params.keyword),
-    passed: toPassedFilter(params.passed),
-    pageNo: toPositivePage(params.page),
+  const initialFilters: ExamListRequest = {
+    examTitle: resolveScoreKeywordParam(params.keyword),
+    passed: resolveScorePassedParam(params.passed),
+    pageNo: resolveScorePageParam(params.page),
     pageSize: SCORES_PAGE_SIZE,
-  } as const;
+  };
 
   return (
     <StudentShell>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { ExamListRequest } from "@workspace/api";
 import { Monitor, Settings2, ShieldCheck } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useTransition } from "react";
@@ -8,46 +9,43 @@ import { ScoresFilters } from "./filters";
 import { ScoresResults } from "./results";
 import { ResultsPagination } from "../common/results-pagination";
 import { normalizeScoreError, scoreQueryOptions } from "@/core/scores";
-import {
-  SCORE_PASS_OPTIONS,
-  SCORE_PASS_STATE,
-  SCORES_PAGE_SIZE,
-} from "@/core/scores";
-import type { ScoreFiltersState, ScorePassFilter } from "@/core/scores";
+import { SCORE_PASS_OPTIONS, SCORES_PAGE_SIZE } from "@/core/scores";
 
-const DEFAULT_FILTERS: ScoreFiltersState = {
+const DEFAULT_FILTERS: ExamListRequest = {
   examTitle: "",
-  passed: SCORE_PASS_STATE.ALL,
   pageNo: 1,
   pageSize: SCORES_PAGE_SIZE,
 };
 
-const createQueryString = (filters: ScoreFiltersState) => {
+const createQueryString = (filters: ExamListRequest) => {
   const params = new URLSearchParams();
+  const pageNo = Number(filters.pageNo ?? 1);
+  const examTitle = filters.examTitle?.trim();
 
-  if (filters.pageNo > 1) {
-    params.set("page", String(filters.pageNo));
+  if (Number.isFinite(pageNo) && pageNo > 1) {
+    params.set("page", String(Math.floor(pageNo)));
   }
 
-  if (filters.examTitle.trim()) {
-    params.set("keyword", filters.examTitle.trim());
+  if (examTitle) {
+    params.set("keyword", examTitle);
   }
 
-  if (filters.passed !== SCORE_PASS_STATE.ALL) {
-    params.set("passed", filters.passed);
+  if (filters.passed) {
+    params.set("passed", String(filters.passed));
   }
 
   const query = params.toString();
   return query ? `?${query}` : "";
 };
 
-const getPassedSummary = (value: ScorePassFilter) =>
-  SCORE_PASS_OPTIONS.find((item) => item.value === value)?.label ?? "全部成绩";
+const getPassedSummary = (value: ExamListRequest["passed"]) =>
+  SCORE_PASS_OPTIONS.find((item) => item.value === String(value ?? ""))
+    ?.label ?? "全部成绩";
 
 export const ScoresPage = ({
   initialFilters,
 }: {
-  initialFilters: ScoreFiltersState;
+  initialFilters: ExamListRequest;
 }) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -60,10 +58,13 @@ export const ScoresPage = ({
     : null;
   const isLoading = scoresQuery.isLoading;
   const isBusy = isLoading || isPending;
+  const pageNo = Number(initialFilters.pageNo ?? 1);
+  const currentPageNumber =
+    Number.isFinite(pageNo) && pageNo > 0 ? Math.floor(pageNo) : 1;
   const totalPages = Math.max(1, Math.ceil(total / SCORES_PAGE_SIZE));
-  const currentPage = Math.min(initialFilters.pageNo, totalPages);
+  const currentPage = Math.min(currentPageNumber, totalPages);
 
-  const navigate = (nextFilters: ScoreFiltersState) => {
+  const navigate = (nextFilters: ExamListRequest) => {
     startTransition(() => {
       router.push(`${pathname}${createQueryString(nextFilters)}`, {
         scroll: false,
@@ -72,7 +73,7 @@ export const ScoresPage = ({
   };
 
   useEffect(() => {
-    if (isLoading || error || initialFilters.pageNo <= totalPages) {
+    if (isLoading || error || currentPageNumber <= totalPages) {
       return;
     }
 
@@ -88,6 +89,7 @@ export const ScoresPage = ({
     });
   }, [
     error,
+    currentPageNumber,
     initialFilters,
     isLoading,
     pathname,
@@ -136,7 +138,11 @@ export const ScoresPage = ({
                       }`}
                     />
                     <span className="font-mono text-xs font-bold text-foreground">
-                      {error ? "数据异常" : scoresQuery.isSuccess ? "已更新" : "加载中"}
+                      {error
+                        ? "数据异常"
+                        : scoresQuery.isSuccess
+                          ? "已更新"
+                          : "加载中"}
                     </span>
                   </div>
                 </div>

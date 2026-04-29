@@ -1,5 +1,4 @@
 export * from "./api";
 export * from "./config";
 export * from "./queries";
-export * from "./types";
-
+export * from "./routing";

@@ -1,102 +1,18 @@
-import { createApi, unwrapEnvelope } from "@workspace/api";
 import type {
-  ScoreDetailRecord,
-  ScoreDetailsFiltersState,
-  ScoreDetailsResult,
-  ScoreFiltersState,
-  ScoreListResult,
-  ScoreRecord,
-} from "./types";
-import {
-  toBooleanOrNull,
-  toNumberOrNull,
-  toRecordOrEmpty,
-  toText,
-} from "@/lib/normalize";
+  ExamDetailListResponse,
+  ExamListRequest,
+  ExamResultListResponse,
+} from "@workspace/api";
+import { api, unwrapEnvelope } from "@workspace/api";
 
-interface ListResponse {
-  records?: unknown[];
-  list?: unknown[];
-  rows?: unknown[];
-  total?: number;
-  count?: number;
-  totalCount?: number;
-}
-
-const scoreApi = createApi({
-  getToken: () =>
-    typeof window === "undefined" ? null : window.localStorage.getItem("token"),
-});
-
-const toListPayload = (payload: unknown) => {
-  if (Array.isArray(payload)) {
-    return { records: payload, total: payload.length };
-  }
-
-  const record = toRecordOrEmpty(payload) as ListResponse;
-  const records = Array.isArray(record.records)
-    ? record.records
-    : Array.isArray(record.list)
-      ? record.list
-      : Array.isArray(record.rows)
-        ? record.rows
-        : [];
-  const total =
-    toNumberOrNull(record.total ?? record.count ?? record.totalCount) ??
-    records.length;
-
-  return { records, total };
+const EMPTY_SCORE_LIST: ExamResultListResponse = {
+  records: [],
+  total: 0,
 };
 
-export const normalizeScoreRecord = (
-  item: unknown,
-  index: number
-): ScoreRecord => {
-  const record = toRecordOrEmpty(item);
-  const identifier =
-    record.id ??
-    record.userExamId ??
-    record.examId ??
-    `score-record-${index + 1}`;
-
-  return {
-    id: String(identifier),
-    examId: toText(record.examId ?? record.id),
-    examTitle: toText(
-      record.examTitle ?? record.title ?? record.examName,
-      `考试 ${index + 1}`
-    ),
-    tryCount: toNumberOrNull(record.tryCount ?? record.examCount),
-    maxScore: toNumberOrNull(record.maxScore ?? record.score ?? record.userScore),
-    passed: toBooleanOrNull(record.passed),
-    recentExamTime: toText(
-      record.updateTime ?? record.examTime ?? record.createTime
-    ),
-  };
-};
-
-export const normalizeScoreDetailRecord = (
-  item: unknown,
-  index: number
-): ScoreDetailRecord => {
-  const record = toRecordOrEmpty(item);
-  const identifier =
-    record.id ?? record.userExamId ?? `score-detail-${index + 1}`;
-
-  return {
-    id: String(identifier),
-    examTitle: toText(record.examTitle ?? record.title, `考试记录 ${index + 1}`),
-    createTime: toText(record.createTime ?? record.examTime),
-    commitTime: toText(record.commitTime ?? record.submitTime),
-    userTime: toText(record.userTime ?? record.useTime),
-    userScore: toText(record.userScore ?? record.score),
-    qualifyScore: toText(record.qualifyScore ?? record.passScore),
-    stateLabel: toText(
-      record.state_dictText ?? record.stateText ?? record.state,
-      "待同步"
-    ),
-    passed: toBooleanOrNull(record.passed),
-  };
+const EMPTY_SCORE_DETAILS: ExamDetailListResponse = {
+  records: [],
+  total: 0,
 };
 
 export const normalizeScoreError = (error: unknown) => {
@@ -117,36 +33,28 @@ export const normalizeScoreError = (error: unknown) => {
 };
 
 export const fetchScores = async (
-  filters: ScoreFiltersState
-): Promise<ScoreListResult> => {
-  const response = await scoreApi.exam.getUserExamResultList({
+  filters: ExamListRequest
+): Promise<ExamResultListResponse> => {
+  const response = await api.exam.getUserExamResultList({
     examTitle: filters.examTitle,
     passed: filters.passed,
     pageNo: filters.pageNo,
     pageSize: filters.pageSize,
   });
-  const payload = toListPayload(unwrapEnvelope(response));
 
-  return {
-    records: payload.records.map(normalizeScoreRecord),
-    total: payload.total,
-  };
+  return unwrapEnvelope(response) ?? EMPTY_SCORE_LIST;
 };
 
 export const fetchScoreDetails = async (
   examId: string,
-  filters: ScoreDetailsFiltersState
-): Promise<ScoreDetailsResult> => {
-  const response = await scoreApi.exam.getUserExamDetailList({
+  filters: ExamListRequest
+): Promise<ExamDetailListResponse> => {
+  const response = await api.exam.getUserExamDetailList({
     examId,
     passed: filters.passed,
     pageNo: filters.pageNo,
     pageSize: filters.pageSize,
   });
-  const payload = toListPayload(unwrapEnvelope(response));
 
-  return {
-    records: payload.records.map(normalizeScoreDetailRecord),
-    total: payload.total,
-  };
+  return unwrapEnvelope(response) ?? EMPTY_SCORE_DETAILS;
 };
