@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { PracticeRepositoryListRequest } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,17 +14,18 @@ import {
   PRACTICE_PAGE_SIZE,
   practiceQueryOptions,
 } from "@/core/practice";
-import type { PracticeQueryState } from "@/core/practice";
 
-const createQueryString = (query: PracticeQueryState) => {
+const createQueryString = (query: PracticeRepositoryListRequest) => {
   const params = new URLSearchParams();
+  const pageNo = Number(query.pageNo ?? 1);
+  const title = query.title?.trim();
 
-  if (query.page > 1) {
-    params.set("page", String(query.page));
+  if (Number.isFinite(pageNo) && pageNo > 1) {
+    params.set("page", String(Math.floor(pageNo)));
   }
 
-  if (query.keyword.trim()) {
-    params.set("keyword", query.keyword.trim());
+  if (title) {
+    params.set("keyword", title);
   }
 
   const result = params.toString();
@@ -33,20 +35,20 @@ const createQueryString = (query: PracticeQueryState) => {
 export const PracticePage = ({
   initialQuery,
 }: {
-  initialQuery: PracticeQueryState;
+  initialQuery: PracticeRepositoryListRequest;
 }) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
   const practiceQuery = useQuery(practiceQueryOptions.list(initialQuery));
-  const items = practiceQuery.data?.items ?? [];
+  const items = practiceQuery.data?.records ?? [];
   const total = practiceQuery.data?.total ?? 0;
   const error = practiceQuery.error
     ? normalizePracticeError(practiceQuery.error)
     : null;
   const isBusy = practiceQuery.isLoading || isPending;
 
-  const navigate = (query: PracticeQueryState) => {
+  const navigate = (query: PracticeRepositoryListRequest) => {
     startTransition(() => {
       router.push(`${pathname}${createQueryString(query)}`, {
         scroll: false,
@@ -54,8 +56,13 @@ export const PracticePage = ({
     });
   };
 
+  const pageNo = Number(initialQuery.pageNo ?? 1);
+  const currentTitle = initialQuery.title?.trim() ?? "";
   const totalPages = Math.max(1, Math.ceil(total / PRACTICE_PAGE_SIZE));
-  const currentPage = Math.min(initialQuery.page, totalPages);
+  const currentPage = Math.min(
+    Number.isFinite(pageNo) && pageNo > 0 ? Math.floor(pageNo) : 1,
+    totalPages
+  );
 
   return (
     <div className="grid gap-6">
@@ -83,7 +90,7 @@ export const PracticePage = ({
             >
               {[
                 { label: "分页规模", value: `${PRACTICE_PAGE_SIZE} 条/页` },
-                { label: "当前关键字", value: initialQuery.keyword || "全部题库" },
+                { label: "当前关键字", value: currentTitle || "全部题库" },
                 {
                   label: "结果状态",
                   value: error
@@ -110,12 +117,12 @@ export const PracticePage = ({
       </MotionReveal>
 
       <PracticeFilters
-        key={initialQuery.keyword}
-        defaultKeyword={initialQuery.keyword}
+        key={currentTitle}
+        defaultKeyword={currentTitle}
         pending={isPending}
-        onSubmit={(keyword) => navigate({ page: 1, keyword })}
+        onSubmit={(keyword) => navigate({ pageNo: 1, title: keyword })}
         onReset={() => {
-          navigate({ page: 1, keyword: "" });
+          navigate({ pageNo: 1, title: "" });
         }}
       />
 
@@ -123,7 +130,7 @@ export const PracticePage = ({
         items={items}
         loading={isBusy}
         error={error}
-        keyword={initialQuery.keyword}
+        keyword={currentTitle}
         onRetry={() => {
           void practiceQuery.refetch();
         }}
@@ -135,7 +142,7 @@ export const PracticePage = ({
         total={total}
         pending={isPending}
         itemLabel="条结果"
-        onPageChange={(page) => navigate({ page, keyword: initialQuery.keyword })}
+        onPageChange={(page) => navigate({ pageNo: page, title: currentTitle })}
       />
     </div>
   );

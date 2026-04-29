@@ -1,7 +1,7 @@
 import { StudentShell } from "@workspace/ui";
 import { PracticeModePage } from "@/components/practice/mode/page";
 
-const toRepositoryId = (value: string | string[] | undefined) => {
+const resolveRepositoryId = (value: string | string[] | undefined) => {
   const raw = Array.isArray(value) ? value[0] : value;
   return typeof raw === "string" && raw.trim() ? raw.trim() : "-1";
 };
@@ -12,7 +12,7 @@ const PracticeModePageRoute = async ({
   params: Promise<{ id?: string | string[] }>;
 }) => {
   const routeParams = await params;
-  const repositoryId = toRepositoryId(routeParams.id);
+  const repositoryId = resolveRepositoryId(routeParams.id);
 
   return (
     <StudentShell
