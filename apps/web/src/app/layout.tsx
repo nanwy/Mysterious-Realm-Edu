@@ -1,4 +1,4 @@
-import { ThemeProvider } from "@workspace/ui";
+import { ThemeProvider, Toaster } from "@workspace/ui";
 import type { Metadata } from "next";
 import "./globals.css";
 import "@workspace/ui/globals.css";
@@ -21,6 +21,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AppQueryProvider>{children}</AppQueryProvider>
           <AIChatbot />
+          <Toaster richColors closeButton position="top-center" />
         </ThemeProvider>
       </body>
     </html>

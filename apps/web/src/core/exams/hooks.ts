@@ -234,7 +234,6 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
     );
   }, [
     resetOnline,
-    session.examId,
     session.submitted,
     session.userExamId,
     setOnlineSubmitStatus,

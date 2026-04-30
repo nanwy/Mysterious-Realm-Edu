@@ -1,8 +1,8 @@
+import { EXAM_QUESTION_TYPE } from "@workspace/api";
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
-import { EXAM_QUESTION_TYPE } from "@workspace/api";
-import { useExamStore } from "./store.ts";
 import type { ExamOnlineAnswerDraft } from "./online.ts";
+import { useExamStore } from "./store.ts";
 
 const cachedAnswers: ExamOnlineAnswerDraft[] = [
   {

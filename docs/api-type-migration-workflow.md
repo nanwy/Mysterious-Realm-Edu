@@ -62,6 +62,8 @@ pnpm --filter @workspace/api extract:java-types -- --domain exam --backend /abso
 - `Object` 被脚本生成为 `unknown` 时，是否能从使用点或 Java service 继续收窄。
 - `IPage<T>` 是否应落为 `PageResponse<T>`，不要为了兼容猜测成 `T[] | PageResponse<T>`。
 - 枚举数字或字符串是否有 Java enum、dict、注释支撑。
+- 脚本只覆盖常规目录。若 domain 的真实类型在 `system-biz`、`buss/mall`、`app/api/v1/entity/dto` 或其他共享模块里，必须手工继续追 controller/service/entity，不能因为草稿为空就保留 `unknown`。
+- 同一个 domain 里的不同 endpoint 可以有不同 response 类型。不要为了省事复用宽泛的 `XxxListResponse`；例如 controller 明确返回 `List<Exam>` 时，应落成 `LatestExamListResponse = ExamSummaryResponse[]`，而不是复用可能包含分页或 payload wrapper 的列表 union。
 
 常用核查命令：
 
@@ -85,9 +87,10 @@ packages/api/src/types/<domain>.ts
 - Java enum 和字典码要语义化成 `enum` 或 named constant，不要让组件散落 `1`、`2`、`"0"`。
 - endpoint request/response 类型放在 `packages/api`，例如 `ExamSubmitRequest`、`CoursePageResponse<T>`。
 - view model 不放在 `packages/api`，例如 `CourseListItem`、`CourseStudyResult` 这类 UI 投影应放在 Web domain。
-- 不要为了“兼容可能返回”写宽泛 union。先确认 Java controller 和 service。
-- `Record<string, unknown>` 只能作为 Java `Object` 的过渡表达；如果 Java 字段明确，就写明确 interface。
+- 不要为了“兼容可能返回”写宽泛 union。先确认 Java controller 和 service，并按 endpoint 分别命名 response。
+- `Record<string, unknown>` 只能作为 Java `Object` 的过渡表达；如果 Java 字段明确，就写明确 interface。即使 Java 方法签名是 `Object`，也要继续看具体 service 实现、SDK 返回对象和调用点，能收窄就收窄，例如支付接口应写成字符串或预支付参数对象 union，而不是停在 `unknown`。
 - 类型接口不要只为了改名而复制字段。后端契约类型保持 Java 字段名；页面展示名、按钮文案、状态色等 UI 投影留在 Web domain。
+- 不要新增前端自造的 API 聚合类型，例如 `HomePayload`、`HomeRecord`、`XxxListItem`。页面 loader 组合多个 Java 契约时，让返回对象从直接的 API 调用中推导，组件 props 使用 `@workspace/api` 的 Java 类型，或使用 `Awaited<ReturnType<typeof loader>>` 表达 loader 自身的返回值。
 
 示例：
 
@@ -124,6 +127,7 @@ packages/api/src/modules/<domain>.ts
 - 不要在 endpoint access 外面再包一层只转发参数和返回值的函数。
 - 不要把明确的后端 response 包成额外的前端返回结构，除非调用方确实需要一个更深的模块接口。
 - 如果 `api.<domain>.<method>()` 已经能直接返回 typed envelope，就不要再导出 `getXxx/listXxx/createXxxModule` 这类默认实例包装。保留 `createXxxApi(client)` 作为 endpoint access 的唯一接口。
+- 每个 endpoint 方法都必须写明确泛型返回类型，例如 `client.post<BannerListResponse>(...)`。迁移后不允许出现裸 `client.get(...)`、裸 `client.post(...)`、`<unknown>` 或 `Response = unknown`。
 
 示例：
 
@@ -156,12 +160,17 @@ apps/web/src/core/<domain>/
 - 不再新建 `apps/web/src/core/<domain>/types.ts` 保存接口投影；接口 request/response/detail/list 类型统一来自 `@workspace/api` 的 Java 契约。
 - 组件需要的业务接口类型优先来自 `@workspace/api` 或 `@/core/<domain>`，不要在组件文件顶部手写。
 - 后端 payload 到 UI 卡片字段的转换放进 `view-model.ts`，不要放在组件顶部。
-- 删除没有增加语义的 `toXxx`、`normalizeXxx`、`formatXxx`、`getXxxRecords` 函数。如果函数只是返回 `payload.records`、`payload.total`、字段兜底、或把字段换名，它不构成模块深度。
+- 删除没有增加语义的 `toXxx`、`normalizeXxx`、`formatXxx`、`getXxxRecords`、`safeXxxRequest`、`asXxxRecords` 函数。如果函数只是返回 `payload.records`、`payload.total`、字段兜底、字段换名、把类型 cast 成 `Record<string, unknown>`、或把错误吞成空数组，它不构成模块深度。
 - 组件中禁止使用无意义的 `toText` 或同类 `toXxx` 字段读取函数。后端字段已是 Java 契约时直接读取，用 `??`、`.trim()`、显示用局部表达式即可。
 - 命名要表达角色：`formatXxx` 只用于真实显示格式化，例如日期、时长、金额；`resolveXxx` 用于决策；`buildXxx` 用于派生对象；`toXxx` 只用于真实协议/类型转换，不用于普通字段读取。
 - 保留有价值的转换：枚举语义化、Java `Object` 收窄、时间/布尔值兼容、UI view model、跨接口字段合并、错误消息归一化、资源 URL 解析。
 - 当后端返回已经明确时，不要反复尝试 `records/list/rows/data` 等多种形状。先回到 Java controller/service 确认真实结构。
 - 如果需要兼容后端 bug 或历史异常，必须在代码旁写明来源和退出条件，不能伪装成通用解析模式。
+- 页面组合多个接口时，优先直接并发调用并直接读取已确认的返回结构：
+  - 数组接口直接 `unwrapEnvelope(response) ?? []`。
+  - 分页接口直接 `unwrapEnvelope(response)?.records ?? []`。
+  - 如果允许单个接口失败但页面继续渲染，用 `Promise.all` 加每个请求自己的 `.catch(() => [])`；不要用 `Promise.allSettled` 后写一大段重复的 `status/reason` 分支，也不要抽一个只吞错误和改壳的 `safeArrayRequest`。
+- mock 数据也要使用 Java 字段名，例如系统公告用 `titile` 而不是自造 `title`，新闻封面用 `coverImg` 而不是自造 `cover`。mock 不是创建前端接口别名的理由。
 
 示例：
 
@@ -184,10 +193,12 @@ export const buildCourseCardView = (course: CourseDetailResponse) => ({
 组件层不要：
 
 - 自己定义 API response/request 类型。
+- 自己定义页面聚合 API 类型，例如 `HomePayload`、`HomeRecord`。如果页面只是把多个 API 结果合在一个对象里，优先让 TypeScript 从 loader 返回值推导；子组件 props 直接写对应 Java 契约类型。
 - 从 `apps/web/src/core/<domain>/types.ts` 引用接口投影类型。
 - 从 `packages/api/generated/*.draft.ts` 引入。
 - 为了适配接口写 `Record<string, unknown>`、`any`、大 union。
 - 把列表解析、分页兼容、字段兜底函数写在组件上方。
+- 使用 `toText` 或同类 helper 读取 Java 字段。直接写 `item.title ?? "兜底文案"`。
 
 组件如果 props 太多，优先传 domain controller 或 cohesive object，再在组件内解构：
 
