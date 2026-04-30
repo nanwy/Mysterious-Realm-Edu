@@ -650,6 +650,7 @@ export type ExamListResponse =
   | ExamSummaryResponse[]
   | ExamPageResponse<ExamSummaryResponse>
   | ExamListPayloadResponse;
+export type LatestExamListResponse = ExamSummaryResponse[];
 export type ExamPreviewResponse = ExamSummaryResponse;
 export interface ExamSessionResponse extends ExamDetailResponse {
   /** 用户考试 id。createExam 返回 UserExam 时等同于 id。 */

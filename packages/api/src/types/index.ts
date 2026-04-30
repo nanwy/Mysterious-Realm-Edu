@@ -1,4 +1,6 @@
 export * from "./envelope";
+export * from "./auth";
+export * from "./banner";
 export * from "./certificate";
 export * from "./course";
 export * from "./exam";

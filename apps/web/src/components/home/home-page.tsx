@@ -7,7 +7,9 @@ import { HomeHotNewsSection } from "./home-hot-news-section";
 import { HomeNewsSection } from "./home-news-section";
 import { HomeQuestionnairesSection } from "./home-questionnaires-section";
 import { HomeSidebar } from "./home-sidebar";
-import type { HomePayload } from "./home-types";
+import type { getHomePageData } from "./home-data";
+
+type HomePageData = Awaited<ReturnType<typeof getHomePageData>>;
 
 function Crosshair({ className }: { className?: string }) {
   return (
@@ -38,7 +40,7 @@ export function HomePage({
   questionnaireError,
   recommendedNewsError,
   hotNewsError,
-}: HomePayload) {
+}: HomePageData) {
   return (
     <div className="min-h-screen bg-background bg-[url('/noise.png')] bg-repeat selection:bg-foreground/10 text-foreground">
       <SiteHeader />

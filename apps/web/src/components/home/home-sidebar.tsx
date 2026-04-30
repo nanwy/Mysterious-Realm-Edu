@@ -1,13 +1,12 @@
+import type { SystemAnnouncement } from "@workspace/api";
 import Link from "next/link";
-import type { HomeRecord } from "./home-types";
-import { toText } from "@/lib/media";
 
 export function HomeSidebar({
   announcements,
   announcementError,
   examCount,
 }: {
-  announcements: HomeRecord[];
+  announcements: SystemAnnouncement[];
   announcementError: string | null;
   examCount: number;
 }) {
@@ -58,7 +57,7 @@ export function HomeSidebar({
             <div key={index} className="group cursor-pointer">
               <span className="text-[10px] font-mono text-muted-foreground block mb-2 opacity-50">#_ANNOUNCE_{String(index).padStart(2, '0')}</span>
               <p className="text-[0.95rem] font-medium text-foreground leading-relaxed group-hover:text-primary transition-colors line-clamp-2">
-                {toText(item.titile ?? item.title, "系统服务连线请求中，通道保留状态...")}
+                {item.titile ?? "系统服务连线请求中，通道保留状态..."}
               </p>
             </div>
           ))}

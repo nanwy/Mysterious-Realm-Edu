@@ -1,45 +1,7 @@
 import { api, unwrapEnvelope } from "@workspace/api";
-import type { CourseDetailResponse } from "@workspace/api";
 import { cache } from "react";
-import type { HomePayload } from "./home-types";
 
-type ApiEnvelope<T = unknown> = {
-  code: number;
-  message: string;
-  result?: T;
-  data?: T;
-};
-
-function toArray<TRecord = Record<string, unknown>>(value: unknown): TRecord[] {
-  if (Array.isArray(value)) return value as TRecord[];
-  if (value && typeof value === "object") {
-    const record = value as Record<string, unknown>;
-    if (Array.isArray(record.records)) return record.records as TRecord[];
-    if (Array.isArray(record.list)) return record.list as TRecord[];
-    if (Array.isArray(record.rows)) return record.rows as TRecord[];
-    if (Array.isArray(record.data)) return record.data as TRecord[];
-  }
-  return [];
-}
-
-async function safeArrayRequest<TRecord = Record<string, unknown>>(
-  factory: () => Promise<ApiEnvelope>
-) {
-  try {
-    const response = await factory();
-    return {
-      items: toArray<TRecord>(unwrapEnvelope(response)),
-      error: null as string | null,
-    };
-  } catch (error) {
-    return {
-      items: [] as TRecord[],
-      error: error instanceof Error ? error.message : "接口请求失败",
-    };
-  }
-}
-
-const HOME_MOCK_DATA: HomePayload = {
+const HOME_MOCK_DATA = {
   banners: [
     {
       id: "1",
@@ -53,13 +15,13 @@ const HOME_MOCK_DATA: HomePayload = {
   announcements: [
     {
       id: "1",
-      title: "云学考 V2.0 系统升级完毕，新版已正式上线",
-      time: "2026-04-08",
+      titile: "云学考 V2.0 系统升级完毕，新版已正式上线",
+      createTime: "2026-04-08",
     },
     {
       id: "2",
-      title: "关于2026年度春季继续教育排课的通知",
-      time: "2026-04-07",
+      titile: "关于2026年度春季继续教育排课的通知",
+      createTime: "2026-04-07",
     },
   ],
   announcementError: null,
@@ -102,32 +64,32 @@ const HOME_MOCK_DATA: HomePayload = {
     {
       id: "1",
       title: "安全运营（SecOps）初级攻防考核",
-      time: "14:00 - 16:00",
-      state: 1,
+      startTime: "14:00",
+      state: 2,
     },
     {
       id: "2",
       title: "红蓝对抗（Red Team）进阶演练测验",
-      time: "明天 09:00",
+      startTime: "明天 09:00",
       state: 0,
     },
   ],
   examError: null,
-  questionnaires: [{ id: "1", title: "实战课程《Web 渗透测试》质量满意度调查" }],
+  questionnaires: [{ id: "1", name: "实战课程《Web 渗透测试》质量满意度调查" }],
   questionnaireError: null,
   recommendedNews: [
     {
       id: "1",
       title: "2026网络安全威胁全景洞察：AI 攻击加剧",
-      time: "2026-04-05",
-      cover:
+      publishTime: "2026-04-05",
+      coverImg:
         "https://images.unsplash.com/photo-1563206767-5b18f218e8de?q=80&w=2938&auto=format&fit=crop",
     },
     {
       id: "2",
       title: "从基础 CTF 比赛到企业级实战思维体系",
-      time: "2026-04-04",
-      cover:
+      publishTime: "2026-04-04",
+      coverImg:
         "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2634&auto=format&fit=crop",
     },
   ],
@@ -136,7 +98,7 @@ const HOME_MOCK_DATA: HomePayload = {
     {
       id: "1",
       title: "国家网安基地2026年度“极客杯”大赛报名开启",
-      time: "10:00",
+      publishTime: "10:00",
     },
   ],
   hotNewsError: null,
@@ -146,38 +108,8 @@ function shouldUseMock() {
   return process.env.HOME_PAGE_USE_MOCK === "1";
 }
 
-export const getHomePageData = cache(async (): Promise<HomePayload> => {
+export const getHomePageData = cache(async () => {
   if (shouldUseMock()) return HOME_MOCK_DATA;
-
-  const bannerPromise = safeArrayRequest(() => api.banner.listBanners());
-  const announcementPromise = safeArrayRequest(() =>
-    api.message.listAnnouncements()
-  );
-  const coursePromise = safeArrayRequest<CourseDetailResponse>(() =>
-    api.course.listHotCourses({ limit: 8 })
-  );
-  const examPromise = safeArrayRequest(() =>
-    api.exam.listLatestExam({ limit: 6 })
-  );
-  const questionnairePromise = safeArrayRequest(() =>
-    api.questionnaire.listQuestionnaires({
-      pageNo: 1,
-      pageSize: 6,
-      type: 1,
-    })
-  );
-  const recommendedNewsPromise = safeArrayRequest(() =>
-    api.news.listRecommendedNews({
-      pageNo: 1,
-      pageSize: 4,
-    })
-  );
-  const hotNewsPromise = safeArrayRequest(() =>
-    api.news.listHotNews({
-      pageNo: 1,
-      pageSize: 5,
-    })
-  );
 
   const [
     banners,
@@ -188,29 +120,60 @@ export const getHomePageData = cache(async (): Promise<HomePayload> => {
     recommendedNews,
     hotNews,
   ] = await Promise.all([
-    bannerPromise,
-    announcementPromise,
-    coursePromise,
-    examPromise,
-    questionnairePromise,
-    recommendedNewsPromise,
-    hotNewsPromise,
+    api.banner
+      .listBanners()
+      .then((response) => unwrapEnvelope(response) ?? [])
+      .catch(() => []),
+    api.message
+      .listAnnouncements()
+      .then((response) => unwrapEnvelope(response) ?? [])
+      .catch(() => []),
+    api.course
+      .listHotCourses({ limit: 8 })
+      .then((response) => unwrapEnvelope(response) ?? [])
+      .catch(() => []),
+    api.exam
+      .listLatestExam({ limit: 6 })
+      .then((response) => unwrapEnvelope(response) ?? [])
+      .catch(() => []),
+    api.questionnaire
+      .listQuestionnaires({
+        pageNo: 1,
+        pageSize: 6,
+        type: 1,
+      })
+      .then((response) => unwrapEnvelope(response)?.records ?? [])
+      .catch(() => []),
+    api.news
+      .listRecommendedNews({
+        pageNo: 1,
+        pageSize: 4,
+      })
+      .then((response) => unwrapEnvelope(response)?.records ?? [])
+      .catch(() => []),
+    api.news
+      .listHotNews({
+        pageNo: 1,
+        pageSize: 5,
+      })
+      .then((response) => unwrapEnvelope(response)?.records ?? [])
+      .catch(() => []),
   ]);
 
   return {
-    banners: banners.items,
-    bannerError: banners.error,
-    announcements: announcements.items,
-    announcementError: announcements.error,
-    hotCourses: hotCourses.items,
-    courseError: hotCourses.error,
-    latestExams: latestExams.items,
-    examError: latestExams.error,
-    questionnaires: questionnaires.items,
-    questionnaireError: questionnaires.error,
-    recommendedNews: recommendedNews.items,
-    recommendedNewsError: recommendedNews.error,
-    hotNews: hotNews.items,
-    hotNewsError: hotNews.error,
+    banners,
+    bannerError: null,
+    announcements,
+    announcementError: null,
+    hotCourses,
+    courseError: null,
+    latestExams,
+    examError: null,
+    questionnaires,
+    questionnaireError: null,
+    recommendedNews,
+    recommendedNewsError: null,
+    hotNews,
+    hotNewsError: null,
   };
 });

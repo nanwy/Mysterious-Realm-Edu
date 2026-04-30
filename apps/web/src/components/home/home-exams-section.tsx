@@ -1,14 +1,13 @@
 import { MotionReveal } from "@workspace/motion";
+import type { ExamSummaryResponse } from "@workspace/api";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import type { HomeRecord } from "./home-types";
-import { toText } from "@/lib/media";
 
 export function HomeExamsSection({
   exams,
   examError,
 }: {
-  exams: HomeRecord[];
+  exams: ExamSummaryResponse[];
   examError: string | null;
 }) {
   const visibleExams = (exams.length ? exams : new Array(3).fill({})).slice(
@@ -16,9 +15,9 @@ export function HomeExamsSection({
     4
   );
 
-  const getExamStateLabel = (state?: number) => {
-    if (state === 3) return "CLOSED";
-    if (state === 2) return "UPCOMING";
+  const getExamStateLabel = (state?: ExamSummaryResponse["state"]) => {
+    if (state === 3 || state === "3") return "CLOSED";
+    if (state === 2 || state === "2") return "UPCOMING";
     return "PENDING";
   };
 
@@ -63,17 +62,17 @@ export function HomeExamsSection({
               </div>
               <div className="flex-1 min-w-0 pr-6">
                 <h3 className="text-[1.15rem] font-medium tracking-tight text-foreground transition-colors group-hover:text-primary truncate">
-                  {toText(item.title, `周期性考核事务预备队列 ${index + 1}`)}
+                  {item.title ?? `周期性考核事务预备队列 ${index + 1}`}
                 </h3>
                 <div className="mt-4 flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
                   <span
                     className={
-                      item.state === 2
+                      item.state === 2 || item.state === "2"
                         ? "text-primary flex items-center gap-1.5"
                         : "flex items-center gap-1.5"
                     }
                   >
-                    {item.state === 2 && (
+                    {(item.state === 2 || item.state === "2") && (
                       <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                     )}
                     STATUS: {getExamStateLabel(item.state)}

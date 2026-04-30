@@ -1,13 +1,12 @@
+import type { NewsArticle } from "@workspace/api";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import type { HomeRecord } from "./home-types";
-import { toText } from "@/lib/media";
 
 export function HomeHotNewsSection({
   hotNews,
   hotNewsError,
 }: {
-  hotNews: HomeRecord[];
+  hotNews: NewsArticle[];
   hotNewsError: string | null;
 }) {
   const visibleItems = hotNews.slice(0, 5);
@@ -45,10 +44,10 @@ export function HomeHotNewsSection({
               className="flex flex-col px-8 lg:px-10 py-6 lg:py-8 group hover:bg-muted/10 transition-colors cursor-pointer"
             >
               <p className="text-[0.95rem] font-medium text-foreground leading-relaxed group-hover:text-primary transition-colors line-clamp-2">
-                {toText(item.title, "速报同步预备中...")}
+                {item.title ?? "速报同步预备中..."}
               </p>
               <div className="mt-4 flex items-center justify-between text-[11px] font-mono tracking-widest uppercase text-muted-foreground/50">
-                <span>{toText(item.publishTime ?? item.time, "00:00:00")}</span>
+                <span>{item.publishTime ?? "00:00:00"}</span>
                 <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:text-primary transition-all duration-300" />
               </div>
             </Link>

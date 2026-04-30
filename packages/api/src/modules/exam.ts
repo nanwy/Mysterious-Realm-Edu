@@ -7,6 +7,7 @@ import type {
   ExamDetailResponse,
   ExamListRequest,
   ExamListResponse,
+  LatestExamListResponse,
   ExamPreviewResponse,
   ExamResultListResponse,
   ExamResultDetailResponse,
@@ -81,7 +82,7 @@ export const createExamApi = (client: ApiHttpClient) => ({
     client.post<null>("/exam/uploadExamSnap", payload),
 
   listLatestExam: ({ limit }: { limit: number }) =>
-    client.get<ExamListResponse>("/index/listLatestExam", {
+    client.get<LatestExamListResponse>("/index/listLatestExam", {
       query: { limit },
     }),
 });

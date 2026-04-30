@@ -4,10 +4,10 @@ import { MotionItem, MotionStagger } from "@workspace/motion";
 import { ArrowUpRight, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import type { HomeCourseRecord } from "./home-types";
+import type { CourseDetailResponse } from "@workspace/api";
 
 interface HomeCoursesSectionProps {
-  courses: HomeCourseRecord[];
+  courses: CourseDetailResponse[];
   error?: string | null;
 }
 
