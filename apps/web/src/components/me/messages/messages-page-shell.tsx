@@ -119,11 +119,10 @@ async function fetchMessages(query: MessageQuery) {
     pageNo: query.pageNo,
     pageSize: query.pageSize,
   };
-  const response =
+  const unwrapped =
     query.tab === "system"
-      ? await api.message.listSystemMessages(payload)
-      : await api.message.listBusinessMessages(payload);
-  const unwrapped = unwrapEnvelope(response);
+      ? unwrapEnvelope(await api.message.listSystemMessages(payload))
+      : unwrapEnvelope(await api.message.listBusinessMessages(payload));
   const result = toRecordOrEmpty(unwrapped) as MessageListPayload;
   const records = Array.isArray(result.records) ? result.records.map(normalizeMessageRecord) : [];
   const total = toNumber(result.total);

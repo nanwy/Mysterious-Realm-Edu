@@ -1,21 +1,17 @@
-import { createApiClient, type ApiHttpClient } from "../client";
+import type { ApiHttpClient } from "../client";
+import type {
+  PaymentRequest,
+  PaymentResponse,
+  PayResultRequest,
+  PayResultResponse,
+} from "../types/pay";
 
 export const createPayApi = (client: ApiHttpClient) => ({
-  pay: (payload: Record<string, unknown>) =>
-    client.post<unknown>("/pay/payment", payload),
+  pay: (payload: PaymentRequest) =>
+    client.post<PaymentResponse>("/pay/payment", payload),
 
-  getPayResult: ({ orderSn }: { orderSn: string }) =>
-    client.get<unknown>("/pay/payResult", {
+  getPayResult: ({ orderSn }: PayResultRequest) =>
+    client.get<PayResultResponse>("/pay/payResult", {
       query: { orderSn },
     }),
 });
-
-const defaultPayApi = createPayApi(createApiClient());
-
-export function pay(payload: Record<string, unknown>) {
-  return defaultPayApi.pay(payload);
-}
-
-export function payResult(orderSn: string) {
-  return defaultPayApi.getPayResult({ orderSn });
-}
