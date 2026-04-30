@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import { EXAM_QUESTION_TYPE } from "@workspace/api";
 import { useExamStore } from "./store.ts";
-import type { ExamOnlineAnswerDraft } from "./types.ts";
+import type { ExamOnlineAnswerDraft } from "./online.ts";
 
 const cachedAnswers: ExamOnlineAnswerDraft[] = [
   {
-    index: 1,
+    index: "1",
     questionType: EXAM_QUESTION_TYPE.RADIO,
     answers: ["option-a"],
-    answerIndex: [0],
+    answerIndex: ["0"],
   },
 ];
 
@@ -34,10 +34,10 @@ test("hydrateOnline keeps in-progress draft for the same session", () => {
   store.updateOnlineAnswers((current) => [
     ...current,
     {
-      index: 2,
+      index: "2",
       questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["opt-b"],
-      answerIndex: [1],
+      answerIndex: ["1"],
     },
   ]);
   store.selectOnlineQuestionAt(2);
@@ -48,7 +48,7 @@ test("hydrateOnline keeps in-progress draft for the same session", () => {
   assert.equal(state.onlineCurrentIndex, 2);
   assert.equal(state.onlineAnswers.length, 2);
   assert.deepEqual(
-    state.onlineAnswers.find((answer) => answer.index === 2)?.answers,
+    state.onlineAnswers.find((answer) => answer.index === "2")?.answers,
     ["opt-b"]
   );
 });
@@ -77,19 +77,19 @@ test("updateOnlineAnswers receives the latest array regardless of caller closure
   store.updateOnlineAnswers((current) => [
     ...current,
     {
-      index: 1,
+      index: "1",
       questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["a"],
-      answerIndex: [0],
+      answerIndex: ["0"],
     },
   ]);
   store.updateOnlineAnswers((current) => [
     ...current,
     {
-      index: 2,
+      index: "2",
       questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["b"],
-      answerIndex: [0],
+      answerIndex: ["0"],
     },
   ]);
 
@@ -97,7 +97,7 @@ test("updateOnlineAnswers receives the latest array regardless of caller closure
   assert.equal(state.onlineAnswers.length, 2);
   assert.deepEqual(
     state.onlineAnswers.map((answer) => answer.index),
-    [1, 2]
+    ["1", "2"]
   );
 });
 

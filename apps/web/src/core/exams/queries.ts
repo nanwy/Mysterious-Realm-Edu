@@ -1,13 +1,13 @@
 "use client";
 
 import { queryOptions } from "@tanstack/react-query";
+import type { ExamListRequest } from "@workspace/api";
 import { fetchExamList, fetchExamOnlineSession, fetchExamPreview } from "./api";
-import type { ExamFiltersState } from "./types";
 
 export const examKeys = {
   all: ["exams"] as const,
   lists: () => [...examKeys.all, "list"] as const,
-  list: (filters: ExamFiltersState) =>
+  list: (filters: ExamListRequest) =>
     [
       ...examKeys.lists(),
       filters.examTitle,
@@ -22,7 +22,7 @@ export const examKeys = {
 };
 
 export const examQueryOptions = {
-  list: (filters: ExamFiltersState) =>
+  list: (filters: ExamListRequest) =>
     queryOptions({
       queryKey: examKeys.list(filters),
       queryFn: () => fetchExamList(filters),

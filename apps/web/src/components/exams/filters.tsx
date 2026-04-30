@@ -1,8 +1,8 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
+import type { ExamListRequest } from "@workspace/api";
 import { Button, Field, FieldGroup, FieldLabel, Input } from "@workspace/ui";
-import type { ExamFiltersState } from "@/core/exams";
 
 export const ExamsFilters = ({
   defaultValues,
@@ -10,14 +10,14 @@ export const ExamsFilters = ({
   onSubmit,
   onReset,
 }: {
-  defaultValues: ExamFiltersState;
+  defaultValues: ExamListRequest;
   pending: boolean;
-  onSubmit: (values: ExamFiltersState) => void;
+  onSubmit: (values: ExamListRequest) => void;
   onReset: () => void;
 }) => {
   const form = useForm({
     defaultValues: {
-      examTitle: defaultValues.examTitle,
+      examTitle: defaultValues.examTitle ?? "",
     },
     onSubmit: ({ value }) => {
       onSubmit({

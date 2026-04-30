@@ -4,12 +4,11 @@ import type {
   InvigilateJsonObject,
   InvigilateSocketMessage,
 } from "@workspace/api";
-import type { ExamOnlineSession } from "./types";
+import type { ExamOnlineSession } from "./online";
 import {
   toBooleanOrNull,
   toNumberOrFallback,
   toRecord,
-  toText,
 } from "@/lib/normalize";
 
 export interface OnlineInvigilateUserProfile {
@@ -88,9 +87,9 @@ export const fetchOnlineInvigilateUserProfile = async (
   }
 
   return {
-    id: toText(record.id),
-    username: toText(record.username),
-    realname: toText(record.realname),
+    id: String(record.id ?? "").trim(),
+    username: String(record.username ?? "").trim(),
+    realname: String(record.realname ?? "").trim(),
   };
 };
 

@@ -18,7 +18,7 @@ import {
   replaceOnlineAnswer,
   shouldRecordScreenSwitch,
 } from "./online.ts";
-import type { ExamOnlineAnswerDraft, ExamOnlineQuestion } from "./types.ts";
+import type { ExamOnlineAnswerDraft, ExamOnlineQuestion } from "./online.ts";
 
 const question: ExamOnlineQuestion = {
   id: "q-1",
@@ -37,26 +37,26 @@ const question: ExamOnlineQuestion = {
 test("replaceOnlineAnswer replaces an existing answer by answer key", () => {
   const answers: ExamOnlineAnswerDraft[] = [
     {
-      index: 1,
+      index: "1",
       questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["option-a"],
-      answerIndex: [0],
+      answerIndex: ["0"],
     },
   ];
 
   const nextAnswers = replaceOnlineAnswer(answers, 1, {
-    index: 1,
+    index: "1",
     questionType: EXAM_QUESTION_TYPE.RADIO,
     answers: ["option-b"],
-    answerIndex: [1],
+    answerIndex: ["1"],
   });
 
   assert.deepEqual(nextAnswers, [
     {
-      index: 1,
+      index: "1",
       questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["option-b"],
-      answerIndex: [1],
+      answerIndex: ["1"],
     },
   ]);
 });
@@ -64,10 +64,10 @@ test("replaceOnlineAnswer replaces an existing answer by answer key", () => {
 test("replaceOnlineAnswer removes an answer when next answer is null", () => {
   const answers: ExamOnlineAnswerDraft[] = [
     {
-      index: 1,
+      index: "1",
       questionType: EXAM_QUESTION_TYPE.RADIO,
       answers: ["option-a"],
-      answerIndex: [0],
+      answerIndex: ["0"],
     },
   ];
 
@@ -82,9 +82,9 @@ test("buildOptionAnswerDraft toggles single choice answers", () => {
   const cleared = buildOptionAnswerDraft(question, next, "option-b", 1);
 
   assert.deepEqual(current?.answers, ["option-a"]);
-  assert.deepEqual(current?.answerIndex, [0]);
+  assert.deepEqual(current?.answerIndex, ["0"]);
   assert.deepEqual(next?.answers, ["option-b"]);
-  assert.deepEqual(next?.answerIndex, [1]);
+  assert.deepEqual(next?.answerIndex, ["1"]);
   assert.equal(cleared, null);
 });
 

@@ -12,6 +12,7 @@ import {
   buildBlankAnswerDraft,
   buildOptionAnswerDraft,
   buildSubjectiveAnswerDraft,
+  type ExamOnlineSession,
   getAnswerForQuestion,
   getRemainingScreenSwitchTimes,
   isQuestionAnswered,
@@ -19,13 +20,12 @@ import {
   shouldRecordScreenSwitch,
 } from "./online";
 import { useExamStore } from "./store";
-import type { ExamOnlineSession } from "./types";
 
 export const useOnlineExamController = (session: ExamOnlineSession) => {
   const { mutate: cacheMutate, isPending: cachePending } =
     useCacheExamAnswerMutation();
   const { mutate: submitMutate, isPending: submitPending } =
-    useSubmitExamMutation();
+    useSubmitExamMutation(session.examId);
   const { mutate: reportScreenSwitchMutate } = useReportScreenSwitchMutation();
   const { mutate: countScreenSwitchMutate } = useCountScreenSwitchMutation();
   const [screenSwitchTimes, setScreenSwitchTimes] = useState(0);
@@ -221,7 +221,6 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
     setOnlineSubmitStatus("submitting");
     submitMutate(
       {
-        examId: session.examId,
         userExamId: session.userExamId,
         examAnswers: useExamStore.getState().onlineAnswers,
       },
@@ -304,12 +303,7 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
         },
       }
     );
-  }, [
-    countScreenSwitchMutate,
-    leaveOn,
-    session.submitted,
-    session.userExamId,
-  ]);
+  }, [countScreenSwitchMutate, leaveOn, session.submitted, session.userExamId]);
 
   useEffect(() => {
     if (!leaveOn || session.submitted) {
@@ -348,10 +342,7 @@ export const useOnlineExamController = (session: ExamOnlineSession) => {
 
       setScreenSwitchTimes((current) => {
         const next = current + 1;
-        const remaining = getRemainingScreenSwitchTimes(
-          totalLeaveTimes,
-          next
-        );
+        const remaining = getRemainingScreenSwitchTimes(totalLeaveTimes, next);
 
         if (remaining !== null && remaining < 0) {
           setScreenSwitchMessage("已达到最大切屏次数，系统正在自动提交试卷。");

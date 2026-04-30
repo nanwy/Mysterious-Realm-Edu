@@ -5,5 +5,5 @@ export * from "./invigilate";
 export * from "./mutations";
 export * from "./online";
 export * from "./queries";
+export * from "./routing";
 export * from "./store";
-export * from "./types";

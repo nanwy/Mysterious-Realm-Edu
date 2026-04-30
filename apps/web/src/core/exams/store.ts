@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { ExamOnlineAnswerDraft } from "./types";
+import type { ExamOnlineAnswerDraft } from "./online";
 
 export type ExamOnlineCacheStatus = "idle" | "saving" | "saved" | "error";
 export type ExamOnlineSubmitStatus =

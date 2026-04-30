@@ -12,10 +12,6 @@ export enum EXAM_STATUS {
   ENDED = "3",
 }
 
-export type ExamTypeFilter = EXAM_TYPE;
-export type ExamStatusFilter = EXAM_STATUS;
-export type ExamResolvedStatus = Exclude<ExamStatusFilter, EXAM_STATUS.ALL>;
-
 export const EXAM_TYPE_OPTIONS = [
   { value: EXAM_TYPE.PUBLIC, label: "公开考试" },
   { value: EXAM_TYPE.MINE, label: "我的考试" },

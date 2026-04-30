@@ -1,7 +1,13 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type InvigilateCheatRequest, unwrapEnvelope } from "@workspace/api";
+import {
+  api,
+  type ExamCacheAnswerRequest,
+  type ExamSubmitRequest,
+  type InvigilateCheatRequest,
+  unwrapEnvelope,
+} from "@workspace/api";
 import { examKeys } from "./queries";
 
 export const useCreateExamSessionMutation = () => {
@@ -20,13 +26,12 @@ export const useCreateExamSessionMutation = () => {
   });
 };
 
-export const useSubmitExamMutation = () => {
+export const useSubmitExamMutation = (examId?: string) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: Record<string, unknown>) =>
+    mutationFn: async (payload: ExamSubmitRequest) =>
       unwrapEnvelope(await api.exam.submitExam(payload)),
-    onSuccess: (_result, payload) => {
-      const examId = typeof payload.examId === "string" ? payload.examId : "";
+    onSuccess: () => {
       if (examId) {
         qc.invalidateQueries({ queryKey: examKeys.preview(examId) });
       }
@@ -37,7 +42,7 @@ export const useSubmitExamMutation = () => {
 
 export const useCacheExamAnswerMutation = () =>
   useMutation({
-    mutationFn: async (payload: Record<string, unknown>) =>
+    mutationFn: async (payload: ExamCacheAnswerRequest) =>
       unwrapEnvelope(await api.exam.cacheExamAnswer(payload)),
   });
 

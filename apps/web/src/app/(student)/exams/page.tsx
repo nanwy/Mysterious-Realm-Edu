@@ -1,50 +1,12 @@
 import { StudentShell } from "@workspace/ui";
 import { ExamsPage } from "@/components/exams/page";
 import {
-  EXAM_STATUS,
-  EXAM_TYPE,
   EXAMS_PAGE_SIZE,
-  type ExamStatusFilter,
-  type ExamTypeFilter,
+  resolveExamKeywordParam,
+  resolveExamPageParam,
+  resolveExamStatusParam,
+  resolveExamTypeParam,
 } from "@/core/exams";
-
-const toPositivePage = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  const page = Number(raw);
-  return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-};
-
-const toKeyword = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  return typeof raw === "string" ? raw.trim() : "";
-};
-
-const toExamType = (
-  value: string | string[] | undefined
-): ExamTypeFilter => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  if (raw === EXAM_TYPE.MINE || raw === EXAM_TYPE.PUBLIC) {
-    return raw;
-  }
-
-  return EXAM_TYPE.PUBLIC;
-};
-
-const toExamStatus = (
-  value: string | string[] | undefined
-): ExamStatusFilter => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  if (
-    raw === EXAM_STATUS.ALL ||
-    raw === EXAM_STATUS.IN_PROGRESS ||
-    raw === EXAM_STATUS.NOT_STARTED ||
-    raw === EXAM_STATUS.ENDED
-  ) {
-    return raw;
-  }
-
-  return EXAM_STATUS.ALL;
-};
 
 const ExamsRoute = async ({
   searchParams,
@@ -53,10 +15,10 @@ const ExamsRoute = async ({
 }) => {
   const params = await searchParams;
   const initialFilters = {
-    examTitle: toKeyword(params.keyword),
-    examType: toExamType(params.type),
-    state: toExamStatus(params.status),
-    pageNo: toPositivePage(params.page),
+    examTitle: resolveExamKeywordParam(params.keyword),
+    examType: resolveExamTypeParam(params.type),
+    state: resolveExamStatusParam(params.status),
+    pageNo: resolveExamPageParam(params.page),
     pageSize: EXAMS_PAGE_SIZE,
   } as const;
 
