@@ -1,17 +1,19 @@
-import { SecurityPageShell, type SecurityPageShellProps } from "./security-page-shell";
-import { toRecord } from "@/lib/normalize";
+import type { UserProfileResponse } from "@workspace/api";
 import {
-  getStudentProfile,
-  type StudentProfileErrorType,
-} from "@/lib/student-profile";
+  SecurityPageShell,
+  type SecurityPageShellProps,
+} from "./security-page-shell";
+import type { StudentProfileErrorType } from "@/core/me";
+import { getStudentProfile } from "@/lib/student-profile";
 
-function pickText(source: Record<string, unknown> | null, keys: string[], fallback = "") {
+function pickText(source: object | null, keys: string[], fallback = "") {
   if (!source) {
     return fallback;
   }
 
+  const record = source as Record<string, unknown>;
   for (const key of keys) {
-    const value = source[key];
+    const value = record[key];
 
     if (typeof value === "string" && value.trim()) {
       return value.trim();
@@ -53,7 +55,7 @@ function maskEmail(value: string) {
   return `${name.slice(0, 2)}***@${domain}`;
 }
 
-function hasSecurityContent(profile: Record<string, unknown> | null) {
+function hasSecurityContent(profile: UserProfileResponse | null) {
   if (!profile) {
     return false;
   }
@@ -61,14 +63,22 @@ function hasSecurityContent(profile: Record<string, unknown> | null) {
   const values = [
     pickText(profile, ["phone", "mobile", "mobilePhone", "tel"]),
     pickText(profile, ["email", "mail"]),
-    pickText(profile, ["userName", "username", "studentNo", "studentNumber", "userId"]),
+    pickText(profile, [
+      "userName",
+      "username",
+      "studentNo",
+      "studentNumber",
+      "userId",
+    ]),
     pickText(profile, ["realName", "realname", "name", "nickName", "nickname"]),
   ];
 
   return values.some(Boolean);
 }
 
-function toShellState(result: Awaited<ReturnType<typeof getStudentProfile>>): SecurityPageShellProps {
+function toShellState(
+  result: Awaited<ReturnType<typeof getStudentProfile>>
+): SecurityPageShellProps {
   if (result.errorType) {
     return {
       state: "error",
@@ -77,7 +87,7 @@ function toShellState(result: Awaited<ReturnType<typeof getStudentProfile>>): Se
     };
   }
 
-  const profile = toRecord(result.profile);
+  const profile = result.profile;
 
   if (!hasSecurityContent(profile)) {
     return {
@@ -88,7 +98,13 @@ function toShellState(result: Awaited<ReturnType<typeof getStudentProfile>>): Se
   const rawPhone = pickText(profile, ["phone", "mobile", "mobilePhone", "tel"]);
   const rawEmail = pickText(profile, ["email", "mail"]);
   const identity = withFallback(
-    pickText(profile, ["userName", "username", "studentNo", "studentNumber", "userId"]),
+    pickText(profile, [
+      "userName",
+      "username",
+      "studentNo",
+      "studentNumber",
+      "userId",
+    ]),
     "暂无账号标识"
   );
   const displayName = withFallback(
@@ -126,7 +142,8 @@ function toShellState(result: Awaited<ReturnType<typeof getStudentProfile>>): Se
       },
       {
         title: "密码",
-        description: "保留旧版密码修改入口语义，但不在本 issue 内开放提交能力。",
+        description:
+          "保留旧版密码修改入口语义，但不在本 issue 内开放提交能力。",
         testId: "security-password-section",
         value: "出于安全原因，当前不展示密码内容。",
         status: "只读占位",

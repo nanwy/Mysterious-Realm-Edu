@@ -1,38 +1,16 @@
 import { api, unwrapEnvelope } from "@workspace/api";
-import { toRecord } from "@/lib/normalize";
+import type {
+  StudentProfileErrorType,
+  StudentProfileResult,
+} from "@/core/me";
 
 export const STUDENT_PROFILE_CONFIG_ERROR =
   "未配置 NEXT_PUBLIC_API_BASE_URL，当前属于环境问题，不是页面渲染问题。";
-
-export type StudentProfileErrorType =
-  | "config_missing"
-  | "unauthorized"
-  | "request_failed"
-  | null;
-
-export interface StudentProfileResult {
-  profile: Record<string, unknown> | null;
-  currentDept: Record<string, unknown> | null;
-  departs: Array<Record<string, unknown>>;
-  error: string | null;
-  errorType: StudentProfileErrorType;
-}
 
 interface RequestOutcome<T> {
   data: T | null;
   error: string | null;
   errorType: Exclude<StudentProfileErrorType, "config_missing" | null> | null;
-}
-
-function toRecordList(value: unknown) {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value.filter(
-    (item): item is Record<string, unknown> =>
-      Boolean(item) && typeof item === "object" && !Array.isArray(item)
-  );
 }
 
 function getBaseUrl() {
@@ -112,15 +90,21 @@ export async function getStudentProfile(): Promise<StudentProfileResult> {
     safeRequest("部门列表", () => api.user.getCurrentUserDeparts()),
   ]);
 
-  const errors = [profileResult.error, currentDeptResult.error, departsResult.error].filter(
-    (value): value is string => Boolean(value)
-  );
+  const errors = [
+    profileResult.error,
+    currentDeptResult.error,
+    departsResult.error,
+  ].filter((value): value is string => Boolean(value));
 
   return {
-    profile: toRecord(profileResult.data),
-    currentDept: toRecord(currentDeptResult.data),
-    departs: toRecordList(departsResult.data),
+    profile: profileResult.data,
+    currentDept: currentDeptResult.data,
+    departs: departsResult.data?.list ?? [],
     error: errors.length > 0 ? errors.join("；") : null,
-    errorType: combineErrorType([profileResult, currentDeptResult, departsResult]),
+    errorType: combineErrorType([
+      profileResult,
+      currentDeptResult,
+      departsResult,
+    ]),
   };
 }
