@@ -1,23 +1,22 @@
-import { createApiClient, type ApiHttpClient } from "../client";
+import { type ApiHttpClient } from "../client";
+import type {
+  QuestionnaireDetailResponse,
+  QuestionnaireId,
+  QuestionnaireListRequest,
+  QuestionnaireListResponse,
+} from "../types";
 
-type Id = string | number;
 
 export const createQuestionnaireApi = (client: ApiHttpClient) => ({
-  listQuestionnaires: (payload: Record<string, unknown>) =>
-    client.post("/questionnaire/list", payload),
+  listQuestionnaires: (payload: QuestionnaireListRequest) =>
+    client.post<QuestionnaireListResponse>("/questionnaire/list", payload),
 
-  getQuestionnaire: ({ questionnaireId }: { questionnaireId: Id }) =>
-    client.get("/questionnaire/queryById", {
+  getQuestionnaire: ({
+    questionnaireId,
+  }: {
+    questionnaireId: QuestionnaireId;
+  }) =>
+    client.get<QuestionnaireDetailResponse>("/questionnaire/queryById", {
       query: { id: questionnaireId },
     }),
 });
-
-const defaultQuestionnaireApi = createQuestionnaireApi(createApiClient());
-
-export function getQuestionnaireList(payload: Record<string, unknown>) {
-  return defaultQuestionnaireApi.listQuestionnaires(payload);
-}
-
-export function getQuestionnaire(questionnaireId: Id) {
-  return defaultQuestionnaireApi.getQuestionnaire({ questionnaireId });
-}

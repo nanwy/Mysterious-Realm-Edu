@@ -1,6 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type {
+  QuestionnaireListRequest,
+  QuestionnaireRecord,
+} from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { usePathname, useRouter } from "next/navigation";
@@ -9,24 +13,31 @@ import { QuestionnaireFilters } from "./filters";
 import { Results } from "./results";
 import { ResultsPagination } from "../common/results-pagination";
 import {
-  normalizeQuestionnaireError,
+  getQuestionnaireErrorMessage,
   QUESTIONNAIRE_PAGE_SIZE,
+  QUESTIONNAIRE_TYPE_STUDENT,
   questionnaireQueryOptions,
 } from "@/core/questionnaire";
-import type {
-  QuestionnaireItem,
-  QuestionnaireQueryState,
-} from "@/core/questionnaire";
 
-const createQueryString = (query: QuestionnaireQueryState) => {
+const getQueryPageNo = (query: QuestionnaireListRequest) => {
+  const pageNo = Number(query.pageNo ?? 1);
+  return Number.isFinite(pageNo) && pageNo > 0 ? Math.floor(pageNo) : 1;
+};
+
+const getQueryName = (query: QuestionnaireListRequest) =>
+  String(query.name ?? "").trim();
+
+const createQueryString = (query: QuestionnaireListRequest) => {
   const params = new URLSearchParams();
+  const pageNo = getQueryPageNo(query);
+  const name = getQueryName(query);
 
-  if (query.page > 1) {
-    params.set("page", String(query.page));
+  if (pageNo > 1) {
+    params.set("page", String(pageNo));
   }
 
-  if (query.keyword.trim()) {
-    params.set("keyword", query.keyword.trim());
+  if (name) {
+    params.set("keyword", name);
   }
 
   const result = params.toString();
@@ -43,12 +54,20 @@ const getLoadedRange = (page: number, total: number) => {
   return `${start}-${end}`;
 };
 
-const summarizeQuestionnaires = (items: QuestionnaireItem[]) => {
+const getQuestionnaireCategory = (item: QuestionnaireRecord) =>
+  String(item.type_dictText ?? item.type ?? "").trim() || "调查";
+
+const getQuestionnaireStatus = (item: QuestionnaireRecord) =>
+  String(item.status_dictText ?? item.publishStatus_dictText ?? "").trim();
+
+const summarizeQuestionnaires = (items: QuestionnaireRecord[]) => {
   const categories = new Set(
-    items.map((item) => item.category).filter((value) => value.trim())
+    items.map(getQuestionnaireCategory).filter((value) => value.trim())
   );
   const activeCount = items.filter(
-    (item) => !item.status || item.status === "可参与"
+    (item) =>
+      !getQuestionnaireStatus(item) ||
+      getQuestionnaireStatus(item) === "可参与"
   ).length;
 
   return {
@@ -60,7 +79,7 @@ const summarizeQuestionnaires = (items: QuestionnaireItem[]) => {
 export const QuestionnairePage = ({
   initialQuery,
 }: {
-  initialQuery: QuestionnaireQueryState;
+  initialQuery: QuestionnaireListRequest;
 }) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -68,14 +87,14 @@ export const QuestionnairePage = ({
   const questionnaireQuery = useQuery(
     questionnaireQueryOptions.list(initialQuery)
   );
-  const items = questionnaireQuery.data?.items ?? [];
+  const items = questionnaireQuery.data?.records ?? [];
   const total = questionnaireQuery.data?.total ?? 0;
   const error = questionnaireQuery.error
-    ? normalizeQuestionnaireError(questionnaireQuery.error)
+    ? getQuestionnaireErrorMessage(questionnaireQuery.error)
     : null;
   const isBusy = questionnaireQuery.isLoading || isPending;
 
-  const navigate = (query: QuestionnaireQueryState) => {
+  const navigate = (query: QuestionnaireListRequest) => {
     startTransition(() => {
       router.push(`${pathname}${createQueryString(query)}`, {
         scroll: false,
@@ -84,9 +103,10 @@ export const QuestionnairePage = ({
   };
 
   const totalPages = Math.max(1, Math.ceil(total / QUESTIONNAIRE_PAGE_SIZE));
-  const currentPage = Math.min(initialQuery.page, totalPages);
-  const rangeLabel = getLoadedRange(initialQuery.page, total);
+  const currentPage = Math.min(getQueryPageNo(initialQuery), totalPages);
+  const rangeLabel = getLoadedRange(getQueryPageNo(initialQuery), total);
   const summary = summarizeQuestionnaires(items);
+  const keyword = getQueryName(initialQuery);
 
   return (
     <div className="grid gap-6">
@@ -116,7 +136,7 @@ export const QuestionnairePage = ({
               <MotionStagger className="grid gap-3 sm:grid-cols-3" delayChildren={0.08}>
                 {[
                   { label: "分页规模", value: `${QUESTIONNAIRE_PAGE_SIZE} 条/页` },
-                  { label: "当前关键字", value: initialQuery.keyword || "全部问卷" },
+                  { label: "当前关键字", value: keyword || "全部问卷" },
                   {
                     label: "结果状态",
                     value: error
@@ -208,7 +228,7 @@ export const QuestionnairePage = ({
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <span className="rounded-full border border-border/70 bg-background/80 px-3 py-1.5">
-                关键词：{initialQuery.keyword || "未筛选"}
+                关键词：{keyword || "未筛选"}
               </span>
               <span className="rounded-full border border-border/70 bg-background/80 px-3 py-1.5">
                 页码：{currentPage}
@@ -216,14 +236,16 @@ export const QuestionnairePage = ({
             </div>
           </div>
           <QuestionnaireFilters
-            key={`${initialQuery.keyword}:${initialQuery.page}`}
+            key={`${keyword}:${currentPage}`}
             defaultValues={initialQuery}
             pending={isPending}
             onSubmit={(values) => navigate(values)}
             onReset={() =>
               navigate({
-                page: 1,
-                keyword: "",
+                pageNo: 1,
+                pageSize: QUESTIONNAIRE_PAGE_SIZE,
+                name: "",
+                type: QUESTIONNAIRE_TYPE_STUDENT,
               })
             }
           />
@@ -248,8 +270,8 @@ export const QuestionnairePage = ({
             </h3>
           </div>
           <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
-            {initialQuery.keyword
-              ? `当前按“${initialQuery.keyword}”筛选；如果结果偏少，可以直接清空关键词查看全部问卷。`
+            {keyword
+              ? `当前按“${keyword}”筛选；如果结果偏少，可以直接清空关键词查看全部问卷。`
               : "未输入关键词时默认展示全部问卷，并保留真实接口的分页与错误兜底状态。"}
           </p>
         </div>
@@ -257,7 +279,7 @@ export const QuestionnairePage = ({
           items={items}
           loading={isBusy}
           error={error}
-          keyword={initialQuery.keyword}
+          keyword={keyword}
           onRetry={() => {
             void questionnaireQuery.refetch();
           }}
@@ -272,8 +294,8 @@ export const QuestionnairePage = ({
         itemLabel="份问卷"
         onPageChange={(page) =>
           navigate({
-            page,
-            keyword: initialQuery.keyword,
+            ...initialQuery,
+            pageNo: page,
           })
         }
       />

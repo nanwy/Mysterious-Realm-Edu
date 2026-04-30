@@ -1,16 +1,11 @@
 import { StudentShell } from "@workspace/ui";
 import { QuestionnairePage } from "@/components/questionnaire/page";
-
-const toPositivePage = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  const page = Number(raw);
-  return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-};
-
-const toKeyword = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  return typeof raw === "string" ? raw.trim() : "";
-};
+import {
+  QUESTIONNAIRE_PAGE_SIZE,
+  QUESTIONNAIRE_TYPE_STUDENT,
+  resolveQuestionnaireKeywordParam,
+  resolveQuestionnairePageParam,
+} from "@/core/questionnaire";
 
 const QuestionnairePageRoute = async ({
   searchParams,
@@ -19,8 +14,10 @@ const QuestionnairePageRoute = async ({
 }) => {
   const params = await searchParams;
   const initialQuery = {
-    page: toPositivePage(params.page),
-    keyword: toKeyword(params.keyword),
+    pageNo: resolveQuestionnairePageParam(params.page),
+    pageSize: QUESTIONNAIRE_PAGE_SIZE,
+    name: resolveQuestionnaireKeywordParam(params.keyword),
+    type: QUESTIONNAIRE_TYPE_STUDENT,
   };
 
   return (

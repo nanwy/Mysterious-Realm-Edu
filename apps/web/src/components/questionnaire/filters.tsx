@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
+import type { QuestionnaireListRequest } from "@workspace/api";
 import {
   Button,
   Field,
@@ -9,7 +10,6 @@ import {
   FieldLabel,
   Input,
 } from "@workspace/ui";
-import type { QuestionnaireQueryState } from "@/core/questionnaire";
 
 export const QuestionnaireFilters = ({
   defaultValues,
@@ -17,18 +17,21 @@ export const QuestionnaireFilters = ({
   onSubmit,
   onReset,
 }: {
-  defaultValues: QuestionnaireQueryState;
+  defaultValues: QuestionnaireListRequest;
   pending: boolean;
-  onSubmit: (values: QuestionnaireQueryState) => void;
+  onSubmit: (values: QuestionnaireListRequest) => void;
   onReset: () => void;
 }) => {
   const form = useForm({
-    defaultValues,
+    defaultValues: {
+      name: defaultValues.name ?? "",
+    },
     onSubmit: ({ value }) => {
       onSubmit({
+        ...defaultValues,
         ...value,
-        page: 1,
-        keyword: value.keyword.trim(),
+        pageNo: 1,
+        name: value.name.trim(),
       });
     },
   });
@@ -42,7 +45,7 @@ export const QuestionnaireFilters = ({
       }}
     >
       <FieldGroup className="grid gap-4">
-        <form.Field name="keyword">
+        <form.Field name="name">
           {(field) => (
             <Field>
               <FieldLabel htmlFor="questionnaire-keyword">关键词搜索</FieldLabel>
@@ -79,4 +82,3 @@ export const QuestionnaireFilters = ({
     </form>
   );
 };
-
