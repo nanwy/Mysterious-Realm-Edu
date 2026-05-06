@@ -1,20 +1,19 @@
 "use client";
 
 import { queryOptions } from "@tanstack/react-query";
+import type { QuestionnaireListRequest } from "@workspace/api";
 import { fetchQuestionnaires } from "./api";
-import type { QuestionnaireQueryState } from "./types";
 
 export const questionnaireKeys = {
   all: ["questionnaire"] as const,
-  list: (query: QuestionnaireQueryState) =>
-    [...questionnaireKeys.all, "list", query.keyword, query.page] as const,
+  list: (query: QuestionnaireListRequest) =>
+    [...questionnaireKeys.all, "list", query.name, query.pageNo] as const,
 };
 
 export const questionnaireQueryOptions = {
-  list: (query: QuestionnaireQueryState) =>
+  list: (query: QuestionnaireListRequest) =>
     queryOptions({
       queryKey: questionnaireKeys.list(query),
       queryFn: () => fetchQuestionnaires(query),
     }),
 };
-

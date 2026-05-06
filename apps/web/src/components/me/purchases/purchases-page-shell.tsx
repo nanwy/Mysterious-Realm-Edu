@@ -231,11 +231,11 @@ async function fetchPurchases(query: PurchaseQuery) {
           examTitle: query.keyword.trim(),
         };
 
-  const response =
+  const unwrapped =
     query.tab === "course"
-      ? await api.order.selectPurchaseCourseList(payload)
-      : await api.order.selectPurchaseExamList(payload);
-  const result = toRecordOrEmpty(unwrapEnvelope(response)) as PurchaseListPayload;
+      ? unwrapEnvelope(await api.order.selectPurchaseCourseList(payload))
+      : unwrapEnvelope(await api.order.selectPurchaseExamList(payload));
+  const result = toRecordOrEmpty(unwrapped) as PurchaseListPayload;
   const sourceRecords = Array.isArray(result.records) ? result.records : [];
 
   return {

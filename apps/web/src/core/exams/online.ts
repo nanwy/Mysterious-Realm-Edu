@@ -1,6 +1,57 @@
-import type { ExamOnlineAnswerDraft, ExamOnlineQuestion } from "./types";
+import {
+  EXAM_QUESTION_TYPE,
+  type ExamAnswerDetail,
+  type ExamDetailResponse,
+  type ExamQuestionType,
+} from "@workspace/api";
 
-export const SELECT_QUESTION_TYPES = new Set([1, 2, 3]);
+export interface ExamOnlineOption {
+  id: string;
+  tag: string;
+  content: string;
+}
+
+export interface ExamOnlineQuestion {
+  id: string;
+  index: number;
+  title: string;
+  type: ExamQuestionType;
+  typeName: string;
+  score: number;
+  options: ExamOnlineOption[];
+  subQuestions: ExamOnlineQuestion[];
+}
+
+export interface ExamOnlineAnswerGroup {
+  typeName: string;
+  questionType: ExamQuestionType;
+  questionCount: number;
+  questionScore: number;
+  indexes: number[];
+}
+
+export type ExamOnlineAnswerDraft = ExamAnswerDetail;
+
+export interface ExamOnlineSession {
+  examId: string;
+  userExamId: string;
+  detail: ExamDetailResponse | null;
+  submitted: boolean;
+  resultDetailVisible: boolean;
+  limitTime: string;
+  remainSeconds: number | null;
+  statusMessage: string;
+  warning: string | null;
+  questions: ExamOnlineQuestion[];
+  answerGroups: ExamOnlineAnswerGroup[];
+  cachedAnswers: ExamOnlineAnswerDraft[];
+}
+
+export const SELECT_QUESTION_TYPES: ReadonlySet<ExamQuestionType> = new Set([
+  EXAM_QUESTION_TYPE.RADIO,
+  EXAM_QUESTION_TYPE.MULTI,
+  EXAM_QUESTION_TYPE.JUDGE,
+]);
 
 export const formatExamSeconds = (value: number | null) => {
   if (value === null) {
@@ -41,7 +92,8 @@ export const parseBlankAnswer = (value: string | undefined) => {
   }
 };
 
-export const makeAnswerKey = (index: number | string) => String(index);
+export const makeAnswerKey = (index: number | string | undefined) =>
+  String(index ?? "");
 
 export const replaceOnlineAnswer = (
   answers: ExamOnlineAnswerDraft[],
@@ -63,22 +115,25 @@ export const buildOptionAnswerDraft = (
 ): ExamOnlineAnswerDraft | null => {
   const currentIds = currentAnswer?.answers ?? [];
   const currentIndexes = currentAnswer?.answerIndex ?? [];
+  const optionKey = String(optionIndex);
   const isSelected = currentIds.includes(optionId);
-  const isSingle = question.type === 1 || question.type === 3;
+  const isSingle =
+    question.type === EXAM_QUESTION_TYPE.RADIO ||
+    question.type === EXAM_QUESTION_TYPE.JUDGE;
   const nextIds = isSelected
     ? currentIds.filter((item) => item !== optionId)
     : isSingle
       ? [optionId]
       : [...currentIds, optionId];
   const nextIndexes = isSelected
-    ? currentIndexes.filter((item) => item !== optionIndex)
+    ? currentIndexes.filter((item) => item !== optionKey)
     : isSingle
-      ? [optionIndex]
-      : [...currentIndexes, optionIndex];
+      ? [optionKey]
+      : [...currentIndexes, optionKey];
 
   return nextIds.length
     ? {
-        index: question.index,
+        index: String(question.index),
         questionType: question.type,
         answers: nextIds,
         answerIndex: nextIndexes,
@@ -92,7 +147,7 @@ export const buildSubjectiveAnswerDraft = (
 ): ExamOnlineAnswerDraft | null =>
   value.trim()
     ? {
-        index: question.index,
+        index: String(question.index),
         questionType: question.type,
         subjectiveAnswer: value,
       }
@@ -112,7 +167,7 @@ export const buildBlankAnswerDraft = (
 
   return filled.length
     ? {
-        index: question.index,
+        index: String(question.index),
         questionType: question.type,
         blankAnswer: JSON.stringify(filled),
       }
@@ -123,7 +178,7 @@ export const isQuestionAnswered = (
   question: ExamOnlineQuestion,
   answers: ExamOnlineAnswerDraft[]
 ) => {
-  if (question.type === 6) {
+  if (question.type === EXAM_QUESTION_TYPE.COMBINATION) {
     return answers.some((answer) =>
       makeAnswerKey(answer.index).startsWith(`${question.index}.`)
     );
@@ -141,3 +196,25 @@ export const getAnswerForQuestion = (
   answers.find(
     (answer) => makeAnswerKey(answer.index) === String(question.index)
   );
+
+export const shouldRecordScreenSwitch = ({
+  leaveOn,
+  leaveTime,
+  leftAt,
+  returnedAt,
+}: {
+  leaveOn: boolean;
+  leaveTime: number | null;
+  leftAt: number | null;
+  returnedAt: number;
+}) =>
+  leaveOn &&
+  leftAt !== null &&
+  leaveTime !== null &&
+  leaveTime >= 0 &&
+  (returnedAt - leftAt) / 1000 > leaveTime;
+
+export const getRemainingScreenSwitchTimes = (
+  totalLeaveTimes: number | null,
+  usedTimes: number
+) => (totalLeaveTimes === null ? null : totalLeaveTimes - usedTimes);

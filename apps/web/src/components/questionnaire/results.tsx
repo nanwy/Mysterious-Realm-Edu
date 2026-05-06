@@ -1,5 +1,6 @@
 "use client";
 
+import type { QuestionnaireRecord } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, Button, Skeleton } from "@workspace/ui";
 import {
@@ -8,7 +9,29 @@ import {
   ClipboardList,
   RefreshCcw,
 } from "lucide-react";
-import type { QuestionnaireItem } from "@/core/questionnaire";
+
+const getQuestionnaireTitle = (item: QuestionnaireRecord, index: number) =>
+  String(item.name ?? "").trim() || `问卷 ${index + 1}`;
+
+const getQuestionnaireDescription = (item: QuestionnaireRecord) =>
+  String(item.remark ?? "").trim() ||
+  "暂无问卷说明，可进入详情或填写页查看完整内容。";
+
+const getQuestionnaireCategory = (item: QuestionnaireRecord) =>
+  String(item.type_dictText ?? item.type ?? "").trim() || "调查";
+
+const getQuestionnaireStatus = (item: QuestionnaireRecord) =>
+  String(item.status_dictText ?? item.publishStatus_dictText ?? "").trim() ||
+  "可参与";
+
+const getQuestionCount = (item: QuestionnaireRecord) =>
+  String(item.questionNum ?? "").trim() || "0";
+
+const getAnswerCount = (item: QuestionnaireRecord) =>
+  String(item.answerNum ?? "").trim() || "0";
+
+const getUpdatedAt = (item: QuestionnaireRecord) =>
+  String(item.updateTime ?? item.createTime ?? "").trim();
 
 const LoadingState = () => (
   <div
@@ -95,7 +118,7 @@ export const Results = ({
   keyword,
   onRetry,
 }: {
-  items: QuestionnaireItem[];
+  items: QuestionnaireRecord[];
   loading: boolean;
   error: string | null;
   keyword: string;
@@ -114,66 +137,79 @@ export const Results = ({
   }
 
   return (
-    <MotionStagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" delayChildren={0.08}>
-      {items.map((item) => (
-        <MotionItem key={item.id}>
-          <article className="group relative flex h-full flex-col justify-between overflow-hidden rounded-[30px] border border-border/80 bg-card/95 p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg">
-            <div
-              className="pointer-events-none absolute inset-x-5 top-0 h-24 rounded-b-[28px] bg-primary/6 blur-2xl transition duration-300 group-hover:bg-primary/10"
-              aria-hidden="true"
-            />
-            <div className="relative space-y-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    <Badge>{item.category}</Badge>
-                    <Badge variant="outline">{item.status || "可参与"}</Badge>
+    <MotionStagger
+      className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+      delayChildren={0.08}
+    >
+      {items.map((item, index) => {
+        const title = getQuestionnaireTitle(item, index);
+        const updatedAt = getUpdatedAt(item);
+
+        return (
+          <MotionItem key={item.id ?? `${title}-${index}`}>
+            <article className="group relative flex h-full flex-col justify-between overflow-hidden rounded-[30px] border border-border/80 bg-card/95 p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg">
+              <div
+                className="pointer-events-none absolute inset-x-5 top-0 h-24 rounded-b-[28px] bg-primary/6 blur-2xl transition duration-300 group-hover:bg-primary/10"
+                aria-hidden="true"
+              />
+              <div className="relative space-y-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge>{getQuestionnaireCategory(item)}</Badge>
+                      <Badge variant="outline">
+                        {getQuestionnaireStatus(item)}
+                      </Badge>
+                    </div>
+                    <h3 className="line-clamp-2 text-xl font-semibold leading-tight text-foreground">
+                      {title}
+                    </h3>
                   </div>
-                  <h3 className="line-clamp-2 text-xl font-semibold leading-tight text-foreground">
-                    {item.title}
-                  </h3>
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-background/80 text-muted-foreground">
+                    <ClipboardList className="size-5" />
+                  </div>
                 </div>
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-background/80 text-muted-foreground">
-                  <ClipboardList className="size-5" />
-                </div>
-              </div>
-              <p className="line-clamp-4 min-h-[7rem] text-sm leading-7 text-muted-foreground">
-                {item.description}
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[24px] border border-border/70 bg-background/80 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                    题目数
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">
-                    {item.questionCount} 题
-                  </p>
-                </div>
-                <div className="rounded-[24px] border border-border/70 bg-background/80 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                    答卷数
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">
-                    {item.answerCount} 份
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="relative mt-5 flex items-center justify-between gap-3 rounded-[24px] border border-border/70 bg-background/70 px-4 py-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">问卷任务</p>
-                <p className="text-xs text-muted-foreground">
-                  {item.updatedAt ? `最近同步 ${item.updatedAt}` : "已接入真实问卷列表接口"}
+                <p className="line-clamp-4 min-h-[7rem] text-sm leading-7 text-muted-foreground">
+                  {getQuestionnaireDescription(item)}
                 </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[24px] border border-border/70 bg-background/80 px-4 py-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                      题目数
+                    </p>
+                    <p className="mt-2 text-2xl font-semibold text-foreground">
+                      {getQuestionCount(item)} 题
+                    </p>
+                  </div>
+                  <div className="rounded-[24px] border border-border/70 bg-background/80 px-4 py-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                      答卷数
+                    </p>
+                    <p className="mt-2 text-2xl font-semibold text-foreground">
+                      {getAnswerCount(item)} 份
+                    </p>
+                  </div>
+                </div>
               </div>
-              <span className="text-xs font-medium uppercase tracking-[0.18em] text-primary">
-                Ready
-              </span>
-            </div>
-          </article>
-        </MotionItem>
-      ))}
+              <div className="relative mt-5 flex items-center justify-between gap-3 rounded-[24px] border border-border/70 bg-background/70 px-4 py-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-foreground">
+                    问卷任务
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {updatedAt
+                      ? `最近同步 ${updatedAt}`
+                      : "已接入真实问卷列表接口"}
+                  </p>
+                </div>
+                <span className="text-xs font-medium uppercase tracking-[0.18em] text-primary">
+                  Ready
+                </span>
+              </div>
+            </article>
+          </MotionItem>
+        );
+      })}
     </MotionStagger>
   );
 };
-

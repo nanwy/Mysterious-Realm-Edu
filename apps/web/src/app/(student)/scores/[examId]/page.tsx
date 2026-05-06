@@ -1,19 +1,11 @@
+import type { ExamListRequest } from "@workspace/api";
 import { StudentShell } from "@workspace/ui";
 import { ScoreDetailsPage } from "@/components/scores/details/page";
-import { SCORE_PASS_STATE, SCORES_PAGE_SIZE } from "@/core/scores";
-
-const toPositivePage = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  const page = Number(raw);
-  return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-};
-
-const toPassedFilter = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  return raw === SCORE_PASS_STATE.PASSED || raw === SCORE_PASS_STATE.FAILED
-    ? raw
-    : SCORE_PASS_STATE.ALL;
-};
+import {
+  resolveScorePageParam,
+  resolveScorePassedParam,
+  SCORES_PAGE_SIZE,
+} from "@/core/scores";
 
 const ScoreDetailsPageRoute = async ({
   params,
@@ -32,11 +24,13 @@ const ScoreDetailsPageRoute = async ({
     >
       <ScoreDetailsPage
         examId={routeParams.examId}
-        initialFilters={{
-          passed: toPassedFilter(query.passed),
-          pageNo: toPositivePage(query.page),
-          pageSize: SCORES_PAGE_SIZE,
-        }}
+        initialFilters={
+          {
+            passed: resolveScorePassedParam(query.passed),
+            pageNo: resolveScorePageParam(query.page),
+            pageSize: SCORES_PAGE_SIZE,
+          } satisfies ExamListRequest
+        }
       />
     </StudentShell>
   );

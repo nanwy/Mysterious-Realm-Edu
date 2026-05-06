@@ -4,6 +4,12 @@ import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import {
+  EXAM_PAPER_STATE,
+  EXAM_PASSED_STATE,
+  type ExamDetailResponse,
+  type ExamListRequest,
+} from "@workspace/api";
+import {
   Button,
   EmptyState,
   Field,
@@ -32,31 +38,68 @@ import {
   SCORE_PASS_STATE,
   scoreQueryOptions,
 } from "@/core/scores";
-import type {
-  ScoreDetailsFiltersState,
-  ScorePassFilter,
-} from "@/core/scores";
 
-const createQueryString = (filters: ScoreDetailsFiltersState) => {
+const createQueryString = (filters: ExamListRequest) => {
   const params = new URLSearchParams();
+  const pageNo = Number(filters.pageNo ?? 1);
 
-  if (filters.pageNo > 1) {
-    params.set("page", String(filters.pageNo));
+  if (Number.isFinite(pageNo) && pageNo > 1) {
+    params.set("page", String(Math.floor(pageNo)));
   }
 
-  if (filters.passed !== SCORE_PASS_STATE.ALL) {
-    params.set("passed", filters.passed);
+  if (filters.passed) {
+    params.set("passed", String(filters.passed));
   }
 
   const query = params.toString();
   return query ? `?${query}` : "";
 };
 
-const getPassedSummary = (value: ScorePassFilter) =>
-  SCORE_PASS_OPTIONS.find((item) => item.value === value)?.label ?? "全部成绩";
+const getPassedSummary = (value: ExamListRequest["passed"]) =>
+  SCORE_PASS_OPTIONS.find((item) => item.value === String(value ?? ""))
+    ?.label ?? "全部成绩";
 
-const renderPassedLabel = (value: boolean | null) => {
-  if (value === true) {
+const isPassed = (value: ExamDetailResponse["passed"]) =>
+  value === EXAM_PASSED_STATE.PASSED;
+
+const isFailed = (value: ExamDetailResponse["passed"]) =>
+  value === EXAM_PASSED_STATE.NOT_PASSED;
+
+const resolvePassedValue = (value: string) => {
+  if (value === SCORE_PASS_STATE.PASSED) {
+    return EXAM_PASSED_STATE.PASSED;
+  }
+
+  if (value === SCORE_PASS_STATE.FAILED) {
+    return EXAM_PASSED_STATE.NOT_PASSED;
+  }
+
+  return undefined;
+};
+
+const buildFormValues = (filters: ExamListRequest) => ({
+  ...filters,
+  passed: filters.passed ? String(filters.passed) : SCORE_PASS_STATE.ALL,
+});
+
+const getStateLabel = (value: ExamDetailResponse["state"]) => {
+  if (value === EXAM_PAPER_STATE.FINISHED) {
+    return "已阅卷";
+  }
+
+  if (value === EXAM_PAPER_STATE.WAIT_REVIEW) {
+    return "待阅卷";
+  }
+
+  if (value === EXAM_PAPER_STATE.IN_PROGRESS) {
+    return "考试中";
+  }
+
+  return "待同步";
+};
+
+const renderPassedLabel = (value: ExamDetailResponse["passed"]) => {
+  if (isPassed(value)) {
     return (
       <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
         通过
@@ -64,7 +107,7 @@ const renderPassedLabel = (value: boolean | null) => {
     );
   }
 
-  if (value === false) {
+  if (isFailed(value)) {
     return (
       <span className="inline-flex rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
         未通过
@@ -84,35 +127,40 @@ export const ScoreDetailsPage = ({
   initialFilters,
 }: {
   examId: string;
-  initialFilters: ScoreDetailsFiltersState;
+  initialFilters: ExamListRequest;
 }) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
-  const detailsQuery = useQuery(scoreQueryOptions.details(examId, initialFilters));
+  const detailsQuery = useQuery(
+    scoreQueryOptions.details(examId, initialFilters)
+  );
   const records = detailsQuery.data?.records ?? [];
   const total = detailsQuery.data?.total ?? 0;
   const error = detailsQuery.error
     ? normalizeScoreError(detailsQuery.error)
     : null;
   const isBusy = detailsQuery.isLoading || isPending;
-  const totalPages = Math.max(1, Math.ceil(total / initialFilters.pageSize));
+  const pageSize = Number(initialFilters.pageSize ?? 10);
+  const pageNo = Number(initialFilters.pageNo ?? 1);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const form = useForm({
-    defaultValues: initialFilters,
+    defaultValues: buildFormValues(initialFilters),
     onSubmit: ({ value }) => {
       navigate({
         ...value,
+        passed: resolvePassedValue(value.passed),
         pageNo: 1,
       });
     },
   });
 
   useEffect(() => {
-    form.reset(initialFilters);
+    form.reset(buildFormValues(initialFilters));
   }, [form, initialFilters]);
 
-  const navigate = (nextFilters: ScoreDetailsFiltersState) => {
+  const navigate = (nextFilters: ExamListRequest) => {
     startTransition(() => {
       router.push(`${pathname}${createQueryString(nextFilters)}`, {
         scroll: false,
@@ -128,7 +176,10 @@ export const ScoreDetailsPage = ({
           title="考试成绩明细"
           description="按考试维度查看成绩明细，支持是否通过筛选、分页浏览，以及接口失败时的明确说明。"
         >
-          <div className="grid gap-6" data-testid="score-details-filter-section">
+          <div
+            className="grid gap-6"
+            data-testid="score-details-filter-section"
+          >
             <div className="grid gap-4 md:grid-cols-3">
               <MotionReveal direction="up" delay={0.02}>
                 <div className="rounded-[24px] border border-border bg-muted/40 p-5">
@@ -156,10 +207,15 @@ export const ScoreDetailsPage = ({
                 <div className="rounded-[24px] border border-border bg-muted/40 p-5">
                   <p className="text-sm text-muted-foreground">接口状态</p>
                   <p className="mt-3 text-xl font-semibold text-foreground">
-                    {error ? "请求失败" : detailsQuery.isSuccess ? "已加载" : "准备中"}
+                    {error
+                      ? "请求失败"
+                      : detailsQuery.isSuccess
+                        ? "已加载"
+                        : "准备中"}
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {error ?? "接口返回后会在下方渲染考试时间、交卷时间、得分和是否通过。"}
+                    {error ??
+                      "接口返回后会在下方渲染考试时间、交卷时间、得分和是否通过。"}
                   </p>
                 </div>
               </MotionReveal>
@@ -183,7 +239,7 @@ export const ScoreDetailsPage = ({
                       name={field.name}
                       value={field.state.value}
                       onValueChange={(value) =>
-                        field.handleChange(value as ScorePassFilter)
+                        field.handleChange(value ?? SCORE_PASS_STATE.ALL)
                       }
                     >
                       <SelectTrigger id="score-details-passed">
@@ -216,7 +272,7 @@ export const ScoreDetailsPage = ({
                   onClick={() =>
                     navigate({
                       ...initialFilters,
-                      passed: SCORE_PASS_STATE.ALL,
+                      passed: undefined,
                       pageNo: 1,
                     })
                   }
@@ -234,7 +290,10 @@ export const ScoreDetailsPage = ({
           title="成绩明细结果"
           description="结果覆盖考试名称、考试时间、交卷时间、考试用时、得分、及格分、阅卷状态与是否通过。"
         >
-          <div className="grid gap-4" data-testid="score-details-results-section">
+          <div
+            className="grid gap-4"
+            data-testid="score-details-results-section"
+          >
             {isBusy ? (
               <div className="grid gap-3">
                 {Array.from({ length: 4 }).map((_, index) => (
@@ -283,94 +342,104 @@ export const ScoreDetailsPage = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {records.map((record) => (
-                        <TableRow key={record.id} className="bg-background/80">
-                          <TableCell className="whitespace-normal px-4 py-4 font-medium text-foreground">
-                            {record.examTitle}
-                          </TableCell>
-                          <TableCell className="py-4 text-muted-foreground">
-                            {record.createTime}
-                          </TableCell>
-                          <TableCell className="py-4 text-muted-foreground">
-                            {record.commitTime}
-                          </TableCell>
-                          <TableCell className="py-4 text-muted-foreground">
-                            {record.userTime}
-                          </TableCell>
-                          <TableCell className="py-4 text-muted-foreground">
-                            {record.userScore}
-                          </TableCell>
-                          <TableCell className="py-4 text-muted-foreground">
-                            {record.qualifyScore}
-                          </TableCell>
-                          <TableCell className="py-4 text-muted-foreground">
-                            {record.stateLabel}
-                          </TableCell>
-                          <TableCell className="px-4 py-4">
-                            {renderPassedLabel(record.passed)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {records.map((record, index) => {
+                        const id = record.id ?? `score-detail-${index + 1}`;
+                        const examTitle =
+                          record.examTitle?.trim() || `考试记录 ${index + 1}`;
+                        return (
+                          <TableRow key={id} className="bg-background/80">
+                            <TableCell className="whitespace-normal px-4 py-4 font-medium text-foreground">
+                              {examTitle}
+                            </TableCell>
+                            <TableCell className="py-4 text-muted-foreground">
+                              {record.createTime ?? "待同步"}
+                            </TableCell>
+                            <TableCell className="py-4 text-muted-foreground">
+                              {record.commitTime ?? "待同步"}
+                            </TableCell>
+                            <TableCell className="py-4 text-muted-foreground">
+                              {record.userTime ?? "待同步"}
+                            </TableCell>
+                            <TableCell className="py-4 text-muted-foreground">
+                              {record.userScore ?? "待同步"}
+                            </TableCell>
+                            <TableCell className="py-4 text-muted-foreground">
+                              {record.qualifyScore ?? "待同步"}
+                            </TableCell>
+                            <TableCell className="py-4 text-muted-foreground">
+                              {getStateLabel(record.state)}
+                            </TableCell>
+                            <TableCell className="px-4 py-4">
+                              {renderPassedLabel(record.passed)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </MotionItem>
 
                 <div className="grid gap-3 md:hidden">
-                  {records.map((record) => (
-                    <MotionItem
-                      key={record.id}
-                      className="rounded-[24px] border border-border bg-background/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-lg font-semibold text-foreground">
-                            {record.examTitle}
-                          </p>
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            考试时间：{record.createTime}
-                          </p>
+                  {records.map((record, index) => {
+                    const id = record.id ?? `score-detail-${index + 1}`;
+                    const examTitle =
+                      record.examTitle?.trim() || `考试记录 ${index + 1}`;
+                    return (
+                      <MotionItem
+                        key={id}
+                        className="rounded-[24px] border border-border bg-background/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-lg font-semibold text-foreground">
+                              {examTitle}
+                            </p>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              考试时间：{record.createTime ?? "待同步"}
+                            </p>
+                          </div>
+                          {renderPassedLabel(record.passed)}
                         </div>
-                        {renderPassedLabel(record.passed)}
-                      </div>
-                      <div className="mt-4 grid grid-cols-2 gap-3 rounded-[20px] bg-muted/50 p-4">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            交卷时间
-                          </p>
-                          <p className="mt-2 text-base font-semibold text-foreground">
-                            {record.commitTime}
-                          </p>
+                        <div className="mt-4 grid grid-cols-2 gap-3 rounded-[20px] bg-muted/50 p-4">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                              交卷时间
+                            </p>
+                            <p className="mt-2 text-base font-semibold text-foreground">
+                              {record.commitTime}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                              考试用时
+                            </p>
+                            <p className="mt-2 text-base font-semibold text-foreground">
+                              {record.userTime ?? "待同步"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                              得分
+                            </p>
+                            <p className="mt-2 text-base font-semibold text-foreground">
+                              {record.userScore ?? "待同步"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                              及格分
+                            </p>
+                            <p className="mt-2 text-base font-semibold text-foreground">
+                              {record.qualifyScore ?? "待同步"}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            考试用时
-                          </p>
-                          <p className="mt-2 text-base font-semibold text-foreground">
-                            {record.userTime}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            得分
-                          </p>
-                          <p className="mt-2 text-base font-semibold text-foreground">
-                            {record.userScore}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            及格分
-                          </p>
-                          <p className="mt-2 text-base font-semibold text-foreground">
-                            {record.qualifyScore}
-                          </p>
-                        </div>
-                      </div>
-                      <p className="mt-4 text-sm text-muted-foreground">
-                        阅卷状态：{record.stateLabel}
-                      </p>
-                    </MotionItem>
-                  ))}
+                        <p className="mt-4 text-sm text-muted-foreground">
+                          阅卷状态：{getStateLabel(record.state)}
+                        </p>
+                      </MotionItem>
+                    );
+                  })}
                 </div>
               </MotionStagger>
             )}
@@ -381,7 +450,10 @@ export const ScoreDetailsPage = ({
       <MotionItem>
         <MotionReveal direction="up" delay={0.12}>
           <ResultsPagination
-            page={Math.min(initialFilters.pageNo, totalPages)}
+            page={Math.min(
+              Number.isFinite(pageNo) && pageNo > 0 ? Math.floor(pageNo) : 1,
+              totalPages
+            )}
             pageCount={totalPages}
             total={total}
             pending={isBusy}

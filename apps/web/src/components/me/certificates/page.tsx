@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { CertificateListRequest } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import {
   Badge,
@@ -18,35 +19,55 @@ import { ResultsPagination } from "@/components/common/results-pagination";
 import {
   CERTIFICATE_TYPE,
   CERTIFICATE_TYPE_OPTIONS,
-  type CertificateFiltersState,
   certificateQueryOptions,
-  type CertificateTypeFilter,
   normalizeCertificatesError,
 } from "@/core/certificates";
 
-const createQueryString = (filters: CertificateFiltersState) => {
+const createQueryString = (filters: CertificateListRequest) => {
   const params = new URLSearchParams();
+  const pageNo = resolvePositiveInteger(filters.pageNo, 1);
 
-  if (filters.pageNo > 1) {
-    params.set("page", String(filters.pageNo));
+  if (pageNo > 1) {
+    params.set("page", String(pageNo));
   }
 
-  if (filters.certificateType !== CERTIFICATE_TYPE.ALL) {
-    params.set("type", filters.certificateType);
+  if (filters.certificateType) {
+    params.set("type", String(filters.certificateType));
   }
 
   const query = params.toString();
   return query ? `?${query}` : "";
 };
 
-const getTypeLabel = (value: CertificateTypeFilter) =>
-  CERTIFICATE_TYPE_OPTIONS.find((option) => option.value === value)?.label ??
-  "全部";
+const getTypeLabel = (value: CertificateListRequest["certificateType"]) =>
+  CERTIFICATE_TYPE_OPTIONS.find(
+    (option) => option.value === String(value ?? "")
+  )?.label ?? "全部";
+
+const resolveCertificateType = (
+  value: string
+): CertificateListRequest["certificateType"] => {
+  if (value === CERTIFICATE_TYPE.STUDY || value === CERTIFICATE_TYPE.EXAM) {
+    return value;
+  }
+
+  return undefined;
+};
+
+const resolvePositiveInteger = (
+  value: CertificateListRequest["pageNo"],
+  fallback: number
+) => {
+  const numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) && numberValue > 0
+    ? Math.floor(numberValue)
+    : fallback;
+};
 
 export const CertificatesPage = ({
   initialFilters,
 }: {
-  initialFilters: CertificateFiltersState;
+  initialFilters: CertificateListRequest;
 }) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -61,7 +82,7 @@ export const CertificatesPage = ({
     ? normalizeCertificatesError(certificatesQuery.error)
     : null;
 
-  const navigate = (nextFilters: CertificateFiltersState) => {
+  const navigate = (nextFilters: CertificateListRequest) => {
     startTransition(() => {
       router.push(`${pathname}${createQueryString(nextFilters)}`, {
         scroll: false,
@@ -70,21 +91,17 @@ export const CertificatesPage = ({
   };
 
   const updateType = (nextValue: string) => {
-    const certificateType = CERTIFICATE_TYPE_OPTIONS.some(
-      (option) => option.value === nextValue
-    )
-      ? (nextValue as CertificateTypeFilter)
-      : CERTIFICATE_TYPE.ALL;
-
     navigate({
       ...initialFilters,
-      certificateType,
+      certificateType: resolveCertificateType(nextValue),
       pageNo: 1,
     });
   };
 
-  const totalPages = Math.max(1, Math.ceil(total / initialFilters.pageSize));
-  const currentPage = Math.min(initialFilters.pageNo, totalPages);
+  const pageSize = resolvePositiveInteger(initialFilters.pageSize, 10);
+  const pageNo = resolvePositiveInteger(initialFilters.pageNo, 1);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const currentPage = Math.min(pageNo, totalPages);
   const currentTypeLabel = getTypeLabel(initialFilters.certificateType);
   const staticConfigured = Boolean(process.env.NEXT_PUBLIC_STATIC_BASE_URL);
   const previewConfigured = Boolean(process.env.NEXT_PUBLIC_KKFILEVIEW_URL);
@@ -122,7 +139,8 @@ export const CertificatesPage = ({
                     {listStatus}
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {error ?? "列表展示用户、证书、考试、课程与发证时间等核心字段。"}
+                    {error ??
+                      "列表展示用户、证书、考试、课程与发证时间等核心字段。"}
                   </p>
                 </div>
               </MotionReveal>
@@ -146,9 +164,7 @@ export const CertificatesPage = ({
             </div>
 
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <Badge variant="outline">
-                分页 {initialFilters.pageSize} 条/页
-              </Badge>
+              <Badge variant="outline">分页 {pageSize} 条/页</Badge>
               <Badge variant="outline">
                 {staticConfigured ? "静态文件地址已配置" : "静态文件地址未配置"}
               </Badge>
@@ -159,7 +175,7 @@ export const CertificatesPage = ({
 
             <div data-testid="certificates-tabs">
               <Tabs
-                value={initialFilters.certificateType}
+                value={String(initialFilters.certificateType ?? "")}
                 onValueChange={updateType}
               >
                 <TabsList aria-label="证书分类">

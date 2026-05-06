@@ -1,15 +1,15 @@
 "use client";
 
 import { queryOptions } from "@tanstack/react-query";
+import type { ExamListRequest } from "@workspace/api";
 import { fetchExamList, fetchExamOnlineSession, fetchExamPreview } from "./api";
-import type { ExamFiltersState } from "./types";
 
 export const examKeys = {
   all: ["exams"] as const,
-  list: (filters: ExamFiltersState) =>
+  lists: () => [...examKeys.all, "list"] as const,
+  list: (filters: ExamListRequest) =>
     [
-      ...examKeys.all,
-      "list",
+      ...examKeys.lists(),
       filters.examTitle,
       filters.examType,
       filters.state,
@@ -17,11 +17,12 @@ export const examKeys = {
       filters.pageSize,
     ] as const,
   preview: (examId: string) => [...examKeys.all, "preview", examId] as const,
-  online: (examId: string) => [...examKeys.all, "online", examId] as const,
+  online: (examId: string, userExamId?: string) =>
+    [...examKeys.all, "online", examId, userExamId ?? "new"] as const,
 };
 
 export const examQueryOptions = {
-  list: (filters: ExamFiltersState) =>
+  list: (filters: ExamListRequest) =>
     queryOptions({
       queryKey: examKeys.list(filters),
       queryFn: () => fetchExamList(filters),
@@ -32,10 +33,10 @@ export const examQueryOptions = {
       queryFn: () => fetchExamPreview(examId),
       enabled: Boolean(examId),
     }),
-  online: (examId: string) =>
+  online: (examId: string, userExamId?: string) =>
     queryOptions({
-      queryKey: examKeys.online(examId),
-      queryFn: () => fetchExamOnlineSession(examId),
+      queryKey: examKeys.online(examId, userExamId),
+      queryFn: () => fetchExamOnlineSession(examId, userExamId),
       enabled: Boolean(examId),
     }),
 };

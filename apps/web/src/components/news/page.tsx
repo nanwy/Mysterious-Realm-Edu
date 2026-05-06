@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { NewsQueryState } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge } from "@workspace/ui";
 import { ArrowRight, Flame, ScanSearch, Sparkles } from "lucide-react";
@@ -18,7 +19,6 @@ import {
   newsQueryOptions,
   normalizeNewsError,
 } from "@/core/news";
-import type { NewsQueryState } from "@/core/news";
 
 const createQueryString = (query: NewsQueryState) => {
   const params = new URLSearchParams();
@@ -35,7 +35,11 @@ const createQueryString = (query: NewsQueryState) => {
   return result ? `?${result}` : "";
 };
 
-const getStatusCopy = (error: string | null, loading: boolean, total: number) => {
+const getStatusCopy = (
+  error: string | null,
+  loading: boolean,
+  total: number
+) => {
   if (error) {
     return "接口异常";
   }
@@ -47,7 +51,11 @@ const getStatusCopy = (error: string | null, loading: boolean, total: number) =>
   return `${total} 条资讯`;
 };
 
-export const NewsPage = ({ initialQuery }: { initialQuery: NewsQueryState }) => {
+export const NewsPage = ({
+  initialQuery,
+}: {
+  initialQuery: NewsQueryState;
+}) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
@@ -75,12 +83,16 @@ export const NewsPage = ({ initialQuery }: { initialQuery: NewsQueryState }) => 
     {
       label: "当前模式",
       value: currentModeLabel,
-      detail: hasKeyword ? "优先返回标题命中的结果" : "推荐区、热榜与列表同步承接",
+      detail: hasKeyword
+        ? "优先返回标题命中的结果"
+        : "推荐区、热榜与列表同步承接",
     },
     {
       label: "当前关键词",
       value: initialQuery.keyword || "全部资讯",
-      detail: hasKeyword ? "搜索建议跟随输入变化" : "未限定关键词，展示完整资讯流",
+      detail: hasKeyword
+        ? "搜索建议跟随输入变化"
+        : "未限定关键词，展示完整资讯流",
     },
     {
       label: "列表状态",
@@ -118,19 +130,25 @@ export const NewsPage = ({ initialQuery }: { initialQuery: NewsQueryState }) => 
                   <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                     <span>内容门户</span>
                     <span className="rounded-full border border-border/70 bg-background/80 px-3 py-1 text-[10px] tracking-[0.18em] text-muted-foreground">
-                      {hasKeyword ? `检索 ${initialQuery.keyword}` : "今日资讯流"}
+                      {hasKeyword
+                        ? `检索 ${initialQuery.keyword}`
+                        : "今日资讯流"}
                     </span>
                   </div>
                   <h2 className="max-w-3xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     把旧站资讯入口收束成可浏览、可搜索、可继续追踪的平台阅读页。
                   </h2>
                   <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
-                    这轮不再把 `/news` 停留在接口说明卡。推荐、热榜、搜索与结果区现在围绕同一条阅读主路径展开，用户进来先看到平台重点，再继续深入。
+                    这轮不再把 `/news`
+                    停留在接口说明卡。推荐、热榜、搜索与结果区现在围绕同一条阅读主路径展开，用户进来先看到平台重点，再继续深入。
                   </p>
                 </div>
               </div>
 
-              <MotionStagger className="grid gap-3 md:grid-cols-3" delayChildren={0.08}>
+              <MotionStagger
+                className="grid gap-3 md:grid-cols-3"
+                delayChildren={0.08}
+              >
                 {summaryItems.map((item) => (
                   <MotionItem key={item.label}>
                     <div className="rounded-[24px] border border-border/70 bg-background/75 px-4 py-4">
@@ -148,7 +166,10 @@ export const NewsPage = ({ initialQuery }: { initialQuery: NewsQueryState }) => 
                 ))}
               </MotionStagger>
 
-              <MotionStagger className="grid gap-3 md:grid-cols-3" delayChildren={0.08}>
+              <MotionStagger
+                className="grid gap-3 md:grid-cols-3"
+                delayChildren={0.08}
+              >
                 {editorialSignals.map((item) => {
                   const Icon = item.icon;
 
@@ -181,7 +202,9 @@ export const NewsPage = ({ initialQuery }: { initialQuery: NewsQueryState }) => 
                     阅读总览
                   </p>
                   <h3 className="text-2xl font-semibold tracking-tight text-foreground">
-                    {hasKeyword ? "当前正在关键词检索模式" : "先看推荐，再进入完整资讯流"}
+                    {hasKeyword
+                      ? "当前正在关键词检索模式"
+                      : "先看推荐，再进入完整资讯流"}
                   </h3>
                   <p className="text-sm leading-7 text-muted-foreground">
                     {hasKeyword

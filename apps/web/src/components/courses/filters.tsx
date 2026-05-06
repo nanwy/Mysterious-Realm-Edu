@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
+import type { CourseCategoryDetail } from "@workspace/api";
 import {
   Button,
   Field,
@@ -18,7 +19,6 @@ import {
 import {
   COURSE_ORDER_BY,
   COURSE_ORDER_BY_OPTIONS,
-  type CourseCategoryOption,
   type CourseFormValues,
 } from "@/core/courses";
 
@@ -30,7 +30,7 @@ export const CoursesFilters = ({
   onReset,
 }: {
   defaultValues: CourseFormValues;
-  categoryOptions: CourseCategoryOption[];
+  categoryOptions: CourseCategoryDetail[];
   pending: boolean;
   onSubmit: (values: CourseFormValues) => void;
   onReset: () => void;
@@ -137,7 +137,10 @@ export const CoursesFilters = ({
               <Field>
                 <FieldLabel htmlFor="courses-category">课程分类</FieldLabel>
                 <Select
-                  items={categoryOptions}
+                  items={categoryOptions.map((option) => ({
+                    value: option.id ?? "",
+                    label: option.name ?? option.id ?? "未命名分类",
+                  }))}
                   name={field.name}
                   value={field.state.value}
                   onValueChange={(value) => {
@@ -155,10 +158,10 @@ export const CoursesFilters = ({
                       <SelectLabel>课程分类</SelectLabel>
                       {categoryOptions.map((option) => (
                         <SelectItem
-                          key={option.value || "all"}
-                          value={option.value}
+                          key={option.id || "all"}
+                          value={option.id ?? ""}
                         >
-                          {option.label}
+                          {option.name ?? option.id ?? "未命名分类"}
                         </SelectItem>
                       ))}
                     </SelectGroup>

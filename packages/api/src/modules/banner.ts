@@ -1,11 +1,6 @@
-import { createApiClient, type ApiHttpClient } from "../client";
+import type { ApiHttpClient } from "../client";
+import type { BannerListResponse } from "../types/banner";
 
 export const createBannerApi = (client: ApiHttpClient) => ({
-  listBanners: () => client.post("/index/banner/list"),
+  listBanners: () => client.post<BannerListResponse>("/index/banner/list"),
 });
-
-const defaultBannerApi = createBannerApi(createApiClient());
-
-export function getBannerList() {
-  return defaultBannerApi.listBanners();
-}

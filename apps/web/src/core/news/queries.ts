@@ -1,12 +1,12 @@
 "use client";
 
 import { queryOptions } from "@tanstack/react-query";
+import type { NewsQueryState } from "@workspace/api";
 import {
   fetchNewsDetailData,
   fetchNewsPageData,
   fetchNewsSuggestions,
 } from "./api";
-import type { NewsQueryState } from "./types";
 
 export const newsKeys = {
   all: ["news"] as const,
@@ -36,4 +36,3 @@ export const newsQueryOptions = {
       enabled: Boolean(newsId),
     }),
 };
-

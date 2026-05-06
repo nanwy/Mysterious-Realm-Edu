@@ -1,12 +1,12 @@
 "use client";
 
 import { queryOptions } from "@tanstack/react-query";
+import type { ExamListRequest } from "@workspace/api";
 import { fetchScoreDetails, fetchScores } from "./api";
-import type { ScoreDetailsFiltersState, ScoreFiltersState } from "./types";
 
 export const scoreKeys = {
   all: ["scores"] as const,
-  list: (filters: ScoreFiltersState) =>
+  list: (filters: ExamListRequest) =>
     [
       ...scoreKeys.all,
       "list",
@@ -15,7 +15,7 @@ export const scoreKeys = {
       filters.pageNo,
       filters.pageSize,
     ] as const,
-  details: (examId: string, filters: ScoreDetailsFiltersState) =>
+  details: (examId: string, filters: ExamListRequest) =>
     [
       ...scoreKeys.all,
       "details",
@@ -27,16 +27,15 @@ export const scoreKeys = {
 };
 
 export const scoreQueryOptions = {
-  list: (filters: ScoreFiltersState) =>
+  list: (filters: ExamListRequest) =>
     queryOptions({
       queryKey: scoreKeys.list(filters),
       queryFn: () => fetchScores(filters),
     }),
-  details: (examId: string, filters: ScoreDetailsFiltersState) =>
+  details: (examId: string, filters: ExamListRequest) =>
     queryOptions({
       queryKey: scoreKeys.details(examId, filters),
       queryFn: () => fetchScoreDetails(examId, filters),
       enabled: Boolean(examId),
     }),
 };
-

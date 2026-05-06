@@ -1,19 +1,21 @@
 export const COURSES_PAGE_SIZE = 9;
 
 export enum COURSE_ORDER_BY {
-  DEFAULT = "",
-  LATEST = "1",
-  HOT = "2",
-  PRICE = "3",
+  DEFAULT = "1",
+  LATEST = "2",
+  COMMENTS = "3",
+  COLLECTS = "4",
+  LEARNERS = "5",
 }
 
 export type CourseOrderBy = COURSE_ORDER_BY;
 
 export const COURSE_ORDER_BY_OPTIONS = [
   { value: COURSE_ORDER_BY.DEFAULT, label: "综合排序" },
-  { value: COURSE_ORDER_BY.LATEST, label: "最新上架" },
-  { value: COURSE_ORDER_BY.HOT, label: "学习热度" },
-  { value: COURSE_ORDER_BY.PRICE, label: "价格优先" },
+  { value: COURSE_ORDER_BY.LATEST, label: "发布时间" },
+  { value: COURSE_ORDER_BY.COMMENTS, label: "评论数" },
+  { value: COURSE_ORDER_BY.COLLECTS, label: "收藏数" },
+  { value: COURSE_ORDER_BY.LEARNERS, label: "学习人数" },
 ] as const;
 
 export const COURSE_TYPE_STUDENT = "2";

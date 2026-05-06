@@ -17,36 +17,21 @@ import {
   FieldGroup,
   FieldLabel,
   Input,
+  Spinner,
   ThemeToggle,
+  toast,
 } from "@workspace/ui";
-import { LoaderCircleIcon } from "lucide-react";
 import {
-  extractToken,
-  getSuccessMessage,
+  getFailureMessage,
+  loginFormSchema,
+  type LoginFormValues,
   type LoginValues,
   normalizeLoginValues,
 } from "./login-form.logic";
-
-type LoginField = keyof LoginValues;
-
-interface LoginFormValues extends LoginValues {
-  feedbackMessage: string;
-  feedbackTone: "" | "success" | "error";
-}
+import { useStudentSessionStore } from "@/store/use-student-session-store";
 
 interface LoginFormApi {
-  setFieldValue: (field: keyof LoginFormValues, value: any) => void;
-  setFieldMeta: (field: LoginField, updater: any) => void;
-}
-
-const requiredMessages: Record<LoginField, string> = {
-  username: "请输入用户名或手机号",
-  password: "请输入密码",
-  key: "请输入安全校验码",
-};
-
-function validateRequiredField(field: LoginField, value: string) {
-  return value.trim() ? undefined : requiredMessages[field];
+  setFieldValue: (field: keyof LoginFormValues, value: string) => void;
 }
 
 function clearFeedback(form: LoginFormApi) {
@@ -54,15 +39,13 @@ function clearFeedback(form: LoginFormApi) {
   form.setFieldValue("feedbackMessage", "");
 }
 
-function setFeedback(form: LoginFormApi, tone: LoginFormValues["feedbackTone"], message: string) {
+function setFeedback(
+  form: LoginFormApi,
+  tone: LoginFormValues["feedbackTone"],
+  message: string
+) {
   form.setFieldValue("feedbackTone", tone);
   form.setFieldValue("feedbackMessage", message);
-}
-
-function markFieldsTouched(form: LoginFormApi) {
-  for (const field of ["username", "password", "key"] as const) {
-    form.setFieldMeta(field, (meta: any) => ({ ...meta, isTouched: true }));
-  }
 }
 
 function syncNormalizedValues(form: LoginFormApi, values: LoginValues) {
@@ -71,13 +54,9 @@ function syncNormalizedValues(form: LoginFormApi, values: LoginValues) {
   form.setFieldValue("key", values.key);
 }
 
-function toFieldErrors(errors: ReadonlyArray<unknown>) {
-  return errors
-    .filter((error): error is string => typeof error === "string" && error.length > 0)
-    .map((message) => ({ message }));
-}
-
 export function LoginForm() {
+  const setSession = useStudentSessionStore((state) => state.setSession);
+
   const defaultValues: LoginFormValues = {
     username: "",
     password: "",
@@ -88,16 +67,12 @@ export function LoginForm() {
 
   const form = useForm({
     defaultValues,
-    onSubmitInvalid: ({ value, formApi }) => {
-      syncNormalizedValues(
-        formApi,
-        normalizeLoginValues({
-          username: value.username,
-          password: value.password,
-          key: value.key,
-        })
-      );
-      markFieldsTouched(formApi);
+    validators: {
+      onChange: loginFormSchema,
+      onBlur: loginFormSchema,
+      onSubmit: loginFormSchema,
+    },
+    onSubmitInvalid: ({ formApi }) => {
       setFeedback(formApi, "error", "请先修正表单中的必填项。");
     },
     onSubmit: async ({ value, formApi }) => {
@@ -114,19 +89,26 @@ export function LoginForm() {
       try {
         const response = await api.auth.login(normalized);
         const payload = unwrapEnvelope(response);
-        const token = extractToken(payload);
+        const token = payload?.token ?? null;
 
         if (token) {
           localStorage.setItem("token", token);
         }
 
-        setFeedback(formApi, "success", getSuccessMessage(payload));
+        setSession({
+          token,
+          userInfo: payload?.userInfo ?? null,
+        });
+
+        const message = "登录成功，欢迎回到云学考。";
+
+        setFeedback(formApi, "success", message);
+        toast.success(message);
       } catch (error) {
-        setFeedback(
-          formApi,
-          "error",
-          error instanceof Error ? error.message : "登录失败"
-        );
+        const message = getFailureMessage(error);
+
+        setFeedback(formApi, "error", message);
+        toast.error(message);
       }
     },
   });
@@ -152,16 +134,7 @@ export function LoginForm() {
           }}
         >
           <FieldGroup>
-            <form.Field
-              name="username"
-              validators={{
-                onBlur: ({ value }) => validateRequiredField("username", value),
-                onChange: ({ value }) =>
-                  validateRequiredField("username", value),
-                onSubmit: ({ value }) =>
-                  validateRequiredField("username", value),
-              }}
-            >
+            <form.Field name="username">
               {(field) => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
@@ -187,22 +160,13 @@ export function LoginForm() {
                       使用你常用的登录账号或绑定手机号继续学习进度。
                     </FieldDescription>
                     {isInvalid ? (
-                      <FieldError errors={toFieldErrors(field.state.meta.errors)} />
+                      <FieldError errors={field.state.meta.errors} />
                     ) : null}
                   </Field>
                 );
               }}
             </form.Field>
-            <form.Field
-              name="password"
-              validators={{
-                onBlur: ({ value }) => validateRequiredField("password", value),
-                onChange: ({ value }) =>
-                  validateRequiredField("password", value),
-                onSubmit: ({ value }) =>
-                  validateRequiredField("password", value),
-              }}
-            >
+            <form.Field name="password">
               {(field) => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
@@ -227,7 +191,7 @@ export function LoginForm() {
                       请输入登录密码，区分大小写。
                     </FieldDescription>
                     {isInvalid ? (
-                      <FieldError errors={toFieldErrors(field.state.meta.errors)} />
+                      <FieldError errors={field.state.meta.errors} />
                     ) : null}
                   </Field>
                 );
@@ -235,11 +199,6 @@ export function LoginForm() {
             </form.Field>
             <form.Field
               name="key"
-              validators={{
-                onBlur: ({ value }) => validateRequiredField("key", value),
-                onChange: ({ value }) => validateRequiredField("key", value),
-                onSubmit: ({ value }) => validateRequiredField("key", value),
-              }}
             >
               {(field) => {
                 const isInvalid =
@@ -264,7 +223,7 @@ export function LoginForm() {
                       用于确认本次登录请求，输入页面提供的校验码即可。
                     </FieldDescription>
                     {isInvalid ? (
-                      <FieldError errors={toFieldErrors(field.state.meta.errors)} />
+                      <FieldError errors={field.state.meta.errors} />
                     ) : null}
                   </Field>
                 );
@@ -274,12 +233,7 @@ export function LoginForm() {
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (
               <Button type="submit" size="lg" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <LoaderCircleIcon
-                    data-icon="inline-start"
-                    className="animate-spin"
-                  />
-                ) : null}
+                {isSubmitting ? <Spinner data-icon="inline-start" /> : null}
                 {isSubmitting ? "登录中..." : "进入学习中心"}
               </Button>
             )}

@@ -1,13 +1,13 @@
+import type { NewsArticle } from "@workspace/api";
 import { ArrowUpRight, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
-import type { HomeRecord } from "./home-types";
-import { resolveMediaUrl, toText } from "@/lib/media";
+import { resolveMediaUrl } from "@/lib/media";
 
 export function HomeNewsSection({
   recommendedNews,
   recommendedNewsError,
 }: {
-  recommendedNews: HomeRecord[];
+  recommendedNews: NewsArticle[];
   recommendedNewsError: string | null;
 }) {
   const visibleNews = recommendedNews.slice(0, 4);
@@ -51,7 +51,7 @@ export function HomeNewsSection({
       ) : (
         <div className="grid gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
           {visibleNews.map((news, index) => {
-            const coverUrl = resolveMediaUrl(String(news.cover ?? ""));
+            const coverUrl = resolveMediaUrl(String(news.coverImg ?? ""));
             return (
               <Link
                 key={index}
@@ -63,7 +63,7 @@ export function HomeNewsSection({
                     <>
                       <img
                         src={coverUrl}
-                        alt={toText(news.title, `资讯 ${index + 1}`)}
+                        alt={news.title ?? `资讯 ${index + 1}`}
                         className="object-cover w-full h-full transition-transform duration-[1000ms] ease-out group-hover:scale-105 grayscale-[0.2] group-hover:grayscale-0"
                       />
                       <div className="absolute inset-0 bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.06)_2px,rgba(0,0,0,0.06)_4px)] dark:bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(255,255,255,0.03)_2px,rgba(255,255,255,0.03)_4px)] pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
@@ -82,11 +82,11 @@ export function HomeNewsSection({
                 </div>
                 <div>
                   <h3 className="line-clamp-2 text-base font-medium tracking-tight leading-relaxed text-foreground transition-colors group-hover:text-primary">
-                    {toText(news.title, "系统预备推流内容加载中...")}
+                    {news.title ?? "系统预备推流内容加载中..."}
                   </h3>
                   <div className="mt-4 flex items-center justify-between text-[11px] font-mono tracking-widest uppercase text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
                     <span>
-                      {toText(news.publishTime ?? news.time, "00:00:00")}
+                      {news.publishTime ?? "00:00:00"}
                     </span>
                     <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
                   </div>

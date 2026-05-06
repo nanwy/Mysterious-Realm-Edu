@@ -5,9 +5,22 @@ import test from "node:test";
 test("certificate module exposes the expected certificate APIs", async () => {
   const certificateModule = await import("./certificate.ts");
 
-  assert.equal(typeof certificateModule.generateCertificate, "function");
-  assert.equal(typeof certificateModule.getUserCertificate, "function");
-  assert.equal(typeof certificateModule.getUserCertificateList, "function");
+  assert.equal(typeof certificateModule.createCertificateApi, "function");
+  assert.equal(certificateModule.generateCertificate, undefined);
+  assert.equal(certificateModule.getUserCertificate, undefined);
+  assert.equal(certificateModule.getUserCertificateList, undefined);
+});
+
+test("certificate module uses explicit API contract types", async () => {
+  const source = await readFile(
+    new URL("./certificate.ts", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(source, /CertificateListRequest/);
+  assert.doesNotMatch(source, /Record<string, unknown>/);
+  assert.doesNotMatch(source, /createCertificateModule/);
+  assert.doesNotMatch(source, /defaultCertificateApi/);
 });
 
 test("root api entry re-exports certificate APIs", async () => {

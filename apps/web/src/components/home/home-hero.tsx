@@ -1,8 +1,8 @@
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
+import type { Banner } from "@workspace/api";
 import { ArrowUpRight, Play, TerminalSquare } from "lucide-react";
 import Link from "next/link";
-import type { HomeRecord } from "./home-types";
-import { resolveMediaUrl, toText } from "@/lib/media";
+import { resolveMediaUrl } from "@/lib/media";
 
 export function HomeHero({
   banner,
@@ -13,7 +13,7 @@ export function HomeHero({
   questionnaireCount,
   announcementCount,
 }: {
-  banner: HomeRecord | undefined;
+  banner: Banner | undefined;
   bannerError: string | null;
   hotCourseCount: number;
   examCount: number;
@@ -22,7 +22,7 @@ export function HomeHero({
   announcementCount: number;
 }) {
   const leadBannerImage = resolveMediaUrl(
-    String(banner?.imgUrl ?? banner?.image ?? "")
+    String(banner?.imgUrl ?? "")
   );
 
   const getGreeting = () => {
@@ -156,7 +156,7 @@ export function HomeHero({
             {/* Base Overlay & Image */}
             <img
               src={leadBannerImage}
-              alt={toText(banner?.title ?? banner?.name, "焦点推荐")}
+              alt={banner?.title ?? "焦点推荐"}
               className="absolute inset-0 w-full h-full object-cover grayscale-[0.2] transition-all duration-[1000ms] group-hover:scale-105 group-hover:grayscale-0"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
@@ -174,10 +174,7 @@ export function HomeHero({
                   焦点推荐
                 </div>
                 <h3 className="text-2xl font-medium text-white mb-2 leading-tight">
-                  {toText(
-                    banner?.title ?? banner?.name,
-                    "云端进阶：高可用架构精讲"
-                  )}
+                  {banner?.title ?? "云端进阶：高可用架构精讲"}
                 </h3>
                 <div className="flex items-center text-sm font-medium text-white/50 group-hover:text-white transition-colors duration-300">
                   即刻探索{" "}

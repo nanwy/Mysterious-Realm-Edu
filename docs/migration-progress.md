@@ -1,6 +1,6 @@
 # Migration Progress
 
-Last updated: 2026-04-23
+Last updated: 2026-04-30
 Source project: `/Users/nanfugongmeiying/Desktop/project/student-front-master`
 Source router: `/Users/nanfugongmeiying/Desktop/project/student-front-master/src/router/index.js`
 Source graph: `/Users/nanfugongmeiying/Desktop/project/student-front-master/graphify-out/graph.json`
@@ -14,9 +14,10 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 ## Executive Summary
 
-- `[x]` 平台首页、资讯、问卷、课程列表、考试列表、成绩查询已进入可用状态。
-- `[-]` 课程学习工作台、个人中心主链路、登录、全局壳层仍处于“可承接但未闭环”状态。
-- `[ ]` 注册、在线练习结果、商城支付链路、个人中心大部分业务子页仍未迁移；在线考试已进入最小作答承接。
+- `[x]` 平台首页、资讯、问卷、课程列表、考试列表、成绩查询已进入可用状态；首页数据已改为直接使用 `@workspace/api` 的 Java 契约类型，不再保留 `HomePayload` / `HomeRecord` 这类前端聚合接口类型。
+- `[-]` 课程学习工作台、登录、全局壳层仍处于“可承接但未闭环”状态；个人中心主链路已覆盖更多子页，但详情、支付、售后等后链路仍未闭环。
+- `[ ]` 注册、在线练习结果、商城支付链路仍未迁移；在线考试已进入最小作答承接。
+- `[-]` API 类型治理已经覆盖首页相关 `auth / banner / message / order / pay / search` 以及 `news / certificates / practice / scores / exams / questionnaire` 等域，迁移中仍需持续清理历史默认实例包装、宽泛返回类型和无意义转换函数。
 - `graphify` 对“旧站功能域盘点、页面覆盖检查、横切模块识别”有帮助；对“直接回答迁移实现方案”帮助有限，仍需回到源码核实。
 
 ## Graphify-Derived Source Map
@@ -43,9 +44,11 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 - 这些旧站首页模块已经基本映射到当前首页和二级承接页：
   - 首页封面：[`apps/web/src/app/(marketing)/page.tsx`](/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu/apps/web/src/app/(marketing)/page.tsx)
   - 首页组件：[`apps/web/src/components/home/home-page.tsx`](/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu/apps/web/src/components/home/home-page.tsx)
+  - 首页数据：[`apps/web/src/components/home/home-data.ts`](/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu/apps/web/src/components/home/home-data.ts)
   - 资讯承接：[`apps/web/src/app/(student)/news/page.tsx`](/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu/apps/web/src/app/(student)/news/page.tsx)
   - 资讯详情：[`apps/web/src/app/(student)/news/detail/[id]/page.tsx`](/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu/apps/web/src/app/(student)/news/detail/[id]/page.tsx)
   - 问卷承接：[`apps/web/src/app/(student)/questionnaire/page.tsx`](/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu/apps/web/src/app/(student)/questionnaire/page.tsx)
+- 首页数据加载当前采用 `Promise.all` 并发请求，每个接口自己 `.catch(() => [])` 做空数据兜底；不再用 `Promise.allSettled` 的重复状态分支，也不再使用 `safeArrayRequest`、`toArray`、`asHomeRecords` 这类浅转换函数。
 
 ### 个人中心簇
 
@@ -71,8 +74,8 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 迁移判断：
 
-- 当前新站已经承接了个人中心壳层、资料、安全、消息、证书。
-- 旧站个人中心里“我的考试 / 已购商品 / 练习记录 / 学习记录 / 学习进度 / 我的订单”仍未在新站落地。
+- 当前新站已经承接了个人中心壳层、资料、安全、消息、证书、我的考试、已购内容、学习记录、学习进度和订单列表。
+- 旧站个人中心里“练习记录 / 订单详情 / 退款 / 评价”等记录缺口和订单后链路仍未在新站落地。
 
 ### 路由 / 守卫 / 状态横切簇
 
@@ -95,7 +98,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 | Old Route | Source | Target | Status | Impeccable | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `/login` | `src/views/Login.vue` | `/login` | `[-]` | `[ ]` | 登录页存在，但视觉和业务链路仍是首版实现。 |
+| `/login` | `src/views/Login.vue` | `/login` | `[-]` | `[ ]` | 登录页存在；认证 endpoint 已按 Java `SysLoginModel` 和登录返回对象补齐 `@workspace/api` 类型，但注册、完整会话守卫和视觉闭环仍待补齐。 |
 | `/register` | `src/views/register/Register.vue` | none | `[ ]` | `[ ]` | 当前仓库无注册页。 |
 | `404 / fallback` | `src/views/404.vue` | `not-found.tsx` | `[-]` | `[ ]` | 仅有统一承接页，仍是“页面暂未接入”语义。 |
 | 全局页头 / 导航 / 页脚 | `src/components/Header.vue` | `packages/ui` + `apps/web` 壳层 | `[-]` | `[-]` | 新壳层已形成，但与旧站导航能力和搜索联动并未等价。 |
@@ -104,7 +107,7 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 | Old Route | Source | Target | Status | Impeccable | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `/home` | `src/views/home/Index.vue` | `/` | `[x]` | `[x]` | 首页已重构为平台封面，承接课程、考试、资讯、问卷、热点信号。 |
+| `/home` | `src/views/home/Index.vue` | `/` | `[x]` | `[x]` | 首页已重构为平台封面，承接课程、考试、资讯、问卷、热点信号；数据类型直接来自 `@workspace/api` Java 契约。 |
 | 首页课程区 | `src/components/course/index/HotCourse.vue` | `home-courses-section.tsx` | `[x]` | `[x]` | 已完成新版学习焦点工作台，不再按旧站模块原样平移。 |
 | 首页考试区 | `src/components/exam/LastestExam.vue` | `home-exams-section.tsx` | `[x]` | `[x]` | 已承接为考试时间带。 |
 | 首页资讯区 | `src/components/news/NewsHome.vue` | `home-news-section.tsx` | `[x]` | `[x]` | 已承接为主稿 + feed。 |
@@ -183,17 +186,18 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
 
 | Capability | Status | Notes |
 | --- | --- | --- |
-| 首页平台封面体系 | `[x]` | 首页已脱离旧站模块堆叠，进入新版平台封面语义。 |
-| 登录壳层 / 认证入口 | `[-]` | 登录页存在，但注册缺失，完整认证链路未形成。 |
+| 首页平台封面体系 | `[x]` | 首页已脱离旧站模块堆叠，进入新版平台封面语义；首页数据组合不再自建 `HomePayload` / `HomeRecord`。 |
+| 登录壳层 / 认证入口 | `[-]` | 登录页存在，`auth` endpoint 类型已接入 Java 契约；注册缺失，完整认证链路未形成。 |
 | 公共分页 / 列表结果模式 | `[-]` | 课程、考试、练习、资讯、问卷、成绩已各自成型，但还没完全收敛成统一抽象。 |
 | 表单体系向 `packages/ui` 收敛 | `[-]` | 已有 StudentShell 和部分 UI 包沉淀，但业务表单仍多处自行实现。 |
 | 主题 token / light-dark 语义体系 | `[-]` | 首页和核心页已明显推进，仍未覆盖所有历史页面。 |
-| API 承接 | `[-]` | 首页、课程、考试、资讯、问卷、成绩、消息、证书已接入或具备错误兜底；商城、在线考试、在线练习未接。 |
+| API 承接 | `[-]` | 首页、课程、考试、资讯、问卷、成绩、消息、证书、练习、用户、订单、支付、搜索、认证、Banner 已有 `@workspace/api` 承接或类型治理；商城支付页面、在线考试完整提交、在线练习执行链路仍未接完。 |
+| API 类型迁移规范 | `[x]` | 已形成 [`docs/api-type-migration-workflow.md`](/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu/docs/api-type-migration-workflow.md)：先跑 Java 草稿生成，再核对 controller/service/entity，正式类型只落 `@workspace/api`，组件不自建 API 类型，不使用无意义 `toXxx` / `normalizeXxx` / `safeXxxRequest`。 |
 | 路由守卫 / leave-exam 行为等价迁移 | `[ ]` | 旧站 guard/store 横切能力尚未在新站补齐。 |
 
 ## Current Focus
 
-- `[-]` 个人中心剩余业务子页：`myExam / practiceRecord / studyRecord`
+- `[-]` 个人中心剩余业务子页和后链路：`practiceRecord / orderDetail / refund / evaluation`
 - `[-]` 课程学习主链路：播放器、目录树、学习计时、防挂机
 - `[-]` 在线考试最小进入与作答承接；在线练习执行链路未迁移
 - `[ ]` 商城 / 支付 / 订单后链路
@@ -208,8 +212,8 @@ Target project: `/Users/nanfugongmeiying/Desktop/project/Mysterious-Realm-Edu`
    - 旧站集中在 `src/views/course/OnlineStudy.vue`
    - 原因：当前工作台已完成结构迁移，继续补播放器与计时收益最高
 3. 个人中心剩余记录与订单域
-   - `MyExam / PracticeRecord / CourseStudyRecord / CourseStudyProcess / MyOrder / MyPurchaseGoods`
-   - 原因：这些页面图谱边界清晰，适合批量迁移
+   - `PracticeRecord / OrderDetail / Refund / AddEval`
+   - 原因：个人中心基础页、我的考试、学习记录、学习进度、订单列表、已购内容已完成承接，剩余重点转向记录缺口和订单后链路
 4. 商城 / 支付
    - `Cart / Pay / ThirdPay / QrPay / PayDone / OrderDetail / Refund / AddEval`
    - 原因：业务完整但相对独立，适合单独拆成一组迁移任务

@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
+import { EXAM_PASSED_STATE, type ExamListRequest } from "@workspace/api";
 import {
   Button,
   Input,
@@ -13,12 +14,19 @@ import {
   SelectValue,
 } from "@workspace/ui";
 import { RotateCcw, Search } from "lucide-react";
-import {
-  SCORE_PASS_OPTIONS,
-  SCORE_PASS_STATE,
-  type ScoreFiltersState,
-  type ScorePassFilter,
-} from "@/core/scores";
+import { SCORE_PASS_OPTIONS, SCORE_PASS_STATE } from "@/core/scores";
+
+const resolvePassedValue = (value: string) => {
+  if (value === SCORE_PASS_STATE.PASSED) {
+    return EXAM_PASSED_STATE.PASSED;
+  }
+
+  if (value === SCORE_PASS_STATE.FAILED) {
+    return EXAM_PASSED_STATE.NOT_PASSED;
+  }
+
+  return undefined;
+};
 
 export const ScoresFilters = ({
   filters,
@@ -26,17 +34,22 @@ export const ScoresFilters = ({
   onQuery,
   onReset,
 }: {
-  filters: ScoreFiltersState;
+  filters: ExamListRequest;
   isLoading: boolean;
-  onQuery: (filters: ScoreFiltersState) => void;
+  onQuery: (filters: ExamListRequest) => void;
   onReset: () => void;
 }) => {
   const form = useForm({
-    defaultValues: filters,
+    defaultValues: {
+      ...filters,
+      examTitle: filters.examTitle ?? "",
+      passed: filters.passed ? String(filters.passed) : SCORE_PASS_STATE.ALL,
+    },
     onSubmit: ({ value }) => {
       const nextFilters = {
         ...value,
-        examTitle: value.examTitle.trim(),
+        examTitle: value.examTitle?.trim() ?? "",
+        passed: resolvePassedValue(value.passed),
         pageNo: 1,
       };
       onQuery(nextFilters);
@@ -89,8 +102,7 @@ export const ScoresFilters = ({
                 items={SCORE_PASS_OPTIONS}
                 value={field.state.value}
                 onValueChange={(value) => {
-                  const passed = value as ScorePassFilter;
-                  field.handleChange(passed);
+                  field.handleChange(value ?? SCORE_PASS_STATE.ALL);
                 }}
               >
                 <SelectTrigger className="h-16 w-full rounded-none border-0 bg-transparent px-0 focus:ring-0 focus:ring-offset-0">

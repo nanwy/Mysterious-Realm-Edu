@@ -1,29 +1,32 @@
 import { createApiClient, type ApiHttpClient } from "../client";
 import type {
   ExamCacheAnswerRequest,
+  ExamCacheAnswerResponse,
+  ExamCurrentSessionResponse,
   ExamDetailListResponse,
   ExamDetailResponse,
-  ExamLimitResponse,
   ExamListRequest,
   ExamListResponse,
+  LatestExamListResponse,
   ExamPreviewResponse,
   ExamResultListResponse,
-  ExamResultResponse,
+  ExamResultDetailResponse,
   ExamSessionResponse,
   ExamSnapUploadRequest,
   ExamSubmitRequest,
+  ExamScoreResponse,
 } from "../types";
 
 type Id = string | number;
 
 export const createExamApi = (client: ApiHttpClient) => ({
   getUserExamScore: ({ examId }: { examId: Id }) =>
-    client.get<ExamResultResponse>("/exam/examScore", {
+    client.get<ExamScoreResponse>("/exam/examScore", {
       query: { examId },
     }),
 
   checkExamLimit: ({ examId }: { examId: Id }) =>
-    client.get<ExamLimitResponse>("/exam/checkToLimit", {
+    client.get<boolean>("/exam/checkToLimit", {
       query: { examId },
     }),
 
@@ -33,7 +36,7 @@ export const createExamApi = (client: ApiHttpClient) => ({
     }),
 
   listJoinedExams: () =>
-    client.get<ExamDetailListResponse>("/exam/listExamIn"),
+    client.get<ExamCurrentSessionResponse>("/exam/listExamIn"),
 
   createExamSession: ({ examId }: { examId: Id }) =>
     client.get<ExamSessionResponse>("/exam/createExam", {
@@ -46,7 +49,7 @@ export const createExamApi = (client: ApiHttpClient) => ({
     }),
 
   examRecordExists: ({ examId }: { examId: Id }) =>
-    client.get<ExamDetailResponse>("/exam/examRecordExist", {
+    client.get<boolean>("/exam/examRecordExist", {
       query: { examId },
     }),
 
@@ -54,18 +57,18 @@ export const createExamApi = (client: ApiHttpClient) => ({
     client.post<ExamListResponse>("/exam/list", payload),
 
   submitExam: (payload: ExamSubmitRequest) =>
-    client.post<ExamSessionResponse>("/exam/submitExam", payload),
+    client.post<string>("/exam/submitExam", payload),
 
   cacheExamAnswer: (payload: ExamCacheAnswerRequest) =>
-    client.post<unknown>("/exam/cacheExamAnswer", payload),
+    client.post<null>("/exam/cacheExamAnswer", payload),
 
   getCacheAnswer: ({ userExamId }: { userExamId: Id }) =>
-    client.get<unknown>("/exam/getCacheAnswer", {
+    client.get<ExamCacheAnswerResponse>("/exam/getCacheAnswer", {
       query: { userExamId },
     }),
 
   getUserExamResultDetail: ({ userExamId }: { userExamId: Id }) =>
-    client.get<ExamResultResponse>("/exam/userExamResultDetail", {
+    client.get<ExamResultDetailResponse>("/exam/userExamResultDetail", {
       query: { userExamId },
     }),
 
@@ -76,10 +79,10 @@ export const createExamApi = (client: ApiHttpClient) => ({
     client.post<ExamDetailListResponse>("/exam/userExamDetail/list", payload),
 
   uploadExamSnap: (payload: ExamSnapUploadRequest) =>
-    client.post<unknown>("/exam/uploadExamSnap", payload),
+    client.post<null>("/exam/uploadExamSnap", payload),
 
   listLatestExam: ({ limit }: { limit: number }) =>
-    client.get<ExamListResponse>("/index/listLatestExam", {
+    client.get<LatestExamListResponse>("/index/listLatestExam", {
       query: { limit },
     }),
 });

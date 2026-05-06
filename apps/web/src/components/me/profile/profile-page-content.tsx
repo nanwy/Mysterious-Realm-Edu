@@ -1,23 +1,23 @@
-import { ProfilePageShell, type ProfilePageShellProps } from "./profile-page-shell";
-import { resolveMediaUrl } from "@/lib/media";
-import { toRecord } from "@/lib/normalize";
+import type {
+  UserCurrentDeptResponse,
+  UserProfileResponse,
+} from "@workspace/api";
 import {
-  getStudentProfile,
-  type StudentProfileErrorType,
-  type StudentProfileResult,
-} from "@/lib/student-profile";
+  ProfilePageShell,
+  type ProfilePageShellProps,
+} from "./profile-page-shell";
+import type { StudentProfileErrorType, StudentProfileResult } from "@/core/me";
+import { resolveMediaUrl } from "@/lib/media";
+import { getStudentProfile } from "@/lib/student-profile";
 
-function pickText(
-  source: Record<string, unknown> | null,
-  keys: string[],
-  fallback = ""
-) {
+function pickText(source: object | null, keys: string[], fallback = "") {
   if (!source) {
     return fallback;
   }
 
+  const record = source as Record<string, unknown>;
   for (const key of keys) {
-    const value = source[key];
+    const value = record[key];
 
     if (typeof value === "string" && value.trim()) {
       return value.trim();
@@ -53,19 +53,28 @@ function withFallback(value: string, fallback = "未填写") {
 
 function getDepartmentNames(result: StudentProfileResult) {
   const deptNames = result.departs
-    .map((item) => pickText(item, ["deptName", "departName", "departmentName", "orgName"]))
+    .map((item) =>
+      pickText(item, ["deptName", "departName", "departmentName", "orgName"])
+    )
     .filter(Boolean);
 
   return deptNames.length > 0 ? deptNames.join(" / ") : "暂无";
 }
 
 function hasProfileContent(
-  profile: Record<string, unknown> | null,
-  currentDept: Record<string, unknown> | null,
+  profile: UserProfileResponse | null,
+  currentDept: UserCurrentDeptResponse | null,
   result: StudentProfileResult
 ) {
   const profileFields = [
-    pickText(profile, ["realName", "realname", "name", "nickName", "nickname", "userName"]),
+    pickText(profile, [
+      "realName",
+      "realname",
+      "name",
+      "nickName",
+      "nickname",
+      "userName",
+    ]),
     pickText(profile, ["avatar", "avatarUrl", "headImg", "headimg", "photo"]),
     pickText(profile, ["birthday", "birthDay", "birth"]),
     pickText(profile, ["sex", "gender"]),
@@ -81,7 +90,12 @@ function hasProfileContent(
   }
 
   const currentDeptFields = [
-    pickText(currentDept, ["deptName", "departName", "departmentName", "orgName"]),
+    pickText(currentDept, [
+      "deptName",
+      "departName",
+      "departmentName",
+      "orgName",
+    ]),
     pickText(currentDept, ["deptId", "departId", "departmentId", "id"]),
     pickText(currentDept, ["companyName", "tenantName", "schoolName"]),
   ];
@@ -91,7 +105,9 @@ function hasProfileContent(
   }
 
   return result.departs.some((item) =>
-    Boolean(pickText(item, ["deptName", "departName", "departmentName", "orgName"]))
+    Boolean(
+      pickText(item, ["deptName", "departName", "departmentName", "orgName"])
+    )
   );
 }
 
@@ -104,18 +120,36 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
     };
   }
 
-  const profile = toRecord(result.profile);
-  const currentDept = toRecord(result.currentDept);
+  const profile = result.profile;
+  const currentDept = result.currentDept;
   const name = withFallback(
-    pickText(profile, ["realName", "realname", "name", "nickName", "nickname", "userName"]),
+    pickText(profile, [
+      "realName",
+      "realname",
+      "name",
+      "nickName",
+      "nickname",
+      "userName",
+    ]),
     "未命名学员"
   );
   const currentDeptName = withFallback(
-    pickText(currentDept, ["deptName", "departName", "departmentName", "orgName"]),
+    pickText(currentDept, [
+      "deptName",
+      "departName",
+      "departmentName",
+      "orgName",
+    ]),
     "暂无当前部门"
   );
   const loginIdentity = withFallback(
-    pickText(profile, ["userName", "username", "studentNo", "studentNumber", "userId"]),
+    pickText(profile, [
+      "userName",
+      "username",
+      "studentNo",
+      "studentNumber",
+      "userId",
+    ]),
     "暂无学员编号"
   );
   const summary = {
@@ -123,7 +157,11 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
     subtitle: currentDeptName,
     secondaryLine: `账号标识：${loginIdentity}`,
     avatarUrl: resolveMediaUrl(
-      pickText(profile, ["avatar", "avatarUrl", "headImg", "headimg", "photo"], "")
+      pickText(
+        profile,
+        ["avatar", "avatarUrl", "headImg", "headimg", "photo"],
+        ""
+      )
     ),
   };
   const sections = [
@@ -134,11 +172,13 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
       items: [
         {
           label: "生日",
-          value: withFallback(pickText(profile, ["birthday", "birthDay", "birth"])),
+          value: withFallback(
+            pickText(profile, ["birthday", "birthDay", "birth"])
+          ),
         },
         {
           label: "性别",
-          value: formatGender(profile?.sex ?? profile?.gender),
+          value: formatGender(profile?.sex),
         },
         {
           label: "积分",
@@ -146,7 +186,9 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
         },
         {
           label: "昵称",
-          value: withFallback(pickText(profile, ["nickName", "nickname", "userNickName"])),
+          value: withFallback(
+            pickText(profile, ["nickName", "nickname", "userNickName"])
+          ),
         },
       ],
     },
@@ -161,11 +203,15 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
         },
         {
           label: "手机",
-          value: withFallback(pickText(profile, ["phone", "mobile", "mobilePhone", "tel"])),
+          value: withFallback(
+            pickText(profile, ["phone", "mobile", "mobilePhone", "tel"])
+          ),
         },
         {
           label: "微信",
-          value: withFallback(pickText(profile, ["wechat", "weChat", "wxCode"])),
+          value: withFallback(
+            pickText(profile, ["wechat", "weChat", "wxCode"])
+          ),
         },
         {
           label: "QQ",
@@ -192,7 +238,12 @@ function toShellState(result: StudentProfileResult): ProfilePageShellProps {
         {
           label: "所属组织",
           value: withFallback(
-            pickText(currentDept, ["orgName", "companyName", "tenantName", "schoolName"]),
+            pickText(currentDept, [
+              "orgName",
+              "companyName",
+              "tenantName",
+              "schoolName",
+            ]),
             "暂无"
           ),
         },

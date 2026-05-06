@@ -1,13 +1,12 @@
+import type { QuestionnaireRecord } from "@workspace/api";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import type { HomeRecord } from "./home-types";
-import { toText } from "@/lib/media";
 
 export function HomeQuestionnairesSection({
   questionnaires,
   questionnaireError,
 }: {
-  questionnaires: HomeRecord[];
+  questionnaires: QuestionnaireRecord[];
   questionnaireError: string | null;
 }) {
   const visibleItems = questionnaires.slice(0, 4);
@@ -47,7 +46,7 @@ export function HomeQuestionnairesSection({
                 <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:text-primary transition-all duration-300" />
               </div>
               <p className="text-[0.95rem] font-medium text-foreground leading-relaxed group-hover:text-primary transition-colors line-clamp-2">
-                {toText(item.title ?? item.name, "工单同步预备中...")}
+                {item.name ?? "工单同步预备中..."}
               </p>
             </Link>
           ))

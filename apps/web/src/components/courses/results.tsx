@@ -1,17 +1,9 @@
+import type { CourseDetailResponse } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, Button, Skeleton } from "@workspace/ui";
 import { BookOpenText, CircleAlert, CircleSlash, RefreshCcw } from "lucide-react";
 import Link from "next/link";
-import type { CourseListItem } from "@/core/courses";
-
-const getProgressValue = (progressLabel: string) => {
-  const matched = progressLabel.match(/(\d+)/);
-  if (!matched) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(100, Number(matched[1])));
-};
+import { buildCourseCardView } from "@/core/courses";
 
 const CoursesLoadingState = () => {
   return (
@@ -99,7 +91,7 @@ export const CoursesResults = ({
   keyword,
   onRetry,
 }: {
-  items: CourseListItem[];
+  items: CourseDetailResponse[];
   loading: boolean;
   error: string | null;
   keyword?: string;
@@ -119,73 +111,77 @@ export const CoursesResults = ({
 
   return (
     <MotionStagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" delayChildren={0.08}>
-      {items.map((item) => (
-        <MotionItem key={item.id}>
-          <article className="group flex h-full flex-col justify-between gap-5 rounded-[28px] border border-border bg-card/95 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
-            <div className="space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-3">
-                  <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
-                    {item.coverLabel}
+      {items.map((course, index) => {
+        const item = buildCourseCardView(course, index);
+
+        return (
+          <MotionItem key={item.id}>
+            <article className="group flex h-full flex-col justify-between gap-5 rounded-[28px] border border-border bg-card/95 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-3">
+                    <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
+                      {item.coverLabel}
+                    </div>
+                    <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                      {item.categoryName}
+                    </p>
                   </div>
-                  <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                    {item.categoryName}
-                  </p>
+                  <Badge className="rounded-full">{item.statusLabel}</Badge>
                 </div>
-                <Badge className="rounded-full">{item.statusLabel}</Badge>
-              </div>
 
-              <div className="space-y-2">
-                <h3 className="line-clamp-2 text-xl font-semibold tracking-tight text-foreground">{item.title}</h3>
-                <p className="text-sm text-muted-foreground">{item.teacherName}</p>
-              </div>
-
-              <div className="space-y-3 rounded-[24px] border border-border/70 bg-background/70 p-4">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
-                    <span>学习进度</span>
-                    <span className="font-medium text-foreground">{item.progressLabel}</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-primary/10">
-                    <div
-                      className="h-full rounded-full bg-primary transition-[width]"
-                      style={{ width: `${getProgressValue(item.progressLabel)}%` }}
-                    />
-                  </div>
+                  <h3 className="line-clamp-2 text-xl font-semibold tracking-tight text-foreground">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">{item.teacherName}</p>
                 </div>
 
-                <div className="grid gap-3 text-sm text-muted-foreground">
-                  <div className="flex items-center justify-between gap-4">
-                    <span>课程分类</span>
-                    <span className="font-medium text-foreground">{item.categoryName}</span>
+                <div className="space-y-3 rounded-[24px] border border-border/70 bg-background/70 p-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
+                      <span>学习进度</span>
+                      <span className="font-medium text-foreground">{item.progressLabel}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-primary/10">
+                      <div
+                        className="h-full rounded-full bg-primary transition-[width]"
+                        style={{ width: `${item.progressValue}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span>课程价格</span>
-                    <span className="font-medium text-foreground">{item.priceLabel}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span>内容规模</span>
-                    <span className="font-medium text-foreground">{item.lessonCountLabel}</span>
+
+                  <div className="grid gap-3 text-sm text-muted-foreground">
+                    <div className="flex items-center justify-between gap-4">
+                      <span>课程分类</span>
+                      <span className="font-medium text-foreground">{item.categoryName}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span>课程价格</span>
+                      <span className="font-medium text-foreground">{item.priceLabel}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span>内容规模</span>
+                      <span className="font-medium text-foreground">{item.lessonCountLabel}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <BookOpenText className="size-4" />
-                <span>{item.statusLabel === "可开始" ? "支持立即进入课程" : "优先回到上次学习位置"}</span>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <BookOpenText className="size-4" />
+                  <span>{item.statusLabel === "可开始" ? "支持立即进入课程" : "优先回到上次学习位置"}</span>
+                </div>
+                <Link
+                  href={`/courses/${item.id}`}
+                  className="inline-flex h-10 items-center justify-center rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                >
+                  进入课程
+                </Link>
               </div>
-              <Link
-                href={`/courses/${item.id}`}
-                className="inline-flex h-10 items-center justify-center rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
-              >
-                进入课程
-              </Link>
-            </div>
-          </article>
-        </MotionItem>
-      ))}
+            </article>
+          </MotionItem>
+        );
+      })}
     </MotionStagger>
   );
 };

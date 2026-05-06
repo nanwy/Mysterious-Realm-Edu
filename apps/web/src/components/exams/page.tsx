@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { ExamListRequest, ExamSummaryResponse } from "@workspace/api";
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, SurfaceCard, Tabs, TabsList, TabsTrigger } from "@workspace/ui";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,59 +14,69 @@ import {
   EXAM_STATUS_OPTIONS,
   EXAM_TYPE,
   EXAM_TYPE_OPTIONS,
-  type ExamFiltersState,
-  type ExamListItem,
   examQueryOptions,
   EXAMS_PAGE_SIZE,
-  type ExamStatusFilter,
-  type ExamTypeFilter,
   useExamStore,
 } from "@/core/exams";
 
-const createQueryString = (filters: ExamFiltersState) => {
+const getFilterPageNo = (filters: ExamListRequest) => {
+  const pageNo = Number(filters.pageNo ?? 1);
+  return Number.isFinite(pageNo) && pageNo > 0 ? Math.floor(pageNo) : 1;
+};
+
+const getFilterText = (value: unknown) =>
+  typeof value === "string" ? value.trim() : "";
+
+const createQueryString = (filters: ExamListRequest) => {
   const params = new URLSearchParams();
+  const pageNo = getFilterPageNo(filters);
+  const examTitle = getFilterText(filters.examTitle);
+  const examType = String(filters.examType ?? EXAM_TYPE.PUBLIC);
+  const state = String(filters.state ?? EXAM_STATUS.ALL);
 
-  if (filters.pageNo > 1) {
-    params.set("page", String(filters.pageNo));
+  if (pageNo > 1) {
+    params.set("page", String(pageNo));
   }
 
-  if (filters.examTitle.trim()) {
-    params.set("keyword", filters.examTitle.trim());
+  if (examTitle) {
+    params.set("keyword", examTitle);
   }
 
-  if (filters.examType !== EXAM_TYPE.PUBLIC) {
-    params.set("type", filters.examType);
+  if (examType !== EXAM_TYPE.PUBLIC) {
+    params.set("type", examType);
   }
 
-  if (filters.state !== EXAM_STATUS.ALL) {
-    params.set("status", filters.state);
+  if (state !== EXAM_STATUS.ALL) {
+    params.set("status", state);
   }
 
   const query = params.toString();
   return query ? `?${query}` : "";
 };
 
-const getStatusSummary = (status: ExamStatusFilter) =>
-  EXAM_STATUS_OPTIONS.find((item) => item.value === status)?.label ?? "全部";
+const getStatusSummary = (status: ExamListRequest["state"]) =>
+  EXAM_STATUS_OPTIONS.find((item) => item.value === String(status ?? ""))
+    ?.label ?? "全部";
 
-const getTypeSummary = (type: ExamTypeFilter) =>
-  EXAM_TYPE_OPTIONS.find((item) => item.value === type)?.label ?? "公开考试";
+const getTypeSummary = (type: ExamListRequest["examType"]) =>
+  EXAM_TYPE_OPTIONS.find((item) => item.value === String(type))?.label ??
+  "公开考试";
 
 export const ExamsPage = ({
   initialFilters,
 }: {
-  initialFilters: ExamFiltersState;
+  initialFilters: ExamListRequest;
 }) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
   const setActiveExam = useExamStore((state) => state.setActiveExam);
   const examsQuery = useQuery(examQueryOptions.list(initialFilters));
-  const items: ExamListItem[] = examsQuery.data?.items ?? [];
+  const items: ExamSummaryResponse[] = examsQuery.data?.records ?? [];
   const total = examsQuery.data?.total ?? 0;
   const isLoading = examsQuery.isLoading;
 
-  const navigate = (nextFilters: ExamFiltersState) => {
+  const navigate = (nextFilters: ExamListRequest) => {
     startTransition(() => {
       router.push(`${pathname}${createQueryString(nextFilters)}`, {
         scroll: false,
@@ -84,10 +95,10 @@ export const ExamsPage = ({
   };
 
   const updateStatus = (nextStatus: string) => {
-    const state = EXAM_STATUS_OPTIONS.some(
+    const state: ExamListRequest["state"] = EXAM_STATUS_OPTIONS.some(
       (option) => option.value === nextStatus
     )
-      ? (nextStatus as ExamStatusFilter)
+      ? (nextStatus as ExamListRequest["state"])
       : EXAM_STATUS.ALL;
     navigate({
       ...initialFilters,
@@ -96,30 +107,30 @@ export const ExamsPage = ({
     });
   };
 
-  const handleOpenExam = (item: ExamListItem) => {
-    if (!item.examId) {
+  const handleOpenExam = (examId: string) => {
+    if (!examId) {
       return;
     }
 
-    setActiveExam(item.examId);
-    router.push(`/exams/${item.examId}/preview`);
+    setActiveExam(examId);
+    router.push(`/exams/${examId}/preview`);
   };
 
   const totalPages = Math.max(1, Math.ceil(total / EXAMS_PAGE_SIZE));
-  const currentPage = Math.min(initialFilters.pageNo, totalPages);
+  const currentPage = Math.min(getFilterPageNo(initialFilters), totalPages);
 
   useEffect(() => {
-    if (isLoading || initialFilters.pageNo <= totalPages) {
+    if (isLoading || getFilterPageNo(initialFilters) <= totalPages) {
       return;
     }
 
-    const normalizedFilters = {
+    const clampedFilters = {
       ...initialFilters,
       pageNo: totalPages,
     };
 
     startTransition(() => {
-      router.push(`${pathname}${createQueryString(normalizedFilters)}`, {
+      router.push(`${pathname}${createQueryString(clampedFilters)}`, {
         scroll: false,
       });
     });
@@ -213,7 +224,7 @@ export const ExamsPage = ({
                     </p>
                     <div className="overflow-x-auto">
                       <Tabs
-                        value={initialFilters.examType}
+                        value={String(initialFilters.examType ?? EXAM_TYPE.PUBLIC)}
                         onValueChange={updateType}
                       >
                         <TabsList aria-label="考试类型">
@@ -236,7 +247,7 @@ export const ExamsPage = ({
                     </p>
                     <div className="overflow-x-auto">
                       <Tabs
-                        value={initialFilters.state}
+                        value={String(initialFilters.state ?? EXAM_STATUS.ALL)}
                         onValueChange={updateStatus}
                       >
                         <TabsList aria-label="考试状态">
@@ -299,6 +310,7 @@ export const ExamsPage = ({
 
               <ExamsResults
                 items={items}
+                examType={initialFilters.examType}
                 loading={isLoading}
                 onOpen={handleOpenExam}
               />

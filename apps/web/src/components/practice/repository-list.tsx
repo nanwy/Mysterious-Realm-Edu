@@ -2,8 +2,8 @@
 
 import { MotionItem, MotionReveal, MotionStagger } from "@workspace/motion";
 import { Badge, Button, Skeleton } from "@workspace/ui";
+import type { PracticeRepositoryDetail } from "@workspace/api";
 import { CircleAlert, CircleSlash, LibraryBig, RefreshCcw } from "lucide-react";
-import type { PracticeRepositoryItem } from "@/core/practice";
 
 const LoadingState = () => (
   <div
@@ -37,7 +37,9 @@ const EmptyStateView = ({ keyword }: { keyword: string }) => (
         <CircleSlash className="size-6" />
       </div>
       <div className="space-y-2">
-        <p className="text-lg font-semibold text-foreground">没有找到匹配的练习仓库</p>
+        <p className="text-lg font-semibold text-foreground">
+          没有找到匹配的练习仓库
+        </p>
         <p className="text-sm leading-7 text-muted-foreground">
           {keyword
             ? `当前关键字“${keyword}”没有匹配结果，可以换一个关键词再试。`
@@ -65,11 +67,18 @@ const ErrorState = ({
           <CircleAlert className="size-5" />
         </div>
         <div className="space-y-2">
-          <p className="text-lg font-semibold text-foreground">练习仓库暂时无法加载</p>
+          <p className="text-lg font-semibold text-foreground">
+            练习仓库暂时无法加载
+          </p>
           <p className="text-sm leading-7 text-muted-foreground">{error}</p>
         </div>
       </div>
-      <Button type="button" variant="outline" className="rounded-2xl" onClick={onRetry}>
+      <Button
+        type="button"
+        variant="outline"
+        className="rounded-2xl"
+        onClick={onRetry}
+      >
         <RefreshCcw className="size-4" />
         重新加载
       </Button>
@@ -84,7 +93,7 @@ export const RepositoryList = ({
   keyword,
   onRetry,
 }: {
-  items: PracticeRepositoryItem[];
+  items: PracticeRepositoryDetail[];
   loading: boolean;
   error: string | null;
   keyword: string;
@@ -103,41 +112,51 @@ export const RepositoryList = ({
   }
 
   return (
-    <MotionStagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" delayChildren={0.08}>
-      {items.map((item) => (
-        <MotionItem key={item.id}>
-          <article className="group flex h-full flex-col justify-between gap-6 rounded-[28px] border border-border bg-card/95 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <Badge className="rounded-full">题库仓库</Badge>
-                {item.questionCount ? (
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {item.questionCount} 题
-                  </span>
-                ) : null}
+    <MotionStagger
+      className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+      delayChildren={0.08}
+    >
+      {items.map((item, index) => {
+        const id = item.id ?? `practice-${index + 1}`;
+        const title = item.title?.trim() || `题库 ${index + 1}`;
+        const description =
+          item.remark?.trim() || "暂无题库说明，进入后可查看题目与练习模式。";
+        const updatedAt = item.updateTime ?? item.createTime;
+
+        return (
+          <MotionItem key={id}>
+            <article className="group flex h-full flex-col justify-between gap-6 rounded-[28px] border border-border bg-card/95 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <Badge className="rounded-full">题库仓库</Badge>
+                  {typeof item.num === "number" ? (
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {item.num} 题
+                    </span>
+                  ) : null}
+                </div>
+                <div className="space-y-2">
+                  <h3 className="line-clamp-2 text-xl font-semibold text-foreground">
+                    {title}
+                  </h3>
+                  <p className="line-clamp-4 text-sm leading-7 text-muted-foreground">
+                    {description}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-2">
-                <h3 className="line-clamp-2 text-xl font-semibold text-foreground">
-                  {item.title}
-                </h3>
-                <p className="line-clamp-4 text-sm leading-7 text-muted-foreground">
-                  {item.description}
-                </p>
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/70 px-4 py-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <LibraryBig className="size-4" />
+                  <span>支持顺序练习 / 随机练习</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {updatedAt ? `更新于 ${updatedAt}` : "已接入真实接口"}
+                </span>
               </div>
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/70 px-4 py-3">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <LibraryBig className="size-4" />
-                <span>支持顺序练习 / 随机练习</span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {item.updatedAt ? `更新于 ${item.updatedAt}` : "已接入真实接口"}
-              </span>
-            </div>
-          </article>
-        </MotionItem>
-      ))}
+            </article>
+          </MotionItem>
+        );
+      })}
     </MotionStagger>
   );
 };
-

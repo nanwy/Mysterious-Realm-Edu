@@ -1,88 +1,36 @@
 import { api, unwrapEnvelope } from "@workspace/api";
+import type {
+  NewsArticle,
+  NewsDetailData,
+  NewsListResponse,
+  NewsPageData,
+  NewsQueryState,
+  NewsSearchResponse,
+} from "@workspace/api";
 import {
   NEWS_DETAIL_PATH,
   NEWS_HOT_LIMIT,
   NEWS_PAGE_SIZE,
   NEWS_RECOMMENDED_LIMIT,
 } from "./config";
-import type {
-  NewsDetailData,
-  NewsDetailRecord,
-  NewsHotRecord,
-  NewsListItem,
-  NewsPageData,
-  NewsQueryState,
-  NewsSectionCard,
-  NewsSuggestionItem,
-} from "./types";
-import { resolveMediaUrl } from "@/lib/media";
-import { toNumberOrNull, toRecordOrEmpty, toText } from "@/lib/normalize";
+import { toNumberOrNull, toText } from "@/lib/normalize";
 
-interface NewsListPayload {
-  records?: unknown[];
-  total?: number;
-  list?: unknown[];
-  rows?: unknown[];
-  data?: unknown[];
-}
-
-const toArray = (value: unknown): unknown[] => {
-  if (Array.isArray(value)) {
-    return value;
-  }
-
-  const record = toRecordOrEmpty(value) as NewsListPayload;
-
-  if (Array.isArray(record.records)) {
-    return record.records;
-  }
-
-  if (Array.isArray(record.list)) {
-    return record.list;
-  }
-
-  if (Array.isArray(record.rows)) {
-    return record.rows;
-  }
-
-  if (Array.isArray(record.data)) {
-    return record.data;
-  }
-
-  return [];
-};
-
-const getTotal = (value: unknown, count: number) => {
-  const record = toRecordOrEmpty(value) as NewsListPayload;
-  return typeof record.total === "number" && Number.isFinite(record.total)
-    ? record.total
-    : count;
-};
-
-const getDetailHref = (identifier: unknown) => {
+export const resolveNewsDetailHref = (identifier: unknown) => {
   const id = String(identifier ?? "").trim();
   return id ? `${NEWS_DETAIL_PATH}/${id}` : NEWS_DETAIL_PATH;
 };
 
-const formatPublishTime = (record: Record<string, unknown>) =>
-  toText(record.publishTime) ||
-  toText(record.createTime) ||
-  toText(record.updateTime) ||
-  "发布时间待补充";
-
-const formatSummary = (record: Record<string, unknown>) =>
-  toText(record.remark) ||
-  toText(record.summary) ||
-  toText(record.description) ||
-  "摘要待补充，详情页迁移后将继续承接完整正文。";
-
-const formatViewCount = (value: unknown) => {
+export const formatNewsViewCount = (value: unknown) => {
   const count = toNumberOrNull(value);
   return count !== null && count >= 0 ? `${count} 次浏览` : "热度待同步";
 };
 
-const toHtml = (value: unknown) => {
-  const text = toText(value);
+export const buildNewsHtmlContent = (article: NewsArticle | null) => {
+  if (!article) {
+    return "";
+  }
+
+  const text = toText(article.content ?? article.remark);
   if (!text) {
     return "";
   }
@@ -95,93 +43,6 @@ const toHtml = (value: unknown) => {
     .split(/\n{2,}/)
     .map((paragraph) => `<p>${paragraph.replace(/\n/g, "<br />")}</p>`)
     .join("");
-};
-
-export const normalizeNewsItem = (
-  value: unknown,
-  index: number
-): NewsListItem => {
-  const record = toRecordOrEmpty(value);
-  const id = record.id ?? record.articleId ?? record.newsId ?? `news-${index + 1}`;
-  const title = toText(record.title) || `资讯 ${index + 1}`;
-
-  return {
-    id: String(id),
-    title,
-    summary: formatSummary(record),
-    publishTime: formatPublishTime(record),
-    coverImg: toText(record.coverImg) || null,
-    viewCountLabel: formatViewCount(
-      record.commentNum ?? record.viewCount ?? record.clickNum
-    ),
-    href: getDetailHref(id),
-  };
-};
-
-export const normalizeSectionCard = (
-  value: unknown,
-  index: number,
-  eyebrow: string
-): NewsSectionCard => ({
-  ...normalizeNewsItem(value, index),
-  eyebrow,
-});
-
-export const normalizeNewsDetail = (
-  payload: unknown,
-  newsId: string
-): NewsDetailRecord | null => {
-  const record = toRecordOrEmpty(payload);
-  const title = toText(record.title);
-  const content = toHtml(record.content ?? record.articleContent ?? record.remark);
-
-  if (!title && !content) {
-    return null;
-  }
-
-  return {
-    id: toText(record.id, newsId),
-    title: title || "未命名资讯",
-    content,
-    summary: toText(record.remark ?? record.summary, "当前资讯暂无摘要说明。"),
-    authorName: toText(
-      record.createByName ?? record.publishByName ?? record.author,
-      "平台资讯"
-    ),
-    authorAvatar:
-      resolveMediaUrl(toText(record.avatar ?? record.authorAvatar)) ?? null,
-    publishTime: toText(
-      record.publishTime ?? record.createTime ?? record.updateTime,
-      "发布时间待同步"
-    ),
-    viewCountText: toText(
-      record.commentNum ?? record.viewCount ?? record.readCount,
-      "0"
-    ),
-    source: toText(record.source ?? record.newsSource, "神秘领域教育"),
-  };
-};
-
-export const normalizeHotNews = (payload: unknown): NewsHotRecord[] => {
-  const normalizedPayload = toRecordOrEmpty(payload);
-  const records = Array.isArray(payload)
-    ? payload
-    : Array.isArray(normalizedPayload.records)
-      ? (normalizedPayload.records as unknown[])
-      : [];
-
-  return records.slice(0, NEWS_HOT_LIMIT).map((item, index) => {
-    const record = toRecordOrEmpty(item);
-
-    return {
-      id: toText(record.id, `hot-news-${index + 1}`),
-      title: toText(record.title, `热门资讯 ${index + 1}`),
-      viewCountText: toText(
-        record.commentNum ?? record.viewCount ?? record.readCount,
-        "0"
-      ),
-    };
-  });
 };
 
 export const normalizeNewsError = (error: unknown) => {
@@ -213,33 +74,24 @@ export const fetchNewsPageData = async (
     pageNo: 1,
     pageSize: NEWS_HOT_LIMIT,
   });
-  const listPromise = keyword
-    ? api.news.searchNews({ queryString: keyword })
-    : api.news.listNews({
-        pageNo: query.page,
-        pageSize: NEWS_PAGE_SIZE,
-      });
-
-  const [recommendedResponse, hotResponse, listResponse] =
-    await Promise.allSettled([recommendedPromise, hotPromise, listPromise]);
+  const [recommendedResponse, hotResponse] = await Promise.allSettled([
+    recommendedPromise,
+    hotPromise,
+  ]);
   const recommendedPayload =
     recommendedResponse.status === "fulfilled"
       ? unwrapEnvelope(recommendedResponse.value)
-      : [];
+      : null;
   const hotPayload =
-    hotResponse.status === "fulfilled" ? unwrapEnvelope(hotResponse.value) : [];
+    hotResponse.status === "fulfilled"
+      ? (unwrapEnvelope(hotResponse.value)?.records ?? [])
+      : [];
 
-  if (listResponse.status !== "fulfilled") {
-    throw listResponse.reason;
-  }
-
-  const listPayload = unwrapEnvelope(listResponse.value);
-  const recommended = toArray(recommendedPayload)
-    .slice(0, NEWS_RECOMMENDED_LIMIT)
-    .map((item, index) => normalizeSectionCard(item, index, "推荐资讯"));
-  const hot = toArray(hotPayload)
-    .slice(0, NEWS_HOT_LIMIT)
-    .map((item, index) => normalizeNewsItem(item, index));
+  const recommended = (recommendedPayload?.records ?? []).slice(
+    0,
+    NEWS_RECOMMENDED_LIMIT
+  );
+  const hot = hotPayload.slice(0, NEWS_HOT_LIMIT);
   const recommendedError =
     recommendedResponse.status === "rejected"
       ? normalizeNewsError(recommendedResponse.reason)
@@ -250,9 +102,8 @@ export const fetchNewsPageData = async (
       : null;
 
   if (keyword) {
-    const searchItems = toArray(listPayload).map((item, index) =>
-      normalizeNewsItem(item, index)
-    );
+    const listResponse = await api.news.searchNews({ queryString: keyword });
+    const listPayload: NewsSearchResponse = unwrapEnvelope(listResponse) ?? [];
     const start = (query.page - 1) * NEWS_PAGE_SIZE;
 
     return {
@@ -260,47 +111,41 @@ export const fetchNewsPageData = async (
       recommendedError,
       hot,
       hotError,
-      items: searchItems.slice(start, start + NEWS_PAGE_SIZE),
-      total: searchItems.length,
+      items: listPayload.slice(start, start + NEWS_PAGE_SIZE),
+      total: listPayload.length,
     };
   }
 
-  const items = toArray(listPayload).map((item, index) =>
-    normalizeNewsItem(item, index)
-  );
-
+  const listResponse = await api.news.listNews({
+    pageNo: query.page,
+    pageSize: NEWS_PAGE_SIZE,
+  });
+  const listPayload: NewsListResponse = unwrapEnvelope(listResponse) ?? {
+    records: [],
+    total: 0,
+  };
   return {
     recommended,
     recommendedError,
     hot,
     hotError,
-    items,
-    total: getTotal(listPayload, items.length),
+    items: listPayload.records,
+    total: listPayload.total,
   };
 };
 
 export const fetchNewsSuggestions = async (
   keyword: string
-): Promise<NewsSuggestionItem[]> => {
+): Promise<NewsArticle[]> => {
   const trimmed = keyword.trim();
   if (!trimmed) {
     return [];
   }
 
   const response = await api.news.searchNews({ queryString: trimmed });
-  const payload = unwrapEnvelope(response);
+  const payload = unwrapEnvelope(response) ?? [];
 
-  return toArray(payload)
-    .slice(0, 6)
-    .map((item, index) => {
-      const normalized = normalizeNewsItem(item, index);
-      return {
-        id: normalized.id,
-        title: normalized.title,
-        summary: normalized.summary,
-        href: normalized.href,
-      };
-    });
+  return payload.slice(0, 6);
 };
 
 export const fetchNewsDetailData = async (
@@ -319,10 +164,13 @@ export const fetchNewsDetailData = async (
   }
 
   return {
-    article: normalizeNewsDetail(unwrapEnvelope(articleResponse.value), newsId),
+    article: unwrapEnvelope(articleResponse.value),
     hotNews:
       hotResponse.status === "fulfilled"
-        ? normalizeHotNews(unwrapEnvelope(hotResponse.value))
+        ? (unwrapEnvelope(hotResponse.value)?.records ?? []).slice(
+            0,
+            NEWS_HOT_LIMIT
+          )
         : [],
   };
 };

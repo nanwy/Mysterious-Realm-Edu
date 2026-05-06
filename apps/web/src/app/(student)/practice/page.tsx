@@ -1,13 +1,14 @@
 import { StudentShell } from "@workspace/ui";
+import type { PracticeRepositoryListRequest } from "@workspace/api";
 import { PracticePage } from "@/components/practice/page";
 
-const toPositivePage = (value: string | string[] | undefined) => {
+const resolvePositivePage = (value: string | string[] | undefined) => {
   const raw = Array.isArray(value) ? value[0] : value;
   const page = Number(raw);
   return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
 };
 
-const toKeyword = (value: string | string[] | undefined) => {
+const resolveKeyword = (value: string | string[] | undefined) => {
   const raw = Array.isArray(value) ? value[0] : value;
   return typeof raw === "string" ? raw.trim() : "";
 };
@@ -18,9 +19,9 @@ const PracticePageRoute = async ({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) => {
   const params = await searchParams;
-  const initialQuery = {
-    page: toPositivePage(params.page),
-    keyword: toKeyword(params.keyword),
+  const initialQuery: PracticeRepositoryListRequest = {
+    pageNo: resolvePositivePage(params.page),
+    title: resolveKeyword(params.keyword),
   };
 
   return (

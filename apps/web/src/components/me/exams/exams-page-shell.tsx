@@ -11,6 +11,7 @@ import {
   AlertTitle,
   Badge,
   Button,
+  buttonVariants,
   EmptyState,
   Field,
   FieldLabel,
@@ -33,6 +34,7 @@ import {
 } from "lucide-react";
 import { ResultsPagination } from "@/components/common/results-pagination";
 import { toDate, toNumberOrFallback, toRecordOrEmpty, toText } from "@/lib/normalize";
+import { cn } from "@workspace/ui/lib/utils";
 
 type ExamStateFilter = "" | "0" | "2" | "3";
 
@@ -168,15 +170,15 @@ function toListPayload(value: unknown): ExamListPayload {
 }
 
 function resolveStatus(record: Record<string, unknown>): Exclude<ExamStateFilter, ""> {
-  const raw = toText(record.state ?? record.status ?? record.examStatus);
+  const raw = toText(record.state);
 
   if (raw === "0" || raw === "2" || raw === "3") {
     return raw;
   }
 
   const now = Date.now();
-  const startAt = toDate(record.startTime ?? record.beginTime ?? record.examStartTime);
-  const endAt = toDate(record.endTime ?? record.finishTime ?? record.examEndTime);
+  const startAt = toDate(record.startTime);
+  const endAt = toDate(record.endTime);
 
   if (startAt && now < startAt.getTime()) {
     return "2";
@@ -217,14 +219,8 @@ function formatDateText(value: unknown) {
 }
 
 function buildTimeText(record: Record<string, unknown>) {
-  const directText = toText(record.examTime ?? record.timeRange);
-
-  if (directText) {
-    return directText;
-  }
-
-  const startText = formatDateText(record.startTime ?? record.beginTime ?? record.examStartTime);
-  const endText = formatDateText(record.endTime ?? record.finishTime ?? record.examEndTime);
+  const startText = formatDateText(record.startTime);
+  const endText = formatDateText(record.endTime);
 
   if (startText && endText) {
     return `${startText} - ${endText}`;
@@ -266,15 +262,9 @@ function normalizeResultRecords(records: unknown[]) {
       return;
     }
 
-    const userScore = toText(record.userScore ?? record.maxScore ?? record.score);
-    const qualifyScore = toText(record.qualifyScore ?? record.passScore);
-    const scoreText = userScore
-      ? qualifyScore
-        ? `${userScore} / ${qualifyScore}`
-        : userScore
-      : "成绩待同步";
+    const scoreText = toText(record.maxScore) || "成绩待同步";
     const resultTimeText =
-      toText(record.commitTime ?? record.submitTime ?? record.updateTime ?? record.createTime) ||
+      toText(record.updateTime ?? record.createTime) ||
       `考试记录 ${index + 1}`;
 
     lookup.set(examId, {
@@ -292,10 +282,10 @@ function normalizeMyExamRecord(
   resultLookup: Map<string, ResultBrief>
 ): MyExamRecord {
   const record = toRecordOrEmpty(item);
-  const examId = toText(record.examId ?? record.id ?? record.userExamId);
+  const examId = toText(record.id);
   const status = resolveStatus(record);
-  const statusLabel = toText(record.state_dictText ?? record.statusName, getStatusLabel(status));
-  const attendeeCount = toText(record.examNumber ?? record.joinNum ?? record.userCount ?? record.applyCount);
+  const statusLabel = getStatusLabel(status);
+  const attendeeCount = toText(record.examNumber);
   const result = examId ? resultLookup.get(examId) : undefined;
 
   const actionLabel: "进入考试" | "查看详情" = status === "3" ? "查看详情" : "进入考试";
@@ -306,19 +296,18 @@ function normalizeMyExamRecord(
     : null;
 
   return {
-    id: toText(record.id ?? record.examId ?? record.userExamId, `my-exam-${index + 1}`),
+    id: toText(record.id, `my-exam-${index + 1}`),
     examId,
-    title: toText(record.examName ?? record.title ?? record.name, `考试 ${index + 1}`),
+    title: toText(record.title, `考试 ${index + 1}`),
     status,
     statusLabel,
     timeText: buildTimeText(record),
-    durationText: formatDurationText(record.totalTime ?? record.examDuration ?? record.duration),
+    durationText: formatDurationText(record.totalTime),
     attendeeText: attendeeCount ? `${attendeeCount} 人参与` : "参与人数待同步",
     summary:
-      toText(record.examDesc ?? record.remark ?? record.description) ||
-      (status === "3"
+      status === "3"
         ? "考试已结束，可进入详情查看成绩与提交记录。"
-        : "请在考试开放时间内进入考试详情页并按规则完成作答。"),
+        : "请在考试开放时间内进入考试详情页并按规则完成作答。",
     scoreText: result?.scoreText ?? "成绩待同步",
     resultTimeText: result?.resultTimeText ?? "暂未同步提交记录",
     actionLabel,
@@ -542,12 +531,14 @@ function MyExamList({ records }: { records: MyExamRecord[] }) {
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-4">
               <p className="text-sm text-muted-foreground">{record.actionHint}</p>
               {record.actionHref ? (
-                <Button asChild data-testid="my-exam-action-entry">
-                  <Link href={record.actionHref}>
-                    {record.actionLabel}
-                    <ArrowRight />
-                  </Link>
-                </Button>
+                <Link
+                  href={record.actionHref}
+                  className={cn(buttonVariants(), "gap-1.5")}
+                  data-testid="my-exam-action-entry"
+                >
+                  {record.actionLabel}
+                  <ArrowRight />
+                </Link>
               ) : (
                 <Button disabled data-testid="my-exam-action-entry">
                   {record.actionLabel}
@@ -740,12 +731,13 @@ export function ExamsPageShell() {
               ) : isLoading ? (
                 <MyExamsLoadingState />
               ) : records.length === 0 ? (
-                <EmptyState
-                  icon={FileSearch}
-                  title={tabMeta.emptyTitle}
-                  description={tabMeta.emptyDescription}
+                <div
+                  className="grid gap-4 rounded-[28px] border border-dashed border-border/80 bg-muted/90 px-6 py-12 text-center"
                   data-testid="my-exams-empty"
-                  actions={
+                >
+                  <FileSearch className="mx-auto size-8 text-muted-foreground" />
+                  <EmptyState title={tabMeta.emptyTitle} description={tabMeta.emptyDescription} />
+                  <div>
                     <Button
                       type="button"
                       variant="outline"
@@ -756,8 +748,8 @@ export function ExamsPageShell() {
                       <RefreshCcw />
                       重置筛选
                     </Button>
-                  }
-                />
+                  </div>
+                </div>
               ) : (
                 <>
                   <MyExamList records={records} />
